@@ -347,9 +347,7 @@ grunt.initConfig({
 	grunt.loadNpmTasks('grunt-jsdoc');
 
 	
-	
-	
-	//grunt.registerTask("default", [ "replace","concat", "uglify","copy",'jsdoc']);
-	grunt.registerTask("default", [ "concat","replace", "uglify","copy"]);
+	//grunt.registerTask("default", [ "concat","replace", "uglify","copy"]);
+	grunt.registerTask("default", [ "concat","replace", "uglify"]);
 	grunt.registerTask("dev", [ "replace","concat","copy"]);
 };

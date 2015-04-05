@@ -1,0 +1,17 @@
+
+test polygon points inside
+http://alienryderflex.com/polygon/
+
+
+gdal make geojson
+http://vallandingham.me/shapefile_to_geojson.html
+
+geodata
+https://github.com/johan/world.geo.json
+
+
+http://giscollective.org/tutorials/gis-techniques/spatial-data-conversion-using-python/
+
+//18/20 ogréogr osm to geojson
+http://www.portailsig.org/content/recuperer-des-donnees-openstreetmap-gdalogr
+

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Titre de la page</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="jenscript.js"></script>
+</head>
+<body>
+  <div style="padding: 20px; background-color : red;" onmousemove="move(event);" onclick="console.log('click 1');">
+  		<div style="padding: 20px; background-color : blue;">
+  			<div style="padding: 20px; background-color : yellow;">
+  			text text text
+  			</div>
+  		</div>
+  </div>
+  
+  
+  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="view_map" viewBox="0 0 900 600" width="900" height="600">
+  	<g id="view_map_dispatcher" pointer-events="all">
+	  	<svg id="view_map_South_dispatcher" x="0px" y="590px" width="900px" height="10px">
+	  		<rect id="view_map_dispatcher" x="0" y="0" width="900" height="10" style="stroke: black;stroke-opacity: 0; fill: #0000ff;fill-opacity :0"></rect>
+	  	</svg>
+	  	<svg id="view_map_North_dispatcher" x="0px" y="0px" width="900px" height="10px">
+	  		<rect id="view_map_dispatcher" x="0" y="0" width="900" height="10" style="stroke: black;stroke-opacity: 0; fill: #0000ff;fill-opacity :0"></rect>
+	  	</svg>
+	  	<svg id="view_map_East_dispatcher" x="890px" y="10px" width="10px" height="580px">
+	  		<rect id="view_map_dispatcher" x="0" y="0" width="10" height="580" style="stroke: black;stroke-opacity: 0; fill: #0000ff;fill-opacity :0"></rect>
+	  	</svg>
+	  	<svg id="view_map_West_dispatcher" x="0px" y="10px" width="10px" height="580px">
+	  		<rect id="view_map_dispatcher" x="0" y="0" width="10" height="580" style="stroke: black;stroke-opacity: 0; fill: #0000ff;fill-opacity :0"></rect>
+	  	</svg>
+	  	<svg id="view_map_Device_dispatcher" x="10px" y="10px" width="880px" height="580px" pointer-events="all">
+	  		<rect  pointer-events="all" id="view_map_dispatcher_device" x="0" y="0" width="880" height="580" style="stroke: black;stroke-opacity: 0; fill: #0000ff;fill-opacity :0"></rect>
+	  	</svg>
+  	</g>
+  	<g id="view_demoView_projections">
+  		<svg id="proj_2538" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 600 400">
+  		<defs id="proj_2538_definitions"></defs>
+  		<g xmlns="http://www.w3.org/2000/svg" id="proj_2538_parts">
+  				
+  			<svg id="proj_2538_Device" x="20" y="20" width="560" height="360">
+  				<g id="proj_2538_Device_plugins">
+  					<g id="proj_2538_Device_plugin_DeviceOutlinePlugin_2539">
+  						<defs id="proj_2538_Device_plugin_DeviceOutlinePlugin_2539_definition"></defs>
+  						<g id="proj_2538_Device_plugin_DeviceOutlinePlugin_2539_graphics">
+  							<rect pointer-events="none" x="0.5" y="0.5" width="559" height="359" stroke="rgb(22, 125, 218)" stroke-width="1" fill="green" ></rect>
+  						</g>
+  					</g>
+  				</g>
+  			</svg>
+  		</g>
+  		</svg>
+  	</g>
+  </svg>
+</body>
+
+<script type="text/javascript">
+var s = document.getElementById('view_map_dispatcher_device');
+s.addEventListener("mousemove", function(evt){console.log('mousemove');},false);
+s.addEventListener("mouseclick", function(evt){console.log('mouseclick');},false);
+s.addEventListener("mousedown", function(evt){console.log('mousedown');},false);
+s.addEventListener("mouseup", function(evt){console.log('mouseup');},false);
+s.addEventListener("mouseover", function(evt){console.log('mouseover');},false);
+s.addEventListener("mouseout", function(evt){console.log('mouseout');},false);
+</script>
+
+
+</html>

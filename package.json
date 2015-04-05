@@ -1,6 +1,7 @@
 {
   "name": "jenscript",
   "version": "1.0.0",
+  "keyords" : ["javascript","w3c","svg","charts"],
   "description": "JavaScript SVG library to create charts components.",
   "main": "index.js",
   "scripts": {
