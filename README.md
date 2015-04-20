@@ -19,7 +19,7 @@ Want to learn more ? [See JenSoft website.](https://www.jensoftapi.com/site/fram
 - Metrics : Advanced metrics plugins based on metrics solvers such as exponent or timing model solvers.
 - Circular Widgets : Pie, Donut3D, Donut2D, Bubble.
 - Functions : Area, Curve and Scatter Function (Line/Spline Interpolated).
-- Plot : Point join by simple line or famous parametric curves such as bezier, cubic or b-spline curves.
+- Plot : Points join by simple line or famous parametric curves such as bezier, cubic or b-spline curves.
 - Text Legend and Data Legend.
 - Decorator : Background, Foreground, Outline, Grid and Stripe line.
 - Symbol Charts : Bar, StackedBar, Point & Curve Symbols.
