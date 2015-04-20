@@ -1,9 +1,8 @@
 # jenscript
 JavaScript HTML5/SVG library to create charts components in modern browser.
 
-Learn more ? [See JenSoft website.](https://www.jensoftapi.com/site/framework/jenscript)
+Want to learn more ? [See JenSoft website.](https://www.jensoftapi.com/site/framework/jenscript)
 
-Want to learn more? [Visit JenSoft APIs site] (https://www.jensoftapi.com/site/home)
 
 <div style="float:left">
 <img width="180" height="140" src="https://www.jensoftapi.com/site/WebViewRequest?group=overview&amp;view=pie&amp;width=800&amp;height=600" >
