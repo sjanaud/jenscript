@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN"    
+          "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd" >
+<!-- ======================================================================= -->
+<!-- Vincent Hardy                                                           -->
+<!-- License terms: see svg-wow.org                                         -->
+<!-- CC0 http://creativecommons.org/publicdomain/zero/1.0/                   -->
+<!-- ======================================================================= -->
+
+<?xml-stylesheet type="text/css" href="intro.css" ?>
+<svg width="100%" height="100%"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <rect x="0%" y="0%" width="100%" height="100%" fill="black" />
+
+<svg width="800" height="550" viewBox="400 225 800 550"
+     x="50%" y="50%"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <script><![CDATA[
+function moveLight (x, y, pointsAtX, pointsAtY, azimuth, dx, dy) {
+    var spotLight = document.getElementById("spotLight");
+    var distantLight = document.getElementById("distantLight");
+    var offset = document.getElementById("offset");
+
+    spotLight.setAttribute("x", x);
+    spotLight.setAttribute("y", y);
+    spotLight.setAttribute("pointsAtX", pointsAtX);
+    spotLight.setAttribute("pointsAtY", pointsAtY);
+    distantLight.setAttribute("azimuth", azimuth);
+    offset.setAttribute("dx", dx);
+    offset.setAttribute("dy", dy);
+}
+    ]]></script>
+
+    <defs>
+        <filter id="glow" height="150%" y="-25%">
+            <feFlood flood-color="white" />
+            <feComposite in2="SourceAlpha" operator="in" />
+            <feGaussianBlur stdDeviation="4" />
+            <feComponentTransfer>
+                <feFuncA type="linear" slope="3" intercept="0" />
+            </feComponentTransfer>
+            <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+            </feMerge>
+        </filter>
+
+        <filter id="chiseled" filterUnits="userSpaceOnUse" x="0" y="0" width="600" height="400">
+            <!-- =========================================================== -->
+            <!-- Background lighting                                         -->
+            <!-- =========================================================== -->
+            <!-- Base texture . Build a texture map from it -->
+            <feImage xlink:href="rust.jpg" result="texture"/>
+            <feMerge result="textureAndGraphic">
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+            </feMerge>
+            <feColorMatrix type="luminanceToAlpha" in="texture" result="textureMap"/>
+
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
+
+            <feDiffuseLighting in="textureMap" surfaceScale="2" lighting-color="white"
+                          diffuseConstant="1" result="backgroundDiff">
+                <feSpotLight id="spotLight" x="50" y="50" z="150"
+                             pointsAtX="150" pointsAtY="150" pointsAtZ="0"
+                             specularExponent="8" />
+            </feDiffuseLighting>
+
+            <feDiffuseLighting in="blur" surfaceScale="6" lighting-color="white"
+                          diffuseConstant="1.2" result="foregroundDiffAll">
+                <feDistantLight id="distantLight" azimuth="-135" elevation="40" />
+            </feDiffuseLighting>
+            <feComponentTransfer>
+                <feFuncR type="gamma" amplitude="1" exponent="3" offset="0"/>
+                <feFuncG type="gamma" amplitude="1" exponent="3" offset="0"/>
+                <feFuncB type="gamma" amplitude="1" exponent="3" offset="0"/>
+            </feComponentTransfer>
+            <feComposite operator="in" in2="SourceAlpha"/>
+            <feConvolveMatrix order="3" kernelMatrix="0.0625 0.0625 0.0625
+                                                     0.0625 0.5 0.0625
+                                                     0.0625 0.0625 0.0625"
+                                                       result="foregroundDiff"/>
+
+            <feMerge result="diff">
+                <feMergeNode in="backgroundDiff" />
+                <feMergeNode in="foregroundDiff" />
+            </feMerge>
+
+            <feColorMatrix type="luminanceToAlpha" in="diff" result="screenMask"/>
+            <feComponentTransfer result="multiplyMask">
+                <feFuncA type="linear" slope="-1" intercept="1"/>
+            </feComponentTransfer>
+
+            <feBlend mode="screen" in2="textureAndGraphic" in="diff" result="screen"/>
+            <feBlend mode="multiply" in2="textureAndGraphic" in="diff" result="multiply"/>
+
+            <feComposite operator="in" in="screen" in2="screenMask" result="maskedScreen"/>
+            <feComposite operator="in" in="multiply" in2="multiplyMask" result="maskedMultiply"/>
+
+            <feComposite operator="arithmetic" in="maskedScreen" in2="maskedMultiply"
+                        k1="0" k2="1" k3="1" k4="0" result="background" />
+
+
+            <!-- =========================================================== -->
+            <!-- Shadow                                                      -->
+            <!-- =========================================================== -->
+            <!-- Create a blur to build the shadow. -->
+            <feMorphology operator="dilate" in="SourceAlpha" radius="4" />
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feOffset id="offset" dx="12" dy="12" result="offsetBlur"/>
+            <feComposite in2="SourceAlpha" operator="out" result="shadow" />
+
+            <feMerge>
+                <feMergeNode in="background" />
+                <feMergeNode in="shadow"/>
+            </feMerge>
+        </filter>
+
+    </defs>
+
+    <g transform="translate(100,50)">
+       <g>
+           <g font-weight="normal" text-anchor="middle" font-family="Garamond">               
+               <text x="300" y="230" font-size="150"
+                  fill="rgb(255, 136, 83)" filter="url(#chiseled)">JenScript</text>
+               <g transform="translate(35,295)" font-family="'Garamond'"
+                  font-weight="bold" font-size="30" filter="url(#glow)">
+                    <text x="200">JenSoft script for SVG</text>
+                    
+                </g>
+           </g>
+        </g>
+    </g>
+
+
+    <g id="topRight" transform="translate(570, 10)" cursor="pointer" onclick="moveLight(550, 50, 400, 150, -45, -12, 12)">
+        <rect width="20" height="10" fill="silver" stroke="gray" />
+        <circle cx="17.5" cy="2.5" r="2" fill="crimson" />
+    </g>
+
+    <g id="bottomRight" transform="translate(545, 10)" cursor="pointer" onclick="moveLight(550, 350, 400, 200, 45, -12, -12)">
+        <rect width="20" height="10" fill="silver" stroke="gray" />
+        <circle cx="17.5" cy="7.5" r="2" fill="crimson" />
+    </g>
+
+    <g id="topLeft" transform="translate(520, 10)" cursor="pointer" onclick="moveLight(50, 50, 150, 150, -135, 12, 12)">
+        <rect width="20" height="10" fill="silver" stroke="gray" />
+        <circle cx="2.5" cy="2.5" r="2" fill="crimson" />
+    </g>
+
+    <g id="bottomLeft" transform="translate(495, 10)" cursor="pointer" onclick="moveLight(50, 350, 150, 200, 135, 12, -12)">
+        <rect width="20" height="10" fill="silver" stroke="gray" />
+        <circle cx="2.5" cy="7.5" r="2" fill="crimson" />
+    </g>
+
+    <text font-size="15px" font-family="sans-serif" text-anchor="end" fill="silver" x="485" y="18">click on symbols to change light position:</text>
+</svg>
+</svg>

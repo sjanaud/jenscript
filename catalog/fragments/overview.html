@@ -1,0 +1,1341 @@
+<span class="boldmarron" style="font-size:24px;font-family: 'myriad', sans-serif;">Overview</span>
+
+	<p style="padding-top: 40px; text-align: justify;">
+		<i class="icon-hand-right"></i>&nbsp;<span class="boldmarron">JenScript&#153;</span> is a <span class="boldmarron">pure JavaScript SVG</span> library framework to make interactive JavaScript charts. API provides a complete charting solution for your Web Application and a plugin developer API to extend core features. It provides advanced features you've come to expect with minimal integration efforts. Framework gives developers a very flexible toolkit solution for a wide variety of javascript chart and data visualization needs. The API can be used in many businesses such as reporting, health, finance or science and technology softwares.						
+	</p>
+	
+	<p  style="text-align: justify;">
+		<i class="icon-hand-right"></i>&nbsp;<span class = "boldmarron">JenScript JS Framework provides data oriented plug-ins for most of commons charts</span> components: Curve or Line, Plot or Scatter, Area, Stacked Area, Bar Symbol, Stacked Bar Symbol, Point Symbol,Stock, Pie, Pie 3D, Donut2D, Scan, Legend, Cloud points, Real time, Map GeoJSON.You can easily extend and override components to meet your needs.
+	</p>
+	
+	<p style="text-align: justify;">
+	 <i class="icon-hand-right"></i>&nbsp;<span class = "boldmarron">JenScript JS Framework provides tool oriented plug-ins for most of commons transforms</span> and user/chart interaction: Zoom Box, Zoom Lens, Zoom Wheel, Zoom Percent, Translate and Marker. This plug-ins generally offers nice transition during process operations and nice widgets and popup context to lock tool, launch commands and perform other user intents. 
+	</p>
+	
+	<p style="text-align: justify;">
+		<i class="icon-hand-right"></i>&nbsp;<span class = "boldmarron">JS Feature Documentation</span> : Browse features to get the component description and JenScript catalog view sources.
+	</p>
+	
+	<p style="text-align: justify;">
+		<i class="icon-hand-right"></i>&nbsp;<span class = "boldmarron">Javascript Charts driven development by online chart samples</span> 
+	</p>
+	
+	
+	<div style="float : left; padding-top: 20px;">
+		<div style="float : left;" id="pieJSOverview"></div>
+		<div style="float : left;" id="donut3DJSOverview"></div>
+		<div style="float : left;" id="donut2DJSOverview"></div>
+		<div style="float : left;" id="curveJSOverview"></div>
+		<div style="float : left;" id="areaJSOverview"></div>
+		<div style="float : left;" id="scatterJSOverview"></div>
+		<div style="float : left;" id="bubbleJSOverview"></div>
+		<div style="float : left;" id="mapJSOverview"></div>
+		<div style="float : left;" id="barJSOverview"></div>
+		<div style="float : left;" id="barstackJSOverview"></div>
+		<div style="float : left;" id="candlestickJSOverview"></div>
+	</div>
+	
+	<script type="text/javascript">
+	
+	function candlestick(container, width, height,scale) {
+
+		//view
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 40,
+			scale:scale
+		});
+
+		
+		//date range
+		var startDate = new Date(2013, 08, 20);
+		var endDate = new Date(2013, 10, 10);
+
+		var proj1 = new JenScript.TimeXProjection({
+			cornerRadius : 6,
+			name : "proj1",
+			minXDate : startDate,
+			maxXDate : endDate,
+			minY : 20,
+			maxY : 22.5
+		});
+		view.registerProjection(proj1);
+		
+		//device outline
+		var outline = new JenScript.DeviceOutlinePlugin({color : 'darkslategrey'});
+		proj1.registerPlugin(outline);
+
+
+		var southMetrics1 = new JenScript.AxisMetricsTiming({
+			axis : JenScript.Axis.AxisSouth,
+			models : [new JenScript.HourModel({}),new JenScript.DayModel({}),new JenScript.MonthModel({})],
+			minor : {
+				tickMarkerSize : 2,
+				tickMarkerColor : JenScript.RosePalette.AEGEANBLUE,
+				tickMarkerStroke : 1
+			},
+			median : {
+				tickMarkerSize : 4,
+				tickMarkerColor : JenScript.RosePalette.EMERALD,
+				tickMarkerStroke : 1.2,
+				tickTextColor : JenScript.RosePalette.EMERALD,
+				tickTextFontSize : 10
+			},
+			major : {
+				tickMarkerSize : 8,
+				tickMarkerColor : JenScript.RosePalette.CORALRED,
+				tickMarkerStroke : 3,
+				tickTextColor : JenScript.RosePalette.CORALRED,
+				tickTextFontSize : 12,
+				tickTextOffset : 16
+			}
+		});
+		proj1.registerPlugin(southMetrics1);
+		
+		
+		var westMetrics = new JenScript.AxisMetricsModeled({
+			axis : JenScript.Axis.AxisWest
+		});
+		proj1.registerPlugin(westMetrics);
+
+		var tx1 = new JenScript.TranslatePlugin();
+		proj1.registerPlugin(tx1);
+		var tpad = new JenScript.TranslatePad();
+		tx1.registerWidget(tpad);
+		tx1.registerWidget(new JenScript.TranslateCompassWidget({
+			ringFillColor : 'pink'
+		}));
+		tx1.select();
+
+		var wheel = new JenScript.ZoomWheelPlugin();
+		proj1.registerPlugin(wheel);
+
+		var stockPlugin = new JenScript.StockPlugin({
+			bearishColor : JenScript.RosePalette.CORALRED,
+			bullishColor : JenScript.RosePalette.EMERALD,
+		});
+		proj1.registerPlugin(stockPlugin);
+
+		stockPlugin.addLayer(new JenScript.CandleStickLayer({
+			lowHighColor : JenScript.RosePalette.COALBLACK
+		}));
+
+		var legend = new JenScript.TitleLegendPlugin({
+			layout : 'relative',
+			part   : JenScript.ViewPart.Device,
+			text   : 'SLV Fixing',
+			fontSize : 14,
+			textColor : 'purple',
+			xAlign : 'right',
+			yAlign : 'top',
+		});
+		proj1.registerPlugin(legend);
+		
+		var loader = new StockLoader(proj1,[2013,2014],function(year,stocks){
+			stockPlugin.setStocks(stocks);
+		});
+
+	}
+	
+	try {
+		candlestick('candlestickJSOverview',220*2,180*2,0.5);
+	} catch (e) {
+		// TODO: handle exception
+	}
+	
+	function barstack(container, width, height,scale) {
+
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			west : 80,
+			south:60,
+			scale : scale
+		});
+		
+	
+
+		var proj = new JenScript.LinearProjection({
+			name : "proj",
+			paintMode : 'ACTIVE',
+			minX : 0,
+			maxX : 0,
+			minY : -100,
+			maxY : 1200
+		});
+		view.registerProjection(proj);
+
+		var outline = new JenScript.DeviceOutlinePlugin({
+			color : 'pink'
+		});
+
+		proj.registerPlugin(outline);
+		
+		var metrics = new JenScript.AxisMetricsModeled({
+			axis : JenScript.Axis.AxisWest,
+			minor : {
+				tickMarkerSize : 2,
+				tickMarkerColor : JenScript.RosePalette.AEGEANBLUE,
+				tickMarkerStroke : 1
+			},
+			median : {
+				tickMarkerSize : 4,
+				tickMarkerColor : JenScript.RosePalette.EMERALD,
+				tickMarkerStroke : 1.2,
+				tickTextColor : JenScript.RosePalette.EMERALD,
+				tickTextFontSize : 10
+			},
+			major : {
+				tickMarkerSize : 8,
+				tickMarkerColor : JenScript.RosePalette.TURQUOISE,
+				tickMarkerStroke : 3,
+				tickTextColor : JenScript.RosePalette.TURQUOISE,
+				tickTextFontSize : 12
+			}
+		});
+		proj.registerPlugin(metrics);
+		
+		var gridPlugin = new JenScript.GridModeledPlugin({
+			gridOrientation : 'Horizontal',
+			gridColor : 'white',
+			gridWidth : 0.5,
+			gridOpacity : 0.5
+		});
+		proj.registerPlugin(gridPlugin);
+		
+		//TOOL
+		var tx1 = new JenScript.TranslatePlugin();
+		proj.registerPlugin(tx1);
+		tx1.registerWidget(new JenScript.TranslateCompassWidget({
+			ringFillColor : 'pink'
+		}));
+		tx1.select();
+		
+		var zoomwheel = new JenScript.ZoomWheelPlugin({
+			mode : 'wheelY'
+		});
+		proj.registerPlugin(zoomwheel);
+		
+		//BAR
+		var symbolPlugin = new JenScript.SymbolPlugin({
+			nature : 'Vertical'
+		});
+		proj.registerPlugin(symbolPlugin);
+		
+		var barLayer = new JenScript.SymbolBarLayer();
+		symbolPlugin.addLayer(barLayer);
+		
+		
+		var butter1 = 'rgb(249, 235, 113)';
+	    var butter2 = 'rgb(236, 216, 59)';
+	    var butter3 = 'rgb(199, 174, 47)';
+
+	    var orange1 = 'rgb(240, 187, 91)';
+	    var orange2 = 'rgb(231, 143, 45)';
+	    var orange3 = 'rgb(191, 118, 41)';
+
+
+	    var chameleon1 = 'rgb(176, 224, 88)';
+	    var chameleon2 = 'rgb(156, 210, 62)';
+	    var chameleon3 = 'rgb(121, 163, 39)';
+	    
+		var bar1,bar2,bar3,s1,s2,s3;
+		
+		bar1 = new JenScript.SymbolBarStacked({
+				name : 'the stacked bar',
+				base : 0,
+				value: 600,
+				thickness : 32,
+				direction : 'ascent',
+				morpheStyle : 'Round',
+				round : 8,
+				barStroke : new JenScript.SymbolBarStroke({
+					strokeColor: 'white'
+				}),
+				barFill : new JenScript.SymbolBarFill0({}),
+				barEffect  : new JenScript.SymbolBarEffect1({}),
+		   });
+	   
+	    
+		  s1 = new JenScript.SymbolStack({
+			name : 'stack1',
+			themeColor : chameleon1,
+			stackValue : 6
+		  });
+		  s2 = new JenScript.SymbolStack({
+			name : 'stack2',
+			themeColor : chameleon2,
+			stackValue : 12
+		  });
+		  s3 = new JenScript.SymbolStack({
+			name : 'stack3',
+			themeColor : chameleon3,
+			stackValue : 26
+		});
+		
+		bar1.addStack(s1);
+		bar1.addStack(s2);
+		bar1.addStack(s3);
+		
+		
+		bar2 = new JenScript.SymbolBarStacked({
+			name : 'the stacked bar',
+			base : 0,
+			value: 800,
+			thickness : 32,
+			direction : 'ascent',
+			morpheStyle : 'Round',
+			round : 8,
+			barStroke : new JenScript.SymbolBarStroke({
+				strokeColor: 'white'
+			}),
+			barFill : new JenScript.SymbolBarFill0({}),
+			barEffect  : new JenScript.SymbolBarEffect1({}),
+	   });
+
+
+		s1 = new JenScript.SymbolStack({
+			name : 'stack1',
+			themeColor : butter1,
+			stackValue : 10
+		  });
+	  	s2 = new JenScript.SymbolStack({
+			name : 'stack2',
+			themeColor : butter2,
+			stackValue : 20
+	  	});
+	  	s3 = new JenScript.SymbolStack({
+			name : 'stack3',
+			themeColor : butter3,
+			stackValue : 40
+	  	});
+
+		bar2.addStack(s1);
+		bar2.addStack(s2);
+		bar2.addStack(s3);
+		
+		bar3 = new JenScript.SymbolBarStacked({
+			name : 'the stacked bar',
+			base : 0,
+			value: 500,
+			thickness : 32,
+			direction : 'ascent',
+			morpheStyle : 'Round',
+			round : 8,
+			barStroke : new JenScript.SymbolBarStroke({
+				strokeColor: 'white'
+			}),
+			barFill : new JenScript.SymbolBarFill0({}),
+			barEffect  : new JenScript.SymbolBarEffect1({}),
+	   });
+
+
+		s1 = new JenScript.SymbolStack({
+			name : 'stack1',
+			themeColor : orange1,
+			stackValue : 20
+		  });
+	  	s2 = new JenScript.SymbolStack({
+			name : 'stack2',
+			themeColor : orange2,
+			stackValue : 20
+	  	});
+	  	s3 = new JenScript.SymbolStack({
+			name : 'stack3',
+			themeColor : orange3,
+			stackValue : 69
+	  	});
+
+		bar3.addStack(s1);
+		bar3.addStack(s2);
+		bar3.addStack(s3);
+		
+		barLayer.addSymbol(JenScript.SymbolFiller.createGlue());
+		barLayer.addSymbol(bar1);
+		barLayer.addSymbol(JenScript.SymbolFiller.createStrut(40));
+		barLayer.addSymbol(bar2);
+		barLayer.addSymbol(JenScript.SymbolFiller.createStrut(40));
+		barLayer.addSymbol(bar3);
+		barLayer.addSymbol(JenScript.SymbolFiller.createGlue());
+		
+		
+	}
+	try {
+		barstack('barstackJSOverview',220*2,180*2,0.5);
+	} catch (e) {
+		// TODO: handle exception
+	}
+	
+	function bar(container, width, height,scale) {
+
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			scale : scale,
+			west : 80,
+			south:60
+		});
+		
+	
+		var proj = new JenScript.LinearProjection({
+			name : "proj",
+			paintMode : 'ACTIVE',
+			minX : 0,
+			maxX : 0,
+			minY : -100,
+			maxY : 1200
+		});
+		view.registerProjection(proj);
+
+		var outline = new JenScript.DeviceOutlinePlugin({
+			color : 'pink'
+		});
+
+		proj.registerPlugin(outline);
+		
+		var metrics = new JenScript.AxisMetricsModeled({
+			axis : JenScript.Axis.AxisWest,
+			minor : {
+				tickMarkerSize : 2,
+				tickMarkerColor : JenScript.RosePalette.AEGEANBLUE,
+				tickMarkerStroke : 1
+			},
+			median : {
+				tickMarkerSize : 4,
+				tickMarkerColor : JenScript.RosePalette.EMERALD,
+				tickMarkerStroke : 1.2,
+				tickTextColor : JenScript.RosePalette.EMERALD,
+				tickTextFontSize : 10
+			},
+			major : {
+				tickMarkerSize : 8,
+				tickMarkerColor : JenScript.RosePalette.TURQUOISE,
+				tickMarkerStroke : 3,
+				tickTextColor : JenScript.RosePalette.TURQUOISE,
+				tickTextFontSize : 12
+			}
+		});
+		proj.registerPlugin(metrics);
+		
+		var gridPlugin = new JenScript.GridModeledPlugin({
+			gridOrientation : 'Horizontal',
+			gridColor : 'white',
+			gridWidth : 0.5,
+			gridOpacity : 0.5
+		});
+		proj.registerPlugin(gridPlugin);
+		
+		//TOOL
+		var tx1 = new JenScript.TranslatePlugin();
+		proj.registerPlugin(tx1);
+		tx1.registerWidget(new JenScript.TranslateCompassWidget({
+			ringFillColor : 'pink'
+		}));
+		tx1.select();
+		
+		var zoomwheel = new JenScript.ZoomWheelPlugin({
+			mode : 'wheelY'
+		});
+		proj.registerPlugin(zoomwheel);
+		
+		//BAR
+		var symbolPlugin = new JenScript.SymbolPlugin({
+			nature : 'Vertical'
+		});
+		proj.registerPlugin(symbolPlugin);
+		
+		var barLayer = new JenScript.SymbolBarLayer();
+		symbolPlugin.addLayer(barLayer);
+		
+	    
+		var bar1 = new JenScript.SymbolBar({
+			base : 0,
+			value: 200,
+			thickness : 32,
+			direction : 'ascent',
+			morpheStyle : 'Round',
+			themeColor : JenScript.Color.brighten('rgb(53, 121, 170)',20),
+			opacity : 1,
+			barFill : new JenScript.SymbolBarFill0({}),
+			barEffect  : new JenScript.SymbolBarEffect0({}),
+		});
+		var bar2 = new JenScript.SymbolBar({
+			base : 0,
+			value: 400,
+			thickness : 32,
+			direction : 'ascent',
+			morpheStyle : 'Round',
+			themeColor : JenScript.Color.brighten('rgb(124, 159, 93)',20),
+			opacity : 1,
+			barFill : new JenScript.SymbolBarFill0({}),
+			barEffect  : new JenScript.SymbolBarEffect1({}),
+		});
+		var bar3 = new JenScript.SymbolBar({
+			base : 0,
+			value: 300,
+			thickness : 32,
+			direction : 'ascent',
+			morpheStyle : 'Round',
+			themeColor : JenScript.Color.brighten('rgb(223, 172, 63)',20),
+			opacity : 1,
+			barFill : new JenScript.SymbolBarFill0({}),
+			barEffect  : new JenScript.SymbolBarEffect2({}),
+		});
+		var bar4 = new JenScript.SymbolBar({
+			base : 0,
+			value: 200,
+			thickness : 32,
+			direction : 'ascent',
+			morpheStyle : 'Round',
+			themeColor : JenScript.Color.brighten(JenScript.RosePalette.CORALRED,20),
+			opacity : 1,
+			barStroke :  new JenScript.SymbolBarStroke({strokeColor:'white'}),
+			barFill : new JenScript.SymbolBarFill0({}),
+			barEffect  : new JenScript.SymbolBarEffect3({}),
+		});
+		
+		
+		barLayer.addSymbol(JenScript.SymbolFiller.createGlue());
+		barLayer.addSymbol(bar1);
+		barLayer.addSymbol(JenScript.SymbolFiller.createStrut(50));
+		barLayer.addSymbol(bar2);
+		barLayer.addSymbol(JenScript.SymbolFiller.createStrut(50));
+		barLayer.addSymbol(bar3);
+		barLayer.addSymbol(JenScript.SymbolFiller.createStrut(50));
+		barLayer.addSymbol(bar4);
+		barLayer.addSymbol(JenScript.SymbolFiller.createGlue());
+		
+		
+
+		
+	}
+	
+	try {
+		bar('barJSOverview',220*2,180*2,0.5);
+	} catch (e) {
+		// TODO: handle exception
+	}
+	
+	function map(container, width, height) {
+
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 40,
+		});
+
+
+		var proj = new JenScript.MapProjection({
+			level : 0
+		});
+		view.registerProjection(proj);
+
+		var outline = new JenScript.DeviceOutlinePlugin({
+			color : 'black'
+		});
+		proj.registerPlugin(outline);
+
+
+
+		//var bg = new JenScript.MapBackgroundPlugin();
+
+		var geojsonPlugin = new JenScript.GeoJSONPlugin({});
+		proj.registerPlugin(geojsonPlugin);
+		
+		geojsonPlugin.addGeoListener('register', function(event){
+			var feature =event.feature;
+			
+			//for us states
+			//console.log('register feature'+feature.Id+" with code : "+feature.getProperty('adm1_code'));
+			
+			//for country
+			//console.log('register feature'+feature.Id+" with code : "+feature.getProperty('sovereignt'));
+			if(feature.getProperty('sovereignt') === 'France'){
+				feature.fillColor   = JenScript.RosePalette.CORALRED;
+				feature.fillOpacity = 0.3;
+				feature.strokeColor = 'white';
+				feature.strokeWidth = 1;
+			}
+			
+			//on register you can prepare your feature rendering property
+		},'map demo');
+		
+		geojsonPlugin.addGeoListener('press', function(event){
+			//console.log('press '+event.type);
+			
+			//on event you can remote your feature
+			var remote = event.remote;
+			remote.fill('purple');
+			remote.fillOpacity(0.4);
+			remote.stroke('white');
+			
+		},'map demo');
+		
+		geojsonPlugin.addGeoListener('release', function(event){
+			//console.log('release '+event.type);
+		},'map demo');
+
+		geojsonPlugin.addGeoListener('move', function(event){
+			//console.log('move '+event.type);
+		},'map demo');
+
+		
+		
+		var MapLoader = function(assets,callback){
+			 this.loadMap = function(){
+				var dataWorker = new Worker(JenSoft.Context.path+ '/module/javascript/catalog/map/DataWorker.js');
+				dataWorker.addEventListener("message", function(event) {
+					
+					//console.log('data receive : '+event.data);
+					var geoJSON = JSON.parse(event.data);
+					if(callback !== undefined)
+						callback(geoJSON);
+				}, false);
+				
+				for (var i = 0; i < assets.length; i++) {
+					dataWorker.postMessage(assets[i]);
+				}
+				
+			};
+			this.loadMap();
+		};
+		
+		var loader = new MapLoader(['countries.geojson'],function(geoJSON){
+			geojsonPlugin.addGeoJSON(geoJSON);
+		});
+		
+
+	}
+	
+	try {
+		map('mapJSOverview',220,180);
+	} catch (e) {
+		// TODO: handle exception
+	}
+	function bubbles(container, width, height) {
+
+		//view
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 40,
+		});
+
+		
+		//projection
+		var proj = new JenScript.LinearProjection({
+			name : "proj1",
+			minX : 250,
+			maxX : 800,
+			minY : -600,
+			maxY : 1600
+		});
+		view.registerProjection(proj);
+
+		var outline = new JenScript.DeviceOutlinePlugin({
+			color : 'pink'
+		});
+		proj.registerPlugin(outline);
+		
+		//metrics
+		var minor = {
+				tickMarkerSize : 2,
+				tickMarkerColor : 'cyan',
+				tickMarkerStroke : 1
+			};
+			var median = {
+				tickMarkerSize : 4,
+				tickMarkerColor : 'cyan',
+				tickMarkerStroke : 1.2,
+				tickTextColor : 'cyan',
+				tickTextFontSize : 10
+			};
+			var major = {
+				tickMarkerSize : 8,
+				tickMarkerColor : JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE),
+				tickMarkerStroke : 3,
+				tickTextColor : JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE),
+				tickTextFontSize : 12
+			};
+			var southMetrics = new JenScript.AxisMetricsModeled({
+				axis : JenScript.Axis.AxisSouth,
+				minor : minor,
+				median : median,
+				major :major
+			});
+			proj.registerPlugin(southMetrics);
+			
+			var westMetrics = new JenScript.AxisMetricsModeled({
+				axis : JenScript.Axis.AxisWest, gravity :'natural', //gravity :'rotate'
+				minor : minor,
+				median : median,
+				major :major
+			});
+			proj.registerPlugin(westMetrics);
+		
+			
+		//translate
+		var translate = new JenScript.TranslatePlugin();
+		proj.registerPlugin(translate);
+
+		//wheel
+		var wheel = new JenScript.ZoomWheelPlugin();
+		proj.registerPlugin(wheel);
+		
+		
+		translate.select();
+		
+
+		var bubblePlugin = new JenScript.BubblePlugin();
+		proj.registerPlugin(bubblePlugin);
+		
+		var b1 = new JenScript.Bubble({
+			center : {x : 500, y:500},
+			radius : 60,
+			fillColor : 'green',
+			strokeColor : 'orange',
+			fillOpacity:0.2,
+			strokeOpacity:0.7,
+			strokeWidth:2
+		});
+		
+		var b2 = new JenScript.Bubble({
+			center : {x : 200, y:500},
+			radius : 40,
+			fillColor : 'blue',
+			strokeColor : 'black',
+			fillOpacity:0.2,
+			strokeOpacity:0.8,
+			strokeWidth:2
+		});
+		
+		var b3 = new JenScript.Bubble({
+			center : {x : 500, y:200},
+			radius : 30,
+			fillColor : 'coral',
+			strokeColor : 'red',
+			fillOpacity:0.4,
+			strokeOpacity:0.8,
+			strokeWidth:2
+		});
+		
+		var b4 = new JenScript.Bubble({
+			center : {x : 20, y:350},
+			radius : 20,
+			fillColor : 'purple',
+			strokeColor : 'yellow',
+			fillOpacity:0.4,
+			strokeOpacity:1,
+			strokeWidth:2
+		});
+		
+		var b5 = new JenScript.Bubble({
+			center : {x : 300, y:100},
+			radius : 10,
+			fillColor : 'pink',
+			strokeColor : 'blue',
+			fillOpacity:0.4,
+			strokeOpacity:0.3,
+			strokeWidth:2
+		});
+		
+		bubblePlugin.addBubble(b1).addBubble(b2).addBubble(b3).addBubble(b4).addBubble(b5);
+		
+	}
+	
+	try {
+		bubbles('bubbleJSOverview',220,180);
+	} catch (e) {
+		// TODO: handle exception
+	}
+	
+	
+	
+	
+	function scatter(container, width, height,scale) {
+		
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 40,
+			scale :scale
+			
+		});
+
+		var proj = new JenScript.LinearProjection({
+			name : "proj1",
+			minX : 3,
+			maxX : 9,
+			minY : 3,
+			maxY : 9
+		});
+		view.registerProjection(proj);
+
+		var outline = new JenScript.DeviceOutlinePlugin({
+			color : 'pink'
+		});
+		proj.registerPlugin(outline);
+
+		var southMetrics = new JenScript.AxisMetricsModeled({
+			axis : JenScript.Axis.AxisSouth
+		});
+		proj.registerPlugin(southMetrics);
+		
+		var westMetrics = new JenScript.AxisMetricsModeled({
+			axis : JenScript.Axis.AxisWest, gravity :'natural' //gravity :'rotate'
+		});
+		
+		proj.registerPlugin(westMetrics);
+		
+		
+		//CURVE FUNCTION 
+		var xValues = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
+		var yValues = [ 6, 1.8, 15, 1.9, 3.4, 6.1, 4.2, 8.5, 9.9, 12, 8 ];
+		var splineSource = new JenScript.SplineSource({
+						nature : 'XFunction',
+						xValues : xValues,
+						yValues : yValues,
+						delta : 0.1
+					});
+		
+		
+		var functionPlugin = new JenScript.FunctionPlugin();
+		proj.registerPlugin(functionPlugin);
+		
+		var scatter = new JenScript.Scatter({
+			name :'my scatter function',
+			themeColor : JenScript.RosePalette.MANDARIN,
+			source : splineSource
+			});
+
+		functionPlugin.addFunction(scatter);
+		
+		//TOOLS
+		var tx = new JenScript.TranslatePlugin();
+		proj.registerPlugin(tx);
+		
+		tx.select();
+		
+		var zw = new JenScript.ZoomWheelPlugin();
+		proj.registerPlugin(zw);
+
+	}
+	try {
+		scatter('scatterJSOverview',220,180,1);
+	} catch (e) {
+		// TODO: handle exception
+	}
+	
+	
+	function area(container, width, height,scale) {
+		
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 40,
+			scale:scale
+		});
+
+		var proj = new JenScript.LinearProjection({
+			name : "proj1",
+			minX : 1,
+			maxX : 9,
+			minY : 0,
+			maxY : 20
+		});
+		view.registerProjection(proj);
+
+		var outline = new JenScript.DeviceOutlinePlugin({
+			color : 'pink'
+		});
+		proj.registerPlugin(outline);
+
+		//METRICS
+		var minor = {
+				tickMarkerSize : 2,
+				tickMarkerColor : 'cyan',
+				tickMarkerStroke : 1
+			};
+			var median = {
+				tickMarkerSize : 4,
+				tickMarkerColor : 'cyan',
+				tickMarkerStroke : 1.2,
+				tickTextColor : 'cyan',
+				tickTextFontSize : 10
+			};
+			var major = {
+				tickMarkerSize : 8,
+				tickMarkerColor : JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE),
+				tickMarkerStroke : 3,
+				tickTextColor : JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE),
+				tickTextFontSize : 12
+			};
+			
+			var southMetrics = new JenScript.AxisMetricsModeled({
+				axis : JenScript.Axis.AxisSouth,
+				minor : minor,
+				median : median,
+				major :major
+			});
+			proj.registerPlugin(southMetrics);
+			
+			var westMetrics = new JenScript.AxisMetricsModeled({
+				axis : JenScript.Axis.AxisWest, gravity :'natural', //gravity :'rotate'
+				minor : minor,
+				median : median,
+				major :major
+			});
+			proj.registerPlugin(westMetrics);
+		
+		
+		//CURVE FUNCTION 
+		var xValues = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
+		var yValues = [ 6, 1.8, 15, 1.9, 3.4, 6.1, 4.2, 8.5, 9.9, 12, 8 ];
+		var splineSource = new JenScript.SplineSource({
+						nature : 'XFunction',
+						xValues : xValues,
+						yValues : yValues,
+						delta : 0.2
+					});
+		
+		
+		var functionPlugin = new JenScript.FunctionPlugin();
+		proj.registerPlugin(functionPlugin);
+		
+		var area = new JenScript.Area({
+				name :'my area function',
+				themeColor : JenScript.RosePalette.TURQUOISE,
+				source : splineSource,
+				areaBase : 0,
+				});
+		
+		
+		functionPlugin.addFunction(area);
+		
+		//TOOLS
+		var tx = new JenScript.TranslatePlugin();
+		proj.registerPlugin(tx);
+		
+		tx.select();
+		
+		var zw = new JenScript.ZoomWheelPlugin();
+		proj.registerPlugin(zw);
+
+	}
+	try {
+		area('areaJSOverview',220,180,1);
+	} catch (e) {
+		// TODO: handle exception
+	}
+	
+	
+	function curve(container, width, height,scale) {
+		
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 40,
+			scale :scale,
+		});
+
+		var proj = new JenScript.LinearProjection({
+			name : "proj1",
+			minX : -1,
+			maxX : 12,
+			minY : 0,
+			maxY : 20
+		});
+		view.registerProjection(proj);
+
+		var outline = new JenScript.DeviceOutlinePlugin({
+			color : 'pink'
+		});
+		proj.registerPlugin(outline);
+
+		var minor = {
+				tickMarkerSize : 2,
+				tickMarkerColor : JenScript.RosePalette.PINGPIZZAZZ,
+				tickMarkerStroke : 1
+			};
+			var median = {
+				tickMarkerSize : 4,
+				tickMarkerColor : JenScript.RosePalette.EMERALD,
+				tickMarkerStroke : 1.2,
+				tickTextColor : JenScript.RosePalette.EMERALD,
+				tickTextFontSize : 10
+			};
+			var major = {
+				tickMarkerSize : 8,
+				tickMarkerColor : JenScript.RosePalette.CALYPSOBLUE,
+				tickMarkerStroke : 3,
+				tickTextColor : JenScript.RosePalette.CALYPSOBLUE,
+				tickTextFontSize : 12
+			};
+			var southMetrics = new JenScript.AxisMetricsModeled({
+				axis : JenScript.Axis.AxisSouth,
+				minor : minor,
+				median : median,
+				major :major
+			});
+			proj.registerPlugin(southMetrics);
+			
+			var westMetrics = new JenScript.AxisMetricsModeled({
+				axis : JenScript.Axis.AxisWest, gravity :'natural', //gravity :'rotate'
+				minor : minor,
+				median : median,
+				major :major
+			});
+			
+			proj.registerPlugin(westMetrics);
+		
+		
+		//CURVE FUNCTION 
+		var xValues = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
+		var yValues = [ 6, 1.8, 15, 1.9, 3.4, 6.1, 4.2, 8.5, 9.9, 12, 8 ];
+		var splineSource = new JenScript.SplineSource({
+						nature : 'XFunction',
+						xValues : xValues,
+						yValues : yValues,
+						delta : 0.2
+					});
+		
+		
+		var functionPlugin = new JenScript.FunctionPlugin();
+		proj.registerPlugin(functionPlugin);
+		
+		var curve = new JenScript.Curve({
+				name :'my spline curve function',
+				themeColor : JenScript.RosePalette.CALYPSOBLUE,
+				source : splineSource
+				});
+		
+		
+		
+		
+		functionPlugin.addFunction(curve);
+		
+		
+		var g1 = new JenScript.GlyphMetric({
+			fontSize : 10,
+			value : 2.5,
+			metricsLabel : '2.5',
+			fillColor: 'cyan'
+		});
+
+		curve.addMetric(g1);
+		
+		//TOOLS
+		var tx = new JenScript.TranslatePlugin();
+		proj.registerPlugin(tx);
+		
+		tx.select();
+		
+		var zw = new JenScript.ZoomWheelPlugin();
+		proj.registerPlugin(zw);	
+	}
+	
+	try {
+		curve('curveJSOverview',220,180,1);
+	} catch (e) {
+		// TODO: handle exception
+	}
+	
+	
+	
+	
+	function pie(container, width, height,scale) {
+
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 20,
+			scale: scale,
+		});
+
+
+		var proj = new JenScript.LinearProjection({
+			name : "proj1",
+			minX : -1000,
+			maxX : 1000,
+			minY : -1000,
+			maxY : 1000
+		});
+		view.registerProjection(proj);
+
+
+		var piePlugin = new JenScript.PiePlugin();
+		proj.registerPlugin(piePlugin);
+
+		var pie = new JenScript.Pie();
+		piePlugin.addPie(pie);
+
+		
+		var s1 = new JenScript.PieSlice({
+			name : "s1",
+			value : 45,
+			themeColor : 'rgba(240, 240, 240, 0.9)'
+		});
+		var s2 = new JenScript.PieSlice({
+			name : "s2",
+			value : 5,
+			themeColor : JenScript.RosePalette.COALBLACK
+		});
+		var s3 = new JenScript.PieSlice({
+			name : "s3",
+			value : 30,
+			themeColor : 'rgba(78,148,44,1)'
+		});
+		var s4 = new JenScript.PieSlice({
+			name : "s4",
+			value : 5,
+			themeColor : JenScript.RosePalette.AEGEANBLUE
+		});
+		var s5 = new JenScript.PieSlice({
+			name : "s5",
+			value : 5,
+			themeColor : JenScript.RosePalette.INDIGO
+		});
+
+		pie.addSlice(s1);
+		pie.addSlice(s2);
+		pie.addSlice(s3);
+		pie.addSlice(s4);
+		pie.addSlice(s5);
+
+		var fill = new JenScript.PieDefaultFill();
+		pie.setFill(fill);
+
+		var fx0 = new JenScript.PieLinearEffect();
+		pie.addEffect(fx0);
+		var fxl = new JenScript.PieReflectionEffect();
+		pie.addEffect(fxl);
+
+		var s1Label = new JenScript.PieRadialLabel({
+			text : "Silver",
+			textColor : 'white'
+		});
+		s1.setSliceLabel(s1Label);
+
+		var s2Label = new JenScript.PieRadialLabel({
+			text : "Platinium",
+			textColor : 'white'
+		});
+		s2.setSliceLabel(s2Label);
+
+		var s3Label = new JenScript.PieRadialLabel({
+			text : "Rhodium",
+			textColor : 'white'
+		});
+		s3.setSliceLabel(s3Label);
+
+		var s4Label = new JenScript.PieRadialLabel({
+			text : "Gold",
+			textColor : 'white'
+		});
+		s4.setSliceLabel(s4Label);
+
+		var s5Label = new JenScript.PieRadialLabel({
+			text : "Uranium",
+			textColor : 'white'
+		});
+		s5.setSliceLabel(s5Label);
+
+		pie.setRadius(180);
+		pie.setStartAngleDegree(30);
+		
+	}
+	
+	try {
+		pie('pieJSOverview',220*4,180*4,0.25);
+	} catch (e) {
+		// TODO: handle exception
+	}
+	
+	
+	
+	function donut3D(container, width, height,scale) {
+
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 20,
+			scale :scale
+		});
+		
+		var proj = new JenScript.LinearProjection({
+			name : "proj1",
+			minX : -1000,
+			maxX : 1000,
+			minY : -1000,
+			maxY : 1000
+		});
+		view.registerProjection(proj);
+
+
+		var donut3DPlugin = new JenScript.Donut3DPlugin();
+		proj.registerPlugin(donut3DPlugin);
+
+		var donut = new JenScript.Donut3D({innerRadius:150,outerRadius:220,thickness : 60, startAngle : 300, tilt:40});
+		donut3DPlugin.addDonut(donut);
+
+		donut.tilt = 60;
+
+		var s1 = new JenScript.Donut3DSlice({
+			name : "s1",
+			value : 45,
+			themeColor : 'rgb(250, 250, 250)'
+		});
+		var s2 = new JenScript.Donut3DSlice({
+			name : "s2",
+			value : 5,
+			themeColor : 'rgb(244, 145, 26)'
+		});
+		var s3 = new JenScript.Donut3DSlice({
+			name : "s3",
+			value : 30,
+			themeColor : 'rgb(78, 148, 44)'
+		});
+		var s4 = new JenScript.Donut3DSlice({
+			name : "s4",
+			value : 5,
+			themeColor : JenScript.RosePalette.CORALRED
+		});
+
+		donut.addSlice(s1);
+		donut.addSlice(s2);
+		donut.addSlice(s3);
+		donut.addSlice(s4);
+
+		var s1Label = new JenScript.Donut3DLabelBorder("Silver");
+		s1.addSliceLabel(s1Label);
+
+		var s2Label = new JenScript.Donut3DLabelBorder("Platinium");
+		s2.addSliceLabel(s2Label);
+
+		var s3Label = new JenScript.Donut3DLabelBorder("Rhodium");
+		s3.addSliceLabel(s3Label);
+		
+		var s4Label = new JenScript.Donut3DLabelBorder("Platinium");
+		s4.addSliceLabel(s4Label);
+
+	}
+	try {
+		donut3D('donut3DJSOverview',220*4,180*4,0.25);
+	} catch (e) {
+		// TODO: handle exception
+	}
+	
+	
+	
+	function donut2D(container, width, height,scale) {
+
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 20,
+			scale :scale
+		});
+		
+		var proj = new JenScript.LinearProjection({
+			name : "proj1",
+			minX : -1000,
+			maxX : 1000,
+			minY : -1000,
+			maxY : 1000
+		});
+		view.registerProjection(proj);
+
+
+		var donut2DPlugin = new JenScript.Donut2DPlugin();
+		proj.registerPlugin(donut2DPlugin);
+
+		var donut = new JenScript.Donut2D({innerRadius :  120,outerRadius :  180});
+		donut2DPlugin.addDonut(donut);
+
+		donut.addEffect(new JenScript.Donut2DLinearEffect());
+		donut.addEffect(new JenScript.Donut2DReflectionEffect());
+
+		var s1 = new JenScript.Donut2DSlice({
+			name : "s1",
+			value : 45,
+			themeColor : 'rgba(240, 240, 240, 0.9)'
+		});
+		var s2 = new JenScript.Donut2DSlice({
+			name : "s2",
+			value : 5,
+			themeColor : 'rgb(237, 54, 162)'
+		});
+		var s3 = new JenScript.Donut2DSlice({
+			name : "s3",
+			value : 30,
+			themeColor : 'rgb(244, 145, 26)'
+		});
+		var s4 = new JenScript.Donut2DSlice({
+			name : "s4",
+			value : 5,
+			themeColor : 'rgba(22,125,218, 1)'
+		});
+		var s5 = new JenScript.Donut2DSlice({
+			name : "s5",
+			value : 5,
+			themeColor : 'rgba(61,44,105,1)'
+		});
+
+		donut.setFill(new JenScript.Donut2DRadialFill());
+
+		donut.addSlice(s1);
+		donut.addSlice(s2);
+		donut.addSlice(s3);
+		donut.addSlice(s4);
+		donut.addSlice(s5);
+
+		var s1Label = new JenScript.Donut2DRadialLabel({
+			text : "Silver"
+		});
+		s1.addSliceLabel(s1Label);
+
+		var s2Label = new JenScript.Donut2DRadialLabel({
+			text : "Platinium"
+		});
+		s2.addSliceLabel(s2Label);
+
+		var s3Label = new JenScript.Donut2DRadialLabel({
+			text : "Rhodium"
+		});
+		s3.addSliceLabel(s3Label);
+
+		var s4Label = new JenScript.Donut2DRadialLabel({
+			text : "Gold"
+		});
+		s4.addSliceLabel(s4Label);
+
+		var s5Label = new JenScript.Donut2DRadialLabel({
+			text : "Uranium"
+		});
+		s5.addSliceLabel(s5Label);
+
+		
+
+		donut2DPlugin.repaintPlugin();
+
+	}
+	
+	try {
+		donut2D('donut2DJSOverview',220*4,180*4,0.25);
+	} catch (e) {
+		// TODO: handle exception
+	}
+	
+	</script>

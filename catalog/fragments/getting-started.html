@@ -1,0 +1,37 @@
+
+<span class="boldmarron" style="font-size:24px;font-family: 'myriad', sans-serif;">Getting Started</span>
+<div style="padding-top: 20px; text-align: justify;">
+
+<p style="text-align: justify;">
+The API is mainly based on 3 components : View defines the end chart, Projection which is the user projection and plugins that take the responsibility of painting process and handle user intents.
+Plugins composition allows users to create rich charts by multiple layer of projection(s) and/or plugin(s).You can also implement your own plugin to add new feature.
+
+</p>
+
+
+<pre style="margin-top: 30px" class="prettyprint linenums">	
+<code class="language-js">			
+// 1 view is the end user visible chart component.
+var view = new JenScript.View({name : "view1" , width : 600, height : 400});
+
+// 2 Projection provides  User/Pixel interface
+var proj = new JenScript.LinearProjection({name : "proj1",minX: -1000,maxX: 1000,minY: -1000,maxY: 1000});
+view.registerProjection(proj);
+
+// 3 Plugin paints a scene and handle user interaction in a projection
+var fooPlugin = new JenScript.FooPlugin();
+var barPlugin = new JenScript.BarPlugin();
+
+// 4 Plugin belongs to projection
+proj.registerPlugin(fooPlugin);
+proj.registerPlugin(barPlugin);
+
+// 5 Plugin has widgets
+var fwidget = new JenScript.FooWidget();
+fooPlugin.registerWidget(fwidget);
+</code>	
+</pre>
+
+
+
+</div>

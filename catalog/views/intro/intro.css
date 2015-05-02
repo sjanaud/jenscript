@@ -1,0 +1,246 @@
+/*
+ * Template Style Configuration
+ */
+
+/**
+ * =====================================================================
+ * Basic rendering classes.
+ * =====================================================================
+ */
+
+ svg {
+     overflow: visible;
+ }
+
+.white { 
+  fill: white;
+  stroke: white;
+  stop-color: white;
+  flood-color: white;
+}
+
+.black { 
+  fill: black;
+  stroke: black;
+  stop-color: black;
+  color: black;
+  flood-color: black;
+}
+
+.lightGray { 
+  fill: rgb(191,191,191);
+  stroke: rgb(191,191,191);
+  stop-color: rgb(191,191,191);
+  color: rgb(191,191,191);
+  flood-color: rgb(191,191,191);
+}
+
+.midGray { 
+  fill: rgb(128,128,128);
+  stroke: rgb(128,128,128);
+  stop-color: rgb(128,128,128);
+  flood-color: rgb(128,128,128);
+}
+
+.darkGray {  
+  fill: rgb(25,25,25);
+  stroke: rgb(25,25,25);
+  stop-color: rgb(25,25,25);
+  color: rgb(25,25,25);
+  flood-color: rgb(25,25,25);
+}
+
+.midHighlight { 
+  fill: rgb(255,209,31);
+  stroke: rgb(255,209,31);
+  color: rgb(255,209,31);
+  stop-color: rgb(255,209,31);
+  flood-color: rgb(255,209,31);
+}
+
+.darkHighlight { 
+  fill: rgb(145,0,0);
+  stroke: rgb(145,0,0);
+  color: rgb(145,0,0);
+  stop-color: rgb(145,0,0);
+  flood-color: rgb(145,0,0);
+}
+
+.fillWhite { 
+  fill: white;
+}
+
+.fillBlack { 
+  fill: rgb(9,60,91);
+}
+
+.fillLightGray {  
+  fill: rgb(191,191,191);
+}
+
+.fillMidGray { 
+  fill: rgb(128,128,128);
+}
+
+.fillDarkGray { 
+  fill: rgb(25,25,25);
+}
+
+.fillBlack {  
+  fill: black;
+}
+
+.fillMidHighlight { 
+  fill: rgb(255,209,31);
+}
+
+.fillDarkHighlight { 
+  fill: rgb(145,0,0);
+}
+
+.strokeWhite { 
+  stroke: white;
+}
+
+.strokeBlack { 
+  stroke: rgb(9,60,91);
+}
+
+.strokeLightGray { 
+  stroke: rgb(191,191,191);
+}
+
+.strokeMidGray { 
+  stroke: rgb(128,128,128);
+}
+
+.strokeDarkGray { 
+  stroke: rgb(25,25,25);
+}
+
+.strokeBlack {  
+  stroke: black;
+}
+
+.strokeMidHighlight { 
+  stroke: rgb(255,209,31);
+}
+
+.strokeDarkHighlight {  
+  stroke: rgb(145,0,0);
+}
+
+.fillNone { 
+  fill: none;
+}
+
+.strokeNone {  
+  stroke: none;
+}
+
+.noFill { 
+  fill: none;
+}
+
+.crisp { 
+  shape-rendering: crispEdges;
+}
+
+.hidden { 
+  visibility: hidden;
+}
+
+/**
+ * =====================================================================
+ * Text rendering classes.
+ * =====================================================================
+ */
+
+defaultFontFamily { 
+  font-family: 'Myriad', "Gill Sans";
+}
+
+#demoTitle {  
+  font-family: 'Myriad', 'Myriad Pro', "Gill Sans";
+  font-weight: bold;
+  font-size: 25px;
+}
+
+.titleText {
+  font-family: 'Myriad', 'Myriad Pro', "Gill Sans";
+  font-weight: bold;
+  font-size: 25px;
+}
+
+.labelTitle {  
+  font-family: 'Myriad', 'Myriad Pro', "Gill Sans";
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.label { 
+  font-family: 'Myriad', 'Myriad Pro', "Gill Sans";
+  font-size: 16px;
+}
+
+.labelHot { 
+  font-family: 'Myriad', 'Myriad Pro', "Gill Sans";
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.code { 
+  font-family: 'Courier New';
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/**
+ * =====================================================================
+ * GUI rendering classes.
+ * =====================================================================
+ */
+
+.buttonLabel { 
+  font-family: Larabiefont;
+  font-weight: bold;
+  font-size: 16px;
+  fill: #222;
+}
+
+.textFieldBackground { 
+  fill: #eeeeee;
+  stroke: black;
+}
+
+.hotTextFieldBackground { 
+  fill: white;
+  stroke: crimson;
+  stroke-width: 2;
+}
+
+.thumbCold {
+    fill: black;
+    fill-opacity: 0.5;
+    stroke: white;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+.thumbHot {
+    fill: none;
+    fill-opacity: 1;
+    stroke: white;
+    stroke-width: 4;
+}
+
+.thumbHighlight {
+    fill: black;
+    fill-opacity: 0;
+    stroke: white;
+    stroke-width: 1;
+}
+
+#presentationNavigation {
+    display: none;
+}

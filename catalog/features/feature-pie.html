@@ -1,0 +1,173 @@
+<div>
+	<div>
+		<span class="boldmarron" style="font-size:24px;font-family: 'myriad', sans-serif;">Pie Feature</span>
+	</div>
+	<div style="padding-top: 5px;">
+		<i class="icon-hand-right"></i>&nbsp;<span>Draw pies with labels and effects.</small>
+	</div>
+	<div style="padding-top: 20px;text-align: center;">
+		<div id="pieWebView"></div>
+	</div>
+	
+	<script type="text/javascript">
+	function oPie(container, width, height,scale) {
+
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 20,
+			scale: scale,
+		});
+
+
+		var proj = new JenScript.LinearProjection({
+			name : "proj1",
+			minX : -1000,
+			maxX : 1000,
+			minY : -1000,
+			maxY : 1000
+		});
+		view.registerProjection(proj);
+
+
+		var piePlugin = new JenScript.PiePlugin();
+		proj.registerPlugin(piePlugin);
+
+		var pie = new JenScript.Pie();
+		piePlugin.addPie(pie);
+
+		
+		var s1 = new JenScript.PieSlice({
+			name : "s1",
+			value : 45,
+			themeColor : 'rgba(240, 240, 240, 0.9)'
+		});
+		var s2 = new JenScript.PieSlice({
+			name : "s2",
+			value : 5,
+			themeColor : JenScript.RosePalette.COALBLACK
+		});
+		var s3 = new JenScript.PieSlice({
+			name : "s3",
+			value : 30,
+			themeColor : 'rgba(78,148,44,1)'
+		});
+		var s4 = new JenScript.PieSlice({
+			name : "s4",
+			value : 5,
+			themeColor : JenScript.RosePalette.AEGEANBLUE
+		});
+		var s5 = new JenScript.PieSlice({
+			name : "s5",
+			value : 5,
+			themeColor : JenScript.RosePalette.INDIGO
+		});
+
+		pie.addSlice(s1);
+		pie.addSlice(s2);
+		pie.addSlice(s3);
+		pie.addSlice(s4);
+		pie.addSlice(s5);
+
+		var fill = new JenScript.PieDefaultFill();
+		pie.setFill(fill);
+
+		var fx0 = new JenScript.PieLinearEffect();
+		pie.addEffect(fx0);
+		var fxl = new JenScript.PieReflectionEffect();
+		pie.addEffect(fxl);
+
+		var s1Label = new JenScript.PieRadialLabel({
+			text : "Silver",
+			textColor : 'white'
+		});
+		s1.setSliceLabel(s1Label);
+
+		var s2Label = new JenScript.PieRadialLabel({
+			text : "Platinium",
+			textColor : 'white'
+		});
+		s2.setSliceLabel(s2Label);
+
+		var s3Label = new JenScript.PieRadialLabel({
+			text : "Rhodium",
+			textColor : 'white'
+		});
+		s3.setSliceLabel(s3Label);
+
+		var s4Label = new JenScript.PieRadialLabel({
+			text : "Gold",
+			textColor : 'white'
+		});
+		s4.setSliceLabel(s4Label);
+
+		var s5Label = new JenScript.PieRadialLabel({
+			text : "Uranium",
+			textColor : 'white'
+		});
+		s5.setSliceLabel(s5Label);
+
+		pie.setRadius(120);
+		pie.setStartAngleDegree(30);
+		
+		setTimeout(function(){pie.shift();},500);
+		
+		
+		
+	}
+	
+	oPie('pieWebView',600,400,1);
+	</script>
+	<table style="padding-top: 20px;font-size: 11px;" class="table table-hover table-condensed">
+	    	<thead id="catalogs-page-header">
+	    		<tr>
+					<th></th><th></th><th></th><th></th><th></th><th></th>
+				</tr>
+				<tr>
+					<th><small><span class="boldblue1">Key</span></small></th>
+					<th><small><span class="boldblue1">Description</span></small></th>
+				</tr>
+			</thead>				   
+	    	<tbody>
+		    	<tr>
+					<td>Pie Plugin</td>
+					<td>Pie plugin takes responsibility to paint pies</td>							
+				</tr>
+				<tr>
+					<td>Pie</td>
+					<td>Pie is defined by it's center and radius</td>							
+				</tr>
+				<tr>
+					<td>Pie Slice</td>
+					<td>Pie Slice has to be registered in pie with value and theme color</td>							
+				</tr>
+				<tr>
+					<td>Stroke,Fill, Effect</td>
+					<td>Create beautiful pie with stroke, fill and effects.</td>							
+				</tr>
+				<tr>
+					<td>Labels</td>
+					<td>Put labels on slice with bounded, radial, border or path labels.</td>							
+				</tr>
+				<tr>
+					<td>Listener</td>
+					<td>Allow pie action listening and create animation with effect, label or user intents.</td>							
+				</tr>
+				<tr>
+					<td></td>
+					<td></td>							
+				</tr>
+			</tbody>				    
+	</table>
+	
+<div>
+	<span class="boldmarron" style="font-size:24px;font-family: 'myriad', sans-serif;">Pie Catalog</span>
+</div>
+<div style="padding-top: 5px;">
+		<i class="icon-hand-right"></i>&nbsp;<span>Click on table row to open JenScript view.</small>
+</div>
+<div id="jscatalog"></div>
+<div style="margin-top: 40px;" id="sourceHolder"></div>	
+
+</div>

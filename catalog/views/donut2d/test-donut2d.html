@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Titre</title>
+        <script type="text/javascript" src="../../../../jenscript/jenscript.js"></script>
+    </head>
+    <body>
+    	<div style="width: 1000px;height: 1000px;" id="donut2d"></div>
+    </body>
+</html>
+<script type="text/javascript">
+function testDonut2D(container, width, height) {
+
+	var view = new JenScript.View({
+		name : container,
+		width : width,
+		height : height,
+		holders : 20,
+		
+	});
+	
+	var proj = new JenScript.LinearProjection({
+		name : "proj1",
+		minX : -1,
+		maxX : 1,
+		minY : -1,
+		maxY : 1
+	});
+	view.registerProjection(proj);
+
+
+	var donut2DPlugin = new JenScript.Donut2DPlugin();
+	proj.registerPlugin(donut2DPlugin);
+
+	var donut = new JenScript.Donut2D({name:'mydonut',innerRadius :  80,outerRadius :  120});
+	donut2DPlugin.addDonut(donut);
+	
+	//test select donut by name
+	console.log("selected donut : "+donut2DPlugin.select('mydonut'));
+
+	donut.addEffect(new JenScript.Donut2DLinearEffect());
+	donut.addEffect(new JenScript.Donut2DReflectionEffect());
+
+	
+	
+	donut.slice(
+					{
+						name : "s1",
+						value : 45,
+						themeColor : 'rgba(240, 240, 240, 0.9)'
+					}
+			)
+		.slice(
+				{
+					name : "s2",
+					value : 5,
+					themeColor : 'rgb(237, 54, 162)'
+				}	
+		)
+		.slice(
+				{
+					name : "s3",
+					value : 30,
+					themeColor : 'rgb(244, 145, 26)'
+				}
+		)
+		.slice(
+				{
+					name : "s4",
+					value : 5,
+					themeColor : 'rgba(22,125,218, 1)'
+				}
+		)
+		.slice(
+				{
+					name : "s5",
+					value : 5,
+					themeColor : 'rgba(61,44,105,1)'
+				}
+		);
+	
+	
+	//test select slice by name
+	console.log("selected donut slice: "+donut.select('s5'));
+	
+	
+	donut.setFill(new JenScript.Donut2DRadialFill());
+
+	
+
+// 	var s1Label = new JenScript.Donut2DRadialLabel({
+// 		text : "Silver",
+// 		textColor :'white'
+// 	});
+// 	s1.addSliceLabel(s1Label);
+
+// 	var s2Label = new JenScript.Donut2DRadialLabel({
+// 		text : "Platinium",
+// 		textColor :'white'
+// 	});
+// 	s2.addSliceLabel(s2Label);
+
+// 	var s3Label = new JenScript.Donut2DRadialLabel({
+// 		text : "Rhodium",
+// 		textColor :'white'
+// 	});
+// 	s3.addSliceLabel(s3Label);
+
+// 	var s4Label = new JenScript.Donut2DRadialLabel({
+// 		text : "Gold",
+// 		textColor :'white'
+// 	});
+// 	s4.addSliceLabel(s4Label);
+
+// 	var s5Label = new JenScript.Donut2DRadialLabel({
+// 		text : "Uranium",
+// 		textColor :'white'
+// 	});
+// 	s5.addSliceLabel(s5Label);
+
+		var tx1 = new JenScript.TranslatePlugin();
+	proj.registerPlugin(tx1);
+
+	tx1.select();
+
+	donut2DPlugin.repaintPlugin();
+
+}
+
+testDonut2D('donut2d',1000,1000,1);
+</script>

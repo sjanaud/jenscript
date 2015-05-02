@@ -1,0 +1,315 @@
+<div>
+	<div>
+		<span class="boldmarron" style="font-size:24px;font-family: 'myriad', sans-serif;">Stock Feature</span>
+	</div>
+	<div style="padding-top: 5px;">
+		<i class="icon-hand-right"></i>&nbsp;<span>Draw Stocks charts with stocks layers like candlestick, ohlc, moving average and most of commons markets indicators.</small>
+	</div>
+	<div style="padding-top: 20px;">
+		<div  id="stockWebView"></div>
+	</div>
+	<div style="padding-top: 20px;">
+		<div  id="stock2WebView"></div>
+	</div>
+	
+	<script type="text/javascript">
+	
+	//date range
+	var startDate = new Date(2013, 09, 01);
+	var endDate = new Date(2013, 11, 01);
+	var projStocks;
+	var stockPlugin1,stockPlugin2;
+	var translate1,translate2;
+	
+	minor = {
+		tickMarkerSize : 2,
+		tickMarkerColor : JenScript.RosePalette.AEGEANBLUE,
+		tickMarkerStroke : 1
+	},
+	median = {
+		tickMarkerSize : 4,
+		tickMarkerColor : JenScript.RosePalette.EMERALD,
+		tickMarkerStroke : 1.2,
+		tickTextColor : JenScript.RosePalette.EMERALD,
+		tickTextFontSize : 10
+	},
+	major = {
+		tickMarkerSize : 8,
+		tickMarkerColor : 'purple',
+		tickMarkerStroke : 3,
+		tickTextColor : 'purple',
+		tickTextFontSize : 12,
+		tickTextOffset : 16
+	}
+	
+	function stock(container, width, height) {
+		
+		//view
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 20,
+			west : 100,
+			east : 80,
+			south : 80,
+		});
+
+		
+		projStocks = new JenScript.TimeXProjection({
+			cornerRadius : 6,
+			name : "proj1",
+			minXDate : startDate,
+			maxXDate : endDate,
+			minY : 17,
+			maxY : 23
+		});
+		view.registerProjection(projStocks);
+		
+		//device outline
+		var outline = new JenScript.DeviceOutlinePlugin({color:'purple'});
+		projStocks.registerPlugin(outline);
+
+
+		var southMetrics1 = new JenScript.AxisMetricsTiming({
+			axis : JenScript.Axis.AxisSouth,
+			models : [new JenScript.HourModel({}),new JenScript.DayModel({}),new JenScript.MonthModel({})],
+			minor:minor,
+			median:median,
+			major:major
+		});
+		projStocks.registerPlugin(southMetrics1);
+		
+		
+		var westMetrics = new JenScript.AxisMetricsModeled({
+			axis : JenScript.Axis.AxisWest,
+			minor:minor,
+			median:median,
+			major:major
+		});
+		projStocks.registerPlugin(westMetrics);
+
+		//translate
+		translate1 = new JenScript.TranslatePlugin();
+		projStocks.registerPlugin(translate1);
+		var txw = new JenScript.TranslateX({xIndex:100});
+		translate1.registerWidget(txw);
+		translate1.select();
+
+		//stock plugin
+		stockPlugin1 = new JenScript.StockPlugin({
+			bearishColor : JenScript.RosePalette.CORALRED,
+			bullishColor : JenScript.RosePalette.EMERALD,
+		});
+		projStocks.registerPlugin(stockPlugin1);
+
+		stockPlugin1.addLayer(new JenScript.CandleStickLayer({
+			lowHighColor : JenScript.RosePalette.COALBLACK
+		}));
+		stockPlugin1.addLayer(new JenScript.StockBollingerLayer({
+			bandColor:JenScript.RosePalette.TURQUOISE,
+			bandOpacity: 0.3,
+			lineColor:'purple',
+			lineOpacity:0.6,
+			lineWidth : 0.5
+		}));
+		
+
+		//add anonymous button to handle actions
+		var buttonGroup = new JenScript.ButtonPlugin();
+		projStocks.registerPlugin(buttonGroup);
+
+		var button1 = new JenScript.ButtonWidget({
+			name:'button candle stick',
+			width : 40,
+			height : 15,
+			radius : 2,
+			inset : 0,
+			text : 'Candle Stick',
+			textColor : 'black',
+			buttonDrawColor : 'gray',
+			buttonRolloverDrawColor : 'black',
+			buttonFillColor : 'black',
+			buttonRolloverFillColor : 'green',
+			buttonFillColorOpacity : 0.5,
+			buttonDrawColorOpacity : 1,
+			xIndex : 0,
+			onPress : function(){
+				stockPlugin1.removeAllLayer();
+				stockPlugin1.addLayer(new JenScript.CandleStickLayer({
+					lowHighColor : JenScript.RosePalette.COALBLACK
+				}));
+			}
+		});
+		buttonGroup.registerWidget(button1);
+		
+		
+		var button2  = new JenScript.ButtonWidget({
+			name:'button ohlc',
+			width : 40,
+			height : 15,
+			radius : 2,
+			inset : 0,
+			text : 'OHLC',
+			textColor : 'black',
+			buttonDrawColor : 'gray',
+			buttonRolloverDrawColor : 'black',
+			buttonFillColor : 'black',
+			buttonRolloverFillColor : 'green',
+			buttonFillColorOpacity : 0.5,
+			buttonDrawColorOpacity : 1,
+			xIndex : 1,
+			onPress : function(){
+				stockPlugin1.removeAllLayer();
+				stockPlugin1.addLayer(new JenScript.OhlcLayer());
+			}
+		});
+		buttonGroup.registerWidget(button2);
+		
+		
+		var title = new JenScript.TitleLegendPlugin({
+			layout : 'relative',
+			part   : JenScript.ViewPart.Device,
+			text   : 'SLV Stock',
+			fontSize : 14,
+			textColor : JenScript.RosePalette.CHOCOLATE,
+			xAlign : 'right',
+			yAlign : 'top',
+		});
+		projStocks.registerPlugin(title);
+		
+		
+	}
+	
+	function stock2(container, width, height) {
+		
+		//view
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 20,
+			west : 100,
+			east : 80,
+			south : 80,
+		});
+
+
+		var projStocks = new JenScript.TimeXProjection({
+			cornerRadius : 6,
+			name : "proj1",
+			minXDate : startDate,
+			maxXDate : endDate,
+			minY : 0,
+			maxY : 100000000
+		});
+		view.registerProjection(projStocks);
+		
+		//device outline
+		var outline = new JenScript.DeviceOutlinePlugin({color : 'darkslategrey'});
+		projStocks.registerPlugin(outline);
+
+
+		var southMetrics1 = new JenScript.AxisMetricsTiming({
+			axis : JenScript.Axis.AxisSouth,
+			models : [new JenScript.HourModel({}),new JenScript.DayModel({}),new JenScript.MonthModel({})],
+			minor:minor,
+			median:median,
+			major:major
+		});
+		projStocks.registerPlugin(southMetrics1);
+		
+		var westMetrics = new JenScript.AxisMetricsModeled({
+			axis : JenScript.Axis.AxisWest,
+			minor:minor,
+			median:median,
+			major:major
+		});
+		projStocks.registerPlugin(westMetrics);
+
+		translate2 = new JenScript.TranslatePlugin({
+			mode : 'tx'
+		});
+		projStocks.registerPlugin(translate2);
+
+		stockPlugin2 = new JenScript.StockPlugin({
+			bearishColor : JenScript.RosePalette.EMERALD,
+			bullishColor : JenScript.RosePalette.CORALRED,
+		});
+		projStocks.registerPlugin(stockPlugin2);
+
+		stockPlugin2.addLayer(new JenScript.VolumeBarLayer({
+			volumeColor : JenScript.RosePalette.PINGPIZZAZZ
+		}));
+	
+		var title = new JenScript.TitleLegendPlugin({
+			layout : 'relative',
+			part   : JenScript.ViewPart.Device,
+			text   : 'SLV Volume',
+			fontSize : 14,
+			textColor : JenScript.RosePalette.CHOCOLATE,
+			xAlign : 'right',
+			yAlign : 'top',
+		});
+		projStocks.registerPlugin(title);
+	}
+	stock('stockWebView',800,300);
+	stock2('stock2WebView',800,200);
+	var synchronizer = new JenScript.TranslateSynchronizer({
+		translates : [ translate1, translate2 ]
+	});
+	translate1.select();
+	
+
+	var __loader = new StockLoader(projStocks,[2012,2013,2014],function(year,stocks){
+		stockPlugin1.setStocks(stocks);
+		stockPlugin2.setStocks(stocks);
+	});
+
+	
+	</script>
+	
+	<table style="padding-top: 20px;font-size: 11px;" class="table table-hover table-condensed">
+	    	<thead id="catalogs-page-header">
+	    		<tr>
+					<th></th><th></th><th></th><th></th><th></th><th></th>
+				</tr>
+				<tr>
+					<th width="30%"><small><span class="boldblue1">Key</span></small></th>
+					<th width="70%"><small><span class="boldblue1">Description</span></small></th>
+				</tr>
+			</thead>				   
+	    	<tbody>
+		    	<tr>
+					<td>Stock Plugin</td>
+					<td>Stock plugin holds stocks objects</td>							
+				</tr>
+				<tr>
+					<td>Stock</td>
+					<td>Stock is defined by fixing date, high and low values, open and close values, and volume.</td>							
+				</tr>
+				<tr>
+					<td>Stock type</td>
+					<td>OHLC, CandleStick, Curve, Area</td>							
+				</tr>
+				<tr>
+					<td>Layers</td>
+					<td>Moving average(SMA), Weighted moving average(WMA), Exponential moving average (EMA), Bollinger bands, Volume, MACD </td>							
+				</tr>
+				<tr>
+					<td></td>
+					<td></td>							
+				</tr>
+			</tbody>				    
+	</table>
+	
+<div>
+	<span class="boldmarron" style="font-size:24px;font-family: 'myriad', sans-serif;">Stock Catalog</span>
+</div>
+<div style="padding-top: 5px;">
+		<i class="icon-hand-right"></i>&nbsp;<span>Click on table row to open JenScript view.</small>
+</div>
+<div id="jscatalog"></div>
+<div style="margin-top: 40px;" id="sourceHolder"></div>
+	
+</div>

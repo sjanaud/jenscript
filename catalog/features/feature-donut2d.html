@@ -1,0 +1,187 @@
+<div>
+	<div>
+		<span class="boldmarron" style="font-size:24px;font-family: 'myriad', sans-serif;">Donut2D Feature</span>
+	</div>
+	<div style="padding-top: 5px;">
+		<i class="icon-hand-right"></i>&nbsp;<span>Draw donut2D with labels and effects.</small>
+	</div>
+	
+	<div style="text-align : center;padding-top: 20px;">
+		<div  id="donut2dWebView"></div>
+	</div>
+	
+	<script type="text/javascript">
+	function oDonut2D(container, width, height,scale) {
+
+		var view = new JenScript.View({
+			name : container,
+			width : width,
+			height : height,
+			holders : 20,
+			scale :scale
+		});
+		
+		var proj = new JenScript.LinearProjection({
+			name : "proj1",
+			minX : -1,
+			maxX : 1,
+			minY : -1,
+			maxY : 1
+		});
+		view.registerProjection(proj);
+
+
+		var donut2DPlugin = new JenScript.Donut2DPlugin();
+		proj.registerPlugin(donut2DPlugin);
+
+		var donut = new JenScript.Donut2D({innerRadius :  80,outerRadius :  120});
+		donut2DPlugin.addDonut(donut);
+
+		donut.addEffect(new JenScript.Donut2DLinearEffect());
+		donut.addEffect(new JenScript.Donut2DReflectionEffect());
+
+		var s1 = new JenScript.Donut2DSlice({
+			name : "s1",
+			value : 45,
+			themeColor : 'rgb(240,240,240)'
+		});
+		var s2 = new JenScript.Donut2DSlice({
+			name : "s2",
+			value : 5,
+			themeColor : 'rgb(237, 54, 162)'
+		});
+		var s3 = new JenScript.Donut2DSlice({
+			name : "s3",
+			value : 30,
+			themeColor : 'rgb(244, 145, 26)'
+		});
+		var s4 = new JenScript.Donut2DSlice({
+			name : "s4",
+			value : 5,
+			themeColor : 'rgb(22,125,218)'
+		});
+		var s5 = new JenScript.Donut2DSlice({
+			name : "s5",
+			value : 5,
+			themeColor : 'rgba(61,44,105,1)'
+		});
+
+		donut.setFill(new JenScript.Donut2DRadialFill());
+
+		donut.addSlice(s1);
+		donut.addSlice(s2);
+		donut.addSlice(s3);
+		donut.addSlice(s4);
+		donut.addSlice(s5);
+
+		var s1Label = new JenScript.Donut2DRadialLabel({
+			text : "Silver",
+			fillColor:'black',
+			outlineColor : s1.getThemeColor(),
+			cornerRadius : 8,
+			outlineWidth : 2,
+			//textColor :'white'
+		});
+		s1.addSliceLabel(s1Label);
+
+		var s2Label = new JenScript.Donut2DRadialLabel({
+			text : "Platinium",
+			fillColor:'black',
+			outlineColor : s2.getThemeColor(),
+			cornerRadius : 8,
+			outlineWidth : 2,
+			//textColor :'white'
+		});
+		s2.addSliceLabel(s2Label);
+
+		var s3Label = new JenScript.Donut2DRadialLabel({
+			text : "Rhodium",
+			fillColor:'black',
+			outlineColor : s3.getThemeColor(),
+			cornerRadius : 8,
+			outlineWidth : 2,
+			//textColor :'white'
+			
+		});
+		s3.addSliceLabel(s3Label);
+
+		var s4Label = new JenScript.Donut2DRadialLabel({
+			text : "Gold",
+			fillColor:'black',
+			outlineColor : s4.getThemeColor(),
+			cornerRadius : 8,
+			outlineWidth : 2,
+			//textColor :'white'
+		});
+		s4.addSliceLabel(s4Label);
+
+		var s5Label = new JenScript.Donut2DRadialLabel({
+			text : "Uranium",
+			fillColor:'black',
+			outlineColor : JenScript.Color.lighten(s5.getThemeColor(),50),
+			cornerRadius : 8,
+			outlineWidth : 2,
+			textColor :JenScript.Color.lighten(s5.getThemeColor(),50)
+		});
+		s5.addSliceLabel(s5Label);
+
+		
+
+		donut2DPlugin.repaintPlugin();
+
+	}
+	
+	oDonut2D('donut2dWebView',600,450,1);
+	</script>
+	
+	<table style="padding-top: 20px;font-size: 11px;" class="table table-hover table-condensed">
+	    	<thead id="catalogs-page-header">
+	    		<tr>
+					<th></th><th></th><th></th><th></th><th></th><th></th>
+				</tr>
+				<tr>
+					<th><small><span class="boldblue1">Key</span></small></th>
+					<th><small><span class="boldblue1">Description</span></small></th>
+				</tr>
+			</thead>				   
+	    	<tbody>
+		    	<tr>
+					<td>Donut2D Plugin</td>
+					<td>Donut2D plugin takes responsibility to paint donuts</td>							
+				</tr>
+				<tr>
+					<td>Donut2D</td>
+					<td>Donut2D is defined by it's center and inner and outer radius</td>							
+				</tr>
+				<tr>
+					<td>Donut2D Slice</td>
+					<td>Donut2D Slice has to be registered in donut with value and theme color</td>							
+				</tr>
+				<tr>
+					<td>Stroke,Fill, Effect</td>
+					<td>Create beautiful donut with stroke, fill and effects.</td>							
+				</tr>
+				<tr>
+					<td>Labels</td>
+					<td>Put labels on slice with bounded, radial, border or path labels.</td>							
+				</tr>
+				<tr>
+					<td>Listener</td>
+					<td>Allow donut action listening and create animation with effect, label or user intents.</td>							
+				</tr>
+				<tr>
+					<td></td>
+					<td></td>							
+				</tr>
+			</tbody>				    
+	</table>
+
+<div>
+	<span class="boldmarron" style="font-size:24px;font-family: 'myriad', sans-serif;">Donut2D Catalog</span>
+</div>
+<div style="padding-top: 5px;">
+		<i class="icon-hand-right"></i>&nbsp;<span>Click on table row to open JenScript view.</small>
+</div>
+<div id="jscatalog"></div>
+<div style="margin-top: 40px;" id="sourceHolder"></div>	
+</div>
