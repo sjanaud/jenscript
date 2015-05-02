@@ -328,6 +328,7 @@ grunt.initConfig({
 			    flatten: true,
 			    filter: 'isFile',
 			  },
+			  
 		},
 		
 		jsdoc : {
