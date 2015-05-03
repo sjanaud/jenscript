@@ -8,8 +8,8 @@ var views = {
 		v7 :  {name : 'view7' ,desc:'Map USA & Multiple Projection', fnName: 'createViewMapUSA', file : 'map-usa.js'},
 		v8 :  {name : 'view8' ,desc:'Map Australia', fnName: 'createViewMapAUS', file : 'map-aus.js'},
 		v9 :  {name : 'view9' ,desc:'Map Germany', fnName: 'createViewMapDEU', file : 'map-germany.js'},
-		v10 :  {name : 'view10' ,desc:'Map Oceans Bottom', fnName: 'createViewMapOceans', file : 'map-oceans.js'},
-		v11 :  {name : 'view11' ,desc:'Map Natural Earth 2', fnName: 'createViewMapNaturalEarth2', file : 'map-ne2.js'},
+		//v10 :  {name : 'view10' ,desc:'Map Oceans Bottom', fnName: 'createViewMapOceans', file : 'map-oceans.js'},
+		//v11 :  {name : 'view11' ,desc:'Map Natural Earth 2', fnName: 'createViewMapNaturalEarth2', file : 'map-ne2.js'},
 		v12 :  {name : 'view12' ,desc:'Europe Map', fnName: 'createViewEuropeMap', file : 'map-eu.js'},
 		v13 :  {name : 'view13' ,desc:'Slice Map', fnName: 'createViewSliceMap', file : 'map-slice.js'},
 		
