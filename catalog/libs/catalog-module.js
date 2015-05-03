@@ -311,7 +311,7 @@ var StockLoader = function(proj,args,callback){
 		year.monitor = m;
 		
 		var stockCount = 0;
-		var dataWorker = new Worker('/catalog/views/stock/DataWorker2.js');
+		var dataWorker = new Worker('/catalog/views/stock/StockWorker.js');
 		dataWorker.addEventListener("message", function(event) {
 			if (event.data.startsWith !== undefined && event.data.startsWith('finish')) {
 				var yearFromWorker = event.data.split(':')[1];
