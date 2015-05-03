@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/projection';
 var views = {
 		v1 : {name : 'view1' ,desc:'Projection Linear', fnName: 'createLinearProjection', file : 'projection-linear.js'},
 		v2 : {name : 'view2' ,desc:'Projection Log X', fnName: 'createLogXProjection', file : 'projection-logx.js'},

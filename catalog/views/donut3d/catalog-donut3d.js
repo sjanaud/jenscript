@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/donut3d';
 var views = {
 		v1  : {name : 'view1' ,   desc :'Simple Donut3D', fnName: 'createDonut3DSimple',    	file : 'donut3d-simple.js'},
 		v2  : {name : 'view2' ,   desc :'Black Donut3D',  fnName: 'createDonut3DBlack',      	file : 'donut3d-black.js'},

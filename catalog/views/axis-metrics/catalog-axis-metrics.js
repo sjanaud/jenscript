@@ -1,4 +1,3 @@
-////var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/axis-metrics';
 var views = {
 		v1 :  {name : 'view1'  ,desc:'Metrics with natural gravity', fnName: 'createViewMetricsGravityNatural', file : 'metrics-gravity-natural.js'},
 		v2 :  {name : 'view2'  ,desc:'Metrics with rotate gravity', fnName: 'createViewMetricsGravityRotate',  file : 'metrics-gravity-rotate.js'},

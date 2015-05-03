@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/map';
 var views = {
 		v1 :  {name : 'view1' ,desc:'Slippy Map', fnName: 'createViewSlippyMap', file : 'map-slippymap.js'},
 		v2 :  {name : 'view2' ,desc:'GeoJSON Map', fnName: 'createViewGeoJSONMap', file : 'map-geojson.js'},

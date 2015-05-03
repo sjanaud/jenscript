@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/realtime';
 var views = {
 		v1  : {name : 'view1' ,desc:'Real Time Curve',  fnName: 'createViewRealTimeLineCurve',  file : 'realtime-line.js', onQuit : function(){console.log('quit real time line');}},
 		v2  : {name : 'view2' ,desc:'Real Time Cloud 1',  fnName: 'createViewRealTimeCloud1',  	file : 'realtime-cloud1.js',onQuit : function(){console.log('before ');window.cloudPointSimulator.stop();console.log('after');}},

@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/transform';
 var views = {
 		v1 :  {name : 'view1'  ,desc:'Donut2D Semantic Transform vs Geometric Transform', fnName: 'createDonut2D', file : 'donut2d.js', dashboard:true},
 		v2 :  {name : 'view2'  ,desc:'Map Semantic Transform vs Geometric Transform', fnName: 'createMap', file : 'map.js', dashboard:true},

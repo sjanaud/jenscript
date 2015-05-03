@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/zoom-lens';
 var views = {
 		v1 :  {name : 'view1'  ,desc:'Zoom Lens', fnName: 'createViewZoomLens',     							file : 'zoom-lens.js'},
 		v2 :  {name : 'view2'  ,desc:'Zoom Lens Pad', fnName: 'createViewZoomLensPad',     							file : 'zoom-lens-pad.js'},

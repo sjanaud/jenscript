@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/function-curve';
 var views = {
 		v1 :  {name : 'view1'  ,desc : 'Simple Line Curve X Function', fnName: 'createViewLineCurveXFunction', file : 'curve-xfunction-line.js'},
 		v2 :  {name : 'view2'  ,desc : 'Simple Spline Curve X Function', fnName: 'createViewSplineCurveXFunction', file : 'curve-xfunction-spline.js'},

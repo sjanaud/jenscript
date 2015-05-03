@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/translate';
 var views = {
 		v1 :  {name : 'view1'  ,desc:'Translate Plugin', fnName: 'createViewTranslate',     file : 'translate-simple.js'},
 		v2 :  {name : 'view2'  ,desc:'Translate Plugin X Mode', fnName: 'createViewTranslateModeX',     file : 'translate-mode-x.js'},

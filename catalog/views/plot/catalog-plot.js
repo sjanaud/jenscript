@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/plot';
 var views = {
 		v0 :  {name : 'view0'  ,desc:'Line Plot', fnName: 'createViewLinePlot', file : 'plot-line.js'},
 		v1 :  {name : 'view1'  ,desc:'Bezier Plot', fnName: 'createViewBezierPlot', file : 'plot-bezier.js'},

@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/gauge';
 var views = {
 		v1 :  {name : 'view1'  , desc:'Forge', fnName: 'createGauge', 								file : 'gauge.js'},
 		v2 :  {name : 'view2'  , desc:'Forge', fnName: 'createViewGaugeAnchorBinder', 				file : 'gauge-anchorbinder.js'},

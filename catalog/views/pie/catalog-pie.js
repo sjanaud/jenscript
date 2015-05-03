@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/pie';
 var views = {
 		v1  : {name : 'view1' ,desc:'Simple Pie',  fnName: 'createPieSimple',    			 file : 'pie-simple.js'},
 		v2  : {name : 'view2' ,desc:'Pie Radius',  fnName: 'createPieSimpleRadius',      	 file : 'pie-simple-radius.js'},

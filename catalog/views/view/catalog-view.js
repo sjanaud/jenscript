@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/view';
 var views = {
 		v1 :  {name : 'view1'  ,desc:'View Composition Background', fnName: 'createViewCompositionBackgrounds', file : 'view-composition-backgrounds.js'},
 		v2 :  {name : 'view2'  ,desc:'View Dual Texture/Color Background', fnName: 'createViewDualTextureColorBackground', file : 'view-dual-texture-color-backgrounds.js'},

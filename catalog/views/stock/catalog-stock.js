@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/stock';
 var views = {
 		v1  : {name : 'view1' ,desc:' Candle Stick Layer',  fnName: 'createViewStockCandleStick',   							file : 'stock-candlesticks.js'},
 		v2  : {name : 'view2' ,desc:'OHLC Layer',  fnName: 'createViewStockOHLC',      	 										file : 'stock-ohlc.js'},

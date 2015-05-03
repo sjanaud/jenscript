@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/symbol-bar';
 var views = {
 		v1 :  {name : 'view1'  ,desc:'Simple Vertical Bar', fnName: 'createViewBarVSymbol', file : 'bar-simple.js'},
 		v2 :  {name : 'view2'  ,desc:'Bar Vertical Layout', fnName: 'createViewBarSymbolLayout', file : 'bar-layout.js'},

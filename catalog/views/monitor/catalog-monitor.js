@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/monitor';
 var views = {
 		v1 :  {name : 'view1' ,desc:'Simple Progress Monitor', fnName: 'createViewMonitor', file : 'monitor-simple.js'},
 		v2 :  {name : 'view2' ,desc:'Multiple Progress Monitor', fnName: 'createViewMonitorProgressWorker', file : 'monitor-multiple.js'},

@@ -1,4 +1,3 @@
-//var catalogJSBase = JenSoft.Context.path+'/module/javascript/catalog/donut2d';
 var views = {
 		v1  : {name : 'view1' ,desc:'Donut2D Default Fill',  fnName: 'createDonut2DFillDefault',    		file : 'donut2d-fill-default.js'},
 		v2  : {name : 'view2' ,desc:'Donut2D Slice Fill',  fnName: 'createDonut2DFillSliceDefault',      	file : 'donut2d-fill-default-onlyslice.js'},
