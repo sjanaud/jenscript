@@ -1,5 +1,5 @@
 var catalogModule = (function(){
-	
+	//TODO make catalog module
 });
 
 
@@ -30,28 +30,21 @@ var catalogJSBase;
 function showJSFeature(feature) {
 	console.log("show javascript feature : "+feature);
 		if(jsfeature !== undefined){
-			console.log('should maybe uninstall feature ? : '+jsfeature);
-//			if(uninstallFeature){
-//				uninstallFeature();
-//			}
-			
-			
+			//console.log('should maybe uninstall feature ? : '+jsfeature);
 		}
 		
 		jsfeature = feature;
 		var sbase = '/catalog/views/'+feature+'/catalog-'+feature+'.js';
 		catalogJSBase = '/catalog/views/'+feature;
 		//load catalog
-		console.log("try load : "+sbase);
 		$.getScript(sbase)
 		.done(function( script, textStatus ) {
-			console.log('catalog js loaded');
 			//load views from catalog
 			loadViews();
 			//load feature page
 			$('#headerJavascriptHolder').load('/catalog/features/feature-'+feature+'.html',function() {
 				prettyPrint();
-				$('#jscatalog').load('jscatalog.html',function() {
+				$('#jscatalog').load('/catalog/fragments/jscatalog.html',function() {
 					var tbody='';
 					var count=0;
 					for (var property in views) {
@@ -60,10 +53,8 @@ function showJSFeature(feature) {
 					    	var idname = 'c'+count++;
 					    	var link ='<span"  id="'+idname+'" rel="popover" data-toggle="popover" data-placement="top" data-trigger="hover">'+views[property].name+'</span>';
 					    	if(views[property].dashboard)
-					    		//tbody = tbody+'<tr onmouseout="hideJSViewPopup(\''+idname+'\');" onmouseover="displayJSViewPopup(\''+idname+'\', \''+views[property].name+'\',400,150);"   onclick="showDashboardSource(\''+views[property].name+'\');return false;"><td width="30%">'+link+'</td><td id="'+idname+'_desc">'+views[property].desc+'</td></tr>';
 					    		tbody = tbody+'<tr onclick="showDashboardSource(\''+views[property].name+'\');return false;"><td width="30%">'+link+'</td><td id="'+idname+'_desc">'+views[property].desc+'</td></tr>';
 					    	else
-					    		//tbody = tbody+'<tr onmouseout="hideJSViewPopup(\''+idname+'\');" onmouseover="displayJSViewPopup(\''+idname+'\', \''+views[property].name+'\',400,300);"   onclick="showViewSource(\''+views[property].name+'\');return false;"><td width="30%">'+link+'</td><td id="'+idname+'_desc">'+views[property].desc+'</td></tr>';
 					    		tbody = tbody+'<tr onclick="showViewSource(\''+views[property].name+'\');return false;"><td width="30%">'+link+'</td><td id="'+idname+'_desc">'+views[property].desc+'</td></tr>';
 					    	
 					    }
@@ -74,8 +65,7 @@ function showJSFeature(feature) {
 			
 		})
 		.fail(function( jqxhr, settings, exception ) {
-			//alertify.error('<small>JenScript Feature : '+feature+' not available.</small>');
-			console.log("fail to load :"+feature);
+			//console.log("fail to load :"+feature);
 		});
 }
 
@@ -149,7 +139,6 @@ function showViewSource(viewName){
 	$("[id*='_desc']").removeAttr('class');
 	$(".popover").remove();
 	var view = getViewByName(viewName);
-	//console.log("view found file : "+view.file);
 	$.get(catalogJSBase+'/'+view.file, function(content) {
 		$('#sourceHolder').load('/catalog/fragments/view-source.html',function() {
 			$('#viewTitle').html(view.desc);
@@ -213,11 +202,9 @@ function loadViewFile(viewName){
     		console.log("success load "+viewName+" with file resource : "+view.file);
     	})
     	.fail(function( jqxhr, settings, exception ) {
-    		//alertify.error('failed load  '+viewName+' with error '+exception);
     		console.log('failed load  '+viewName+' with error '+exception);
     	});
 	}else{
-		//alertify.error('no view found for name  '+viewName);
 		console.log('no view found for name  '+viewName);
 	}
 };
@@ -324,7 +311,7 @@ var StockLoader = function(proj,args,callback){
 		year.monitor = m;
 		
 		var stockCount = 0;
-		var dataWorker = new Worker(JenSoft.Context.path+ '/module/javascript/catalog/stock/DataWorker2.js');
+		var dataWorker = new Worker('/catalog/views/stock/DataWorker2.js');
 		dataWorker.addEventListener("message", function(event) {
 			if (event.data.startsWith !== undefined && event.data.startsWith('finish')) {
 				var yearFromWorker = event.data.split(':')[1];
@@ -344,7 +331,7 @@ var StockLoader = function(proj,args,callback){
 							yo.monitor.setValue(stockCount, 'Load SLV '+yo.year+' stock '+ stockCount);
 						},20);
 					}else{
-						console.log("no monitor found");
+						//console.log("no monitor found");
 					}
 					
 				}
@@ -394,7 +381,7 @@ var StockLoader = function(proj,args,callback){
 	};
 	
 	for (var i = 0; i < args.length; i++) {
-		console.log('launch defaut year : '+args[i]);
+		//console.log('launch defaut year : '+args[i]);
 		years[i]={year:args[i],state:'processing'};
 		init(i,years[i]);
 	}
