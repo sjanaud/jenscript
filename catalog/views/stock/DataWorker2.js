@@ -1,46 +1,32 @@
 var year;
  
 this.onmessage = function(event) {
-	console.log('dataworker 2 event : '+event.data);
 	
 	year = event.data;
 	var asset = 'slv-'+event.data+'.csv';
 
 	var oReq = new XMLHttpRequest();
-	//oReq.overrideMimeType('text/plain');
-	//oReq.addEventListener("progress", updateProgress, false);
 	oReq.addEventListener("load", transferComplete, false);
 	oReq.addEventListener("error", transferFailed, false);
 	oReq.addEventListener("abort", transferCanceled, false);
-	oReq.open("get", "/site/module/javascript/catalog/stock/assets/"+asset, true);
+	oReq.open("get", "/catalog/views/stock/assets/"+asset, true);
 	oReq.send();
 };
 
 
-//function updateProgress (oEvent) {
-//  if (oEvent.lengthComputable) {
-//    var percentComplete = oEvent.loaded / oEvent.total;
-//  } else {
-//  }
-//}
 
 function transferComplete(evt) {
-	
-	 console.log("transfer for year :"+year);
  	 var lines = evt.target.responseText.split('\n');
- 	 
  	 var post = function(i,line,callback){
  		 setTimeout(function(){
  	 		 if(i > 0 && i < lines.length -1){
  	 			 var stock = loadStock(line);
- 	 			// console.log('post message to page '+i);
  	 			 postMessage(stock);
  	 		 }
  	 		 callback(i);
  		 },i*10);
  	 };
  	 for(var i=0;i<lines.length;i++){
- 		//console.log('line '+i+' : '+lines[i]);
  		var line = lines[i];
  		post(i,line,function(rank){if(rank === lines.length-1) postMessage('finish:'+year);});
  	 }
@@ -57,7 +43,6 @@ function transferCanceled(evt) {
 
 
 function loadStock(dataLine) {
-	//console.log('line : '+dataLine);
 	var arrayStock = dataLine.split(',');
 	var dt = arrayStock[0].replace(/"/g,'');
 	var dtArray = dt.split('/');
