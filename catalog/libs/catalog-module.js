@@ -3,6 +3,33 @@ var catalogModule = (function(){
 });
 
 
+function _getAgent(userAgent) {
+	var ua = userAgent.toLowerCase(),
+	// jQuery UA regex
+	match = /(chrome)[ \/]([\w.]+)/.exec( ua ) ||
+	/(webkit)[ \/]([\w.]+)/.exec( ua ) ||
+	/(opera)(?:.*version|)[ \/]([\w.]+)/.exec( ua ) ||
+	/(msie) ([\w.]+)/.exec( ua ) ||
+	ua.indexOf('compatible') < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec( ua ) ||
+	[],
+	// adding mobile flag as well
+	mobile = !!(userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile/i)),
+	ieMobile = !!(userAgent.match(/IEMobile/i));
+		return {
+			browser: match[ 1 ] || '',
+			version: match[ 2 ] || '0',
+			// adding mobile flab
+			mobile: mobile,
+			ieMobile: ieMobile, // If this is true (i.e., WP8),
+			toString : function(){
+				return 'browser : '+this.browser+', version : '+this.version+', mobile : '+this.mobile+', ieMobile : '+this.ieMobile;
+			}
+		};
+	};
+	
+
+var UA = _getAgent((navigator && navigator.userAgent) || '');
+
 function installJavascript(success){	
 	$('#placeHolderPane').load('/catalog/fragments/javascript-template.html',function() {
 		if(success !== undefined){

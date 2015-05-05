@@ -17,7 +17,7 @@ function createDonut3DDivergence(container, width, height) {
 	});
 	
 	var proj = new JenScript.LinearProjection({
-		name : "proj1",
+		name : "donut proj",
 		minX : -1000,
 		maxX : 1000,
 		minY : -1000,

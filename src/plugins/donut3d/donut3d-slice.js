@@ -80,6 +80,9 @@
 		    this.donut;
 		    /**fragment*/
 		    this.fragments = [];
+		    
+		    if(this.value === undefined || this.value < 0 )
+		    	throw new Error('Slice value should be greater than 0');
 		},
 		
 		setName : function(name) {

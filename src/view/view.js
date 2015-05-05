@@ -28,6 +28,8 @@
 			
 			this.SVG_NS = "http://www.w3.org/2000/svg";
 			this.XLINK_NS = "http://www.w3.org/1999/xlink";
+			
+			
 //			alert("config width "+config.width);
 //			alert("config height "+config.height);
 //			alert("client width : "+document.getElementById(this.name).clientWidth);

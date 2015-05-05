@@ -114,6 +114,7 @@ var JenScript = {};
 		        View: function(config) {
 		            this.init(config);
 		        },
+		    	
 		        
 		        /**
 		         * Object Projection()
