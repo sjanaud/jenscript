@@ -1,6 +1,6 @@
 // JenScript -  JavaScript SVG Framework
 // Product of JenSoftAPI - Visualization Frameworks
-// version : 1.0.0
+// version : 1.1.0
 //
 // Author : JenSoft API 
 // Author : Sebastien Janaud 
@@ -10,7 +10,7 @@
 // 
 //
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-04-05
+// build: 2015-05-05
 // 
 // All Rights reserved
 
@@ -24,7 +24,7 @@ var JenScript = {};
 	
 		JenScript = {
 				
-				version : '1.0.0',
+				version : '1.1.0',
 				views : [],
 				sequenceId: 0,
 				SVG_NS : 'http://www.w3.org/2000/svg',
@@ -130,6 +130,7 @@ var JenScript = {};
 		        View: function(config) {
 		            this.init(config);
 		        },
+		    	
 		        
 		        /**
 		         * Object Projection()
@@ -4343,6 +4344,8 @@ function stringInputToObject(color) {
 			
 			this.SVG_NS = "http://www.w3.org/2000/svg";
 			this.XLINK_NS = "http://www.w3.org/1999/xlink";
+			
+			
 //			alert("config width "+config.width);
 //			alert("config height "+config.height);
 //			alert("client width : "+document.getElementById(this.name).clientWidth);
@@ -13692,6 +13695,9 @@ function stringInputToObject(color) {
 		    this.donut;
 		    /**fragment*/
 		    this.fragments = [];
+		    
+		    if(this.value === undefined || this.value < 0 )
+		    	throw new Error('Slice value should be greater than 0');
 		},
 		
 		setName : function(name) {
