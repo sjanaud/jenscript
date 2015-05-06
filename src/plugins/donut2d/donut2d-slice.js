@@ -60,6 +60,9 @@
 		    this.sliceLabels = [];
 		    /** host donut2D of this slice */
 		    this.donut;
+		    
+		    if(this.value <= 0 )
+		    	throw new Error('Slice value should be greater than 0');
 		   
 		},
 		

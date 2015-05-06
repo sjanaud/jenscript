@@ -19,7 +19,7 @@
 			/** slice name */
 		    this.name = config.name;
 		    /** value */
-		    this.value = config.value;
+		    this.value =  (config.value !== undefined)?config.value:1;
 		    /** theme color */
 		    this.themeColor = config.themeColor;
 		    /** divergence */
@@ -81,7 +81,7 @@
 		    /**fragment*/
 		    this.fragments = [];
 		    
-		    if(this.value === undefined || this.value < 0 )
+		    if(this.value <= 0 )
 		    	throw new Error('Slice value should be greater than 0');
 		},
 		

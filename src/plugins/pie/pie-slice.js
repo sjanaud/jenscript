@@ -27,6 +27,9 @@
 			this.value =  (config.value !== undefined)?config.value:1;
 			this.themeColor =(config.themeColor !== undefined)?config.themeColor:JenScript.createColor();
 			this.divergence =  (config.divergence !== undefined)?config.divergence:0;
+			
+			if(this.value <= 0 )
+			    	throw new Error('Slice value should be greater than 0');
 		},
 		
 		setName : function(name) {
