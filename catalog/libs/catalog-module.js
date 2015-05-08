@@ -92,7 +92,7 @@ function showJSFeature(feature) {
 			
 		})
 		.fail(function( jqxhr, settings, exception ) {
-			//console.log("fail to load :"+feature);
+			console.log("fail to load :"+feature);
 		});
 }
 

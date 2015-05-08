@@ -1,157 +1,287 @@
 (function(){
-	JenScript.Donut3DAbstractLabel = function(name, text) {
-		this.name = name;
-		this.text = text;
-		this.textColor;
-	};
 	
-	JenScript.Model.addMethods(JenScript.Donut3DAbstractLabel, {
-		setText : function(text) {
-			this.text = text;
-		},
-
-		getText : function() {
-			return this.text;
-		},
-
-		setTextColor : function(textColor) {
-			this.textColor = textColor;
-		},
-
-		getTextColor : function() {
-			return this.textColor;
-		},
-
-		paintDonutSliceLabel : function(g2d, slice) {
-			console.info("abstract paint donut slice label");
-		}
-	});
-
-
+	
 	/**
-	 * Donut3D Label Border
+	 * Object Donut3DAbstractLabel()
+	 * Defines Donut3D Abstract Label
+	 * @param {Object} config
+	 * @param {String} [config.name] the label type name
+	 * @param {String} [config.text] the label text
+	 * @param {String} [config.textColor] the label text color
+	 * @param {Number} [config.fontSize] the label text font size
+	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {Object} [config.shader] the label fill shader
+	 * @param {Object} [config.shader.percents] the label fill shader percents
+	 * @param {Object} [config.shader.colors] the label fill shader colors
+	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+	 * @param {String} [config.outlineColor] the label outline color
+	 * @param {String} [config.cornerRadius] the label outline corner radius
+	 * @param {String} [config.fillColor] the label fill color
 	 */
-	JenScript.Donut3DLabelBorder = function(text) {
-		this.margin = 50;
-		this.linkExtends = 30;
-		this.fontSize=10;
-		JenScript.Donut3DAbstractLabel.call(this, "Donut3DLabelBorder", text);
+	JenScript.Donut3DAbstractLabel = function(config) {
+		this._init(config);
 	};
-	JenScript.Model.inheritPrototype(JenScript.Donut3DLabelBorder, JenScript.Donut3DAbstractLabel);
-	
-	JenScript.Model.addMethods(JenScript.Donut3DLabelBorder, {
+	JenScript.Model.inheritPrototype(JenScript.Donut3DAbstractLabel,JenScript.AbstractLabel);
+	JenScript.Model.addMethods(JenScript.Donut3DAbstractLabel,{
 		
-		paintDonutSliceLabel : function(g2d, slice) {
-		        var pc = slice.donut.getDonutCenter();
+		/**
+		 * Initialize Abstract Donut3D Label
+		 * @param {Object} config
+		 * @param {String} [config.name] the label type name
+		 * @param {String} [config.text] the label text
+		 * @param {String} [config.textColor] the label text color
+		 * @param {Number} [config.fontSize] the label text font size
+		 * @param {String} [config.textAnchor] the label text anchor
+		 * @param {Object} [config.shader] the label fill shader
+		 * @param {Object} [config.shader.percents] the label fill shader percents
+		 * @param {Object} [config.shader.colors] the label fill shader colors
+		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+		 * @param {String} [config.outlineColor] the label outline color
+		 * @param {String} [config.cornerRadius] the label outline corner radius
+		 * @param {String} [config.fillColor] the label fill color
+		 */
+		_init : function(config){
+			JenScript.AbstractLabel.call(this,config);
+		},
+		
+		/**
+		 * Abstract paint for donut 3D 
+		 */
+		paintDonut3DSliceLabel : function(g2d,slice){
+			throw new Error('paintDonut3DSliceLabel method should be provide by override');
+		}
+		
+	});
+	
+	/**
+	 * Object Donut3DBorderLabel()
+	 * Defines Donut Border Label, a label which is paint on the pie border left or right side 
+	 * @param {Object} config
+	 * @param {String} [config.name] the label type name
+	 * @param {String} [config.text] the label text
+	 * @param {String} [config.textColor] the label text color
+	 * @param {Number} [config.fontSize] the label text font size
+	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {Object} [config.shader] the label fill shader
+	 * @param {Object} [config.shader.percents] the label fill shader percents
+	 * @param {Object} [config.shader.colors] the label fill shader colors
+	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+	 * @param {String} [config.outlineColor] the label outline color
+	 * @param {String} [config.cornerRadius] the label outline corner radius
+	 * @param {String} [config.fillColor] the label fill color
+	 * @param {Number} [config.margin] the margin distance from pie to draw the label
+	 * @param {Number} [config.linkExtends] the quad edge control point for label link
+	 */
+	JenScript.Donut3DBorderLabel = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut3DBorderLabel, JenScript.Donut3DAbstractLabel);
+	JenScript.Model.addMethods(JenScript.Donut3DBorderLabel, {
+		
+		/**
+		 * Initalize Donut3D Border Label, a label which is paint on the pie border left or right side 
+		 * @param {Object} config
+		 * @param {String} [config.name] the label type name
+		 * @param {String} [config.text] the label text
+		 * @param {String} [config.textColor] the label text color
+		 * @param {Number} [config.fontSize] the label text font size
+		 * @param {String} [config.textAnchor] the label text anchor
+		 * @param {Object} [config.shader] the label fill shader
+		 * @param {Object} [config.shader.percents] the label fill shader percents
+		 * @param {Object} [config.shader.colors] the label fill shader colors
+		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+		 * @param {String} [config.outlineColor] the label outline color
+		 * @param {String} [config.cornerRadius] the label outline corner radius
+		 * @param {String} [config.fillColor] the label fill color
+		 * @param {Number} [config.margin] the margin distance from donut to draw the label
+		 * @param {Number} [config.linkExtends] the quad edge control point for label link
+		 */
+		__init : function(config){
+			config = config || {};
+			this.margin = (config.margin !== undefined)? config.margin : 50;
+			this.linkExtends = (config.linkExtends !== undefined)? config.linkExtends : 30;
+			config.name = 'JenScript.Donut3DBorderLabel';
+			JenScript.Donut3DAbstractLabel.call(this, config);
+		},
+		
+		/**
+		 * set margin for this border label
+		 * @param {Object} margin
+		 */
+		setMargin : function(margin){
+			this.margin = margin;
+			this.slice.donut.plugin.repaintPlugin();
+		},
+		
+		/**
+		 * set links extends for this border label
+		 * @param {Object} margin
+		 */
+		setLinkExtends : function(linkExtends){
+			this.linkExtends = linkExtends;
+			this.slice.donut.plugin.repaintPlugin();
+		},
+		
+		/**
+		 * paint donut3D slice border label
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} slice
+		 */
+		paintDonut3DSliceLabel : function(g2d, slice) {
+			var pc = slice.donut.getDonutCenter();
 		      
-		        var medianDegree = slice.startAngleDegree + Math.abs(slice.endAngleDegree - slice.startAngleDegree) / 2;
-		        if (medianDegree >= 360) {
-		            medianDegree = medianDegree - 360;
-		        }
+	        var medianDegree = slice.startAngleDegree + Math.abs(slice.endAngleDegree - slice.startAngleDegree) / 2;
+	        if (medianDegree >= 360) {
+	            medianDegree = medianDegree - 360;
+	        }
 
-		        var px1 = pc.x + (slice.donut.outerA + slice.divergence)
-		                * Math.cos(JenScript.Math.toRadians(medianDegree));
-		        var py1 = pc.y - (slice.donut.outerB + slice.divergence)
-		                * Math.sin(JenScript.Math.toRadians(medianDegree));
+	        var px1 = pc.x + (slice.donut.outerA + slice.divergence)
+	                * Math.cos(JenScript.Math.toRadians(medianDegree));
+	        var py1 = pc.y - (slice.donut.outerB + slice.divergence)
+	                * Math.sin(JenScript.Math.toRadians(medianDegree));
 
-		        var px2 = pc.x
-		                + (slice.donut.outerA + this.linkExtends + slice.divergence)
-		                * Math.cos(JenScript.Math.toRadians(medianDegree));
-		        var py2 = pc.y
-		                - (slice.donut.outerB + this.linkExtends + slice.divergence)
-		                * Math.sin(JenScript.Math.toRadians(medianDegree));
+	        var px2 = pc.x
+	                + (slice.donut.outerA + this.linkExtends + slice.divergence)
+	                * Math.cos(JenScript.Math.toRadians(medianDegree));
+	        var py2 = pc.y
+	                - (slice.donut.outerB + this.linkExtends + slice.divergence)
+	                * Math.sin(JenScript.Math.toRadians(medianDegree));
 
-		        var px3 = 0;
-		        var py3 = py2;
-		        var px4 = 0;
-		        var py4 = py2;
-		        var pos = 'middle';
-		        if (medianDegree >= 270 && medianDegree <= 360
-		                || medianDegree >= 0 && medianDegree <= 90) {
-		            px3 = pc.x + slice.donut.outerA + this.margin  - 5;
-		            px4 = pc.x + slice.donut.outerA + this.margin  + 5;
-		            
-		            pos='start';
-		            if(medianDegree === 270)
-		            	pos = 'middle';
-		            if(medianDegree === 90)
-		            	pos = 'middle';
-		        }
-		        else {// 90-->270
-		            px3 = pc.x- slice.donut.outerA - this.margin + 5;
-		            px4 = pc.x- slice.donut.outerA - this.margin -5;
-		            pos='end';
-		        }
-		        
-		        
-		        var quaddata = 'M '+px1+','+py1+' Q '+px2+','+py2+' '+px3+','+py3;
-		        var quadlink = new JenScript.SVGElement().name('path')
-													.attr('d',quaddata)
-													.attr('fill','none')
-													.attr('stroke','darkgray')
-													.buildHTML();
-		        g2d.insertSVG(quadlink);
-		        
-		        var c = (this.textColor !== undefined)?this.textColor : slice.themeColor;
-		        var sl = new JenScript.SVGElement().name('text')
-												.attr('id',"borderLabel"+JenScript.sequenceId++)
-												.attr('x',px4+'px')
-												.attr('y',py4+'px')
-												.attr('font-size',12)
-												.attr('fill',c)
-												.attr('text-anchor',pos)
-												.textContent(this.text)
+	        var px3 = 0;
+	        var py3 = py2;
+	        var px4 = 0;
+	        var py4 = py2;
+	        var pos = 'middle';
+	        if (medianDegree >= 270 && medianDegree <= 360
+	                || medianDegree >= 0 && medianDegree <= 90) {
+	            px3 = pc.x + slice.donut.outerA + this.margin  - 5;
+	            px4 = pc.x + slice.donut.outerA + this.margin  + 5;
+	            
+	            pos='start';
+	            if(medianDegree === 270)
+	            	pos = 'middle';
+	            if(medianDegree === 90)
+	            	pos = 'middle';
+	        }
+	        else {// 90-->270
+	            px3 = pc.x- slice.donut.outerA - this.margin + 5;
+	            px4 = pc.x- slice.donut.outerA - this.margin -5;
+	            pos='end';
+	        }
+	        
+	        
+	        var quaddata = 'M '+px1+','+py1+' Q '+px2+','+py2+' '+px3+','+py3;
+	        var quadlink = new JenScript.SVGElement().name('path')
+												.attr('d',quaddata)
+												.attr('fill','none')
+												.attr('stroke','darkgray')
 												.buildHTML();
-
-		        g2d.insertSVG(sl);
-		        var c = (this.textColor !== undefined)?this.textColor : slice.themeColor;
-		        var svgRect = sl.getBBox();
-				var gradientId = "gradient"+JenScript.sequenceId++;
-				var percents = ['0%','50%','100%'];
-				var colors = ['rgba(0,0,0,0.5)','rgba(0,0,0,0.8)','rgba(0,0,0,0.9)'];
-				var gradient= new JenScript.SVGLinearGradient().Id(gradientId).from(svgRect.x,(svgRect.y-2)).to(svgRect.x, (svgRect.y+4+svgRect.height)).shade(percents,colors).toSVG();
-				g2d.definesSVG(gradient);
-				var tr = new JenScript.SVGElement().name('rect')
-												.attr('x',(svgRect.x-10)+'px')
-												.attr('rx','10px')
-												.attr('y',(svgRect.y-2)+'px')
-												.attr('ry','10px')
-												.attr('width',(svgRect.width+20))
-												.attr('height',svgRect.height+4)
-												.attr('style','stroke:'+c+'; fill: url(#'+gradientId+')')
-												.buildHTML();
-		        sl.parentNode.insertBefore(tr,sl);
 		        
-//		        var mark1 = new JenScript.SVGElement().name('rect')
-//		        									.attr('x',px1)
-//		        									.attr('y',py1)
-//		        									.attr('width',4)
-//		        									.attr('height',4)
-//		        									.attr('fill','red')
-//		        									.buildHTML();
-//		        
-//		        g2d.insertSVG(mark1);
-//		        
-//		        
-//		        var mark2 = new JenScript.SVGElement().name('rect')
-//													.attr('x',px2)
-//													.attr('y',py2)
-//													.attr('width',4)
-//													.attr('height',4)
-//													.attr('fill','green')
-//													.buildHTML();
-//		        g2d.insertSVG(mark2);
-//		        
-//		        var mark3 = new JenScript.SVGElement().name('rect')
-//													.attr('x',px3)
-//													.attr('y',py3)
-//													.attr('width',4)
-//													.attr('height',4)
-//													.attr('fill','black')
-//													.buildHTML();
-//		        
-//		        
-//		        g2d.insertSVG(mark3);
+		        this.setTextAnchor(pos);
+		        this.setLocation(new JenScript.Point2D(px4,py4));
+		        var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
+				this.setTextColor(ct);
+				
+				//this.setOutlineColor(this.outlineColor);
+				//this.setOutlineColor(this.fillColor);
+				this.paintLabel(g2d);
+				this.svg.label.appendChild(quadlink);
 		 }
+	});
+	
+	
+	/**
+	 * Object Donut3DRadialLabel()
+	 * Defines Donut3D Radial Label, a label which is paint on the median radian segment of slice
+	 * @param {Object} config
+	 * @param {String} [config.name] the label type name
+	 * @param {String} [config.text] the label text
+	 * @param {String} [config.textColor] the label text color
+	 * @param {Number} [config.fontSize] the label text font size
+	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {Object} [config.shader] the label fill shader
+	 * @param {Object} [config.shader.percents] the label fill shader percents
+	 * @param {Object} [config.shader.colors] the label fill shader colors
+	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+	 * @param {String} [config.outlineColor] the label outline color
+	 * @param {String} [config.cornerRadius] the label outline corner radius
+	 * @param {String} [config.fillColor] the label fill color
+	 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from pie radius
+	 */
+	JenScript.Donut3DRadialLabel = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut3DRadialLabel, JenScript.Donut3DAbstractLabel);
+	JenScript.Model.addMethods(JenScript.Donut3DRadialLabel,{
+		
+		/**
+		 * Initialize Donut3D Radial Label, a label which is paint on the median radian segment of slice
+		 * @param {Object} config
+		 * @param {String} [config.name] the label type name
+		 * @param {String} [config.text] the label text
+		 * @param {String} [config.textColor] the label text color
+		 * @param {Number} [config.fontSize] the label text font size
+		 * @param {String} [config.textAnchor] the label text anchor
+		 * @param {Object} [config.shader] the label fill shader
+		 * @param {Object} [config.shader.percents] the label fill shader percents
+		 * @param {Object} [config.shader.colors] the label fill shader colors
+		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+		 * @param {String} [config.outlineColor] the label outline color
+		 * @param {String} [config.cornerRadius] the label outline corner radius
+		 * @param {String} [config.fillColor] the label fill color
+		 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from pie radius
+		 */
+		__init : function(config){
+			config = config || {};
+			this.offsetRadius = (config.offsetRadius !== undefined)?config.offsetRadius : 20;
+			config.name = 'JenScript.Donut3DRadialLabel';
+			JenScript.Donut2DAbstractLabel.call(this,config);
+		},
+
+		/**
+		 * set offset radius for this radial label.
+		 * offset radius is the extention distance from radius to draw the radial label
+		 * @param {Number} offsetRadius
+		 */
+		setOffsetRadius : function(offsetRadius) {
+			this.offsetRadius = offsetRadius;
+			this.slice.donut.plugin.repaintPlugin();
+		},
+		
+		/**
+		 * paint slice radial label
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} slice
+		 */
+		paintDonut3DSliceLabel : function(g2d, slice) {
+			var anchor = {
+				x : slice.sc.x + (slice.donut.outerA + this.offsetRadius)
+						* Math.cos(JenScript.Math.toRadians(slice.medianDegree)),
+				y : slice.sc.y - (slice.donut.outerB + this.offsetRadius)
+						* Math.sin(JenScript.Math.toRadians(slice.medianDegree))
+			};
+			var pos = "middle";
+			var dx = 0;
+			if (slice.medianDegree > 0 && slice.medianDegree < 90) {
+				pos = "start";
+				dx = 10;
+			} else if (slice.medianDegree > 90 && slice.medianDegree < 270) {
+				pos = "end";
+				dx = -10;
+			} else if (slice.medianDegree > 270 && slice.medianDegree <= 360) {
+				pos = "start";
+				dx = 10;
+			} else if (slice.medianDegree === 90 || slice.medianDegree === 270) {
+				pos = "middle";
+			}
+			this.setLocation(new JenScript.Point2D(anchor.x,anchor.y));
+			this.setTextAnchor(pos);
+			var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
+			this.setTextColor(ct);
+			
+			//var co = (this.outlineColor !== undefined)? this.outlineColor : slice.themeColor;
+			//this.setOutlineColor(co);
+			this.paintLabel(g2d);
+		}
 	});
 })();

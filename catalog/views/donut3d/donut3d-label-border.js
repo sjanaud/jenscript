@@ -12,7 +12,7 @@ function createDonut3DLabelBorder(container, width, height) {
 		width : width,
 		height : height,
 		holders : 20,
-		
+	
 	});
 	
 	var proj = new JenScript.LinearProjection({
@@ -24,10 +24,11 @@ function createDonut3DLabelBorder(container, width, height) {
 	});
 	view.registerProjection(proj);
 
+
 	var donut3DPlugin = new JenScript.Donut3DPlugin();
 	proj.registerPlugin(donut3DPlugin);
 
-	var donut = new JenScript.Donut3D();
+	var donut = new JenScript.Donut3D({innerRadius:100,outerRadius:150,thickness : 60, startAngle : 300, tilt:40});
 	donut3DPlugin.addDonut(donut);
 
 	donut.tilt = 60;
@@ -35,46 +36,67 @@ function createDonut3DLabelBorder(container, width, height) {
 	var s1 = new JenScript.Donut3DSlice({
 		name : "s1",
 		value : 45,
-		themeColor : 'rgba(240, 240, 240, 0.9)'
+		themeColor : 'rgb(250, 250, 250)'
 	});
 	var s2 = new JenScript.Donut3DSlice({
 		name : "s2",
 		value : 5,
-		themeColor : 'rgba(37,38,41,1)'
+		themeColor : 'rgb(244, 145, 26)'
 	});
 	var s3 = new JenScript.Donut3DSlice({
 		name : "s3",
 		value : 30,
-		themeColor : 'rgba(78,148,44,1)'
+		themeColor : 'rgb(78, 148, 44)'
 	});
 	var s4 = new JenScript.Donut3DSlice({
 		name : "s4",
 		value : 5,
-		themeColor : 'rgba(22,125,218, 1)'
-	});
-	var s5 = new JenScript.Donut3DSlice({
-		name : "s5",
-		value : 5,
-		themeColor : 'rgba(61,44,105,1)'
+		themeColor : JenScript.RosePalette.CORALRED
 	});
 
 	donut.addSlice(s1);
 	donut.addSlice(s2);
 	donut.addSlice(s3);
 	donut.addSlice(s4);
-	donut.addSlice(s5);
-
-	var s1Label = new JenScript.Donut3DLabelBorder("Silver");
+	
+	var s1Label = new JenScript.Donut3DBorderLabel({
+		text : "Silver",
+		fillColor:'black',
+		outlineColor : s1.getThemeColor(),
+		cornerRadius : 8,
+		outlineWidth : 2,
+		//textColor :'white'
+	});
 	s1.addSliceLabel(s1Label);
 
-	var s2Label = new JenScript.Donut3DLabelBorder("Platinium");
+	var s2Label = new JenScript.Donut3DBorderLabel({
+		text : "Platinium",
+		fillColor:'black',
+		outlineColor : s2.getThemeColor(),
+		cornerRadius : 8,
+		outlineWidth : 2,
+		//textColor :'white'
+	});
 	s2.addSliceLabel(s2Label);
 
-	var s3Label = new JenScript.Donut3DLabelBorder("Rhodium");
+	var s3Label = new JenScript.Donut3DBorderLabel({
+		text : "Rhodium",
+		fillColor:'black',
+		outlineColor : s3.getThemeColor(),
+		cornerRadius : 8,
+		outlineWidth : 2,
+		//textColor :'white'
+	});
 	s3.addSliceLabel(s3Label);
-
-	var tx = new JenScript.TranslatePlugin();
-	proj.registerPlugin(tx);
-	tx.select();
+	
+	var s4Label = new JenScript.Donut3DBorderLabel({
+		text : "Silicium",
+		fillColor:'black',
+		outlineColor : s4.getThemeColor(),
+		cornerRadius : 8,
+		outlineWidth : 2,
+		//textColor :'white'
+	});
+	s4.addSliceLabel(s4Label);
 
 }

@@ -167,7 +167,8 @@
 													.attr('stroke','darkgray')
 													.buildHTML();
 
-		        slice.donut.svg.donutRoot.appendChild(quadlink);
+		       // slice.donut.svg.donutRoot.appendChild(quadlink);
+		        //shift to svg element from labels
 		        
 		        this.setTextAnchor(pos);
 		        this.setLocation(new JenScript.Point2D(px4,py4));
@@ -177,13 +178,14 @@
 				//this.setOutlineColor(this.outlineColor);
 				//this.setOutlineColor(this.fillColor);
 				this.paintLabel(g2d);
+				this.svg.label.appendChild(quadlink);
 		 }
 	});
 	
 	
 	/**
-	 * Object PieRadialLabel()
-	 * Defines Pie Radial Label, a label which is paint on the median radian segment of slice
+	 * Object Donut2DRadialLabel()
+	 * Defines Donut2D Radial Label, a label which is paint on the median radian segment of slice
 	 * @param {Object} config
 	 * @param {String} [config.name] the label type name
 	 * @param {String} [config.text] the label text
@@ -206,7 +208,7 @@
 	JenScript.Model.addMethods(JenScript.Donut2DRadialLabel,{
 		
 		/**
-		 * Initialize Pie Radial Label, a label which is paint on the median radian segment of slice
+		 * Initialize Donut2D Radial Label, a label which is paint on the median radian segment of slice
 		 * @param {Object} config
 		 * @param {String} [config.name] the label type name
 		 * @param {String} [config.text] the label text

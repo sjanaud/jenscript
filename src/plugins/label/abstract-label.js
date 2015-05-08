@@ -61,6 +61,8 @@
 			
 			this.proj;
 			this.nature = (config.nature !== undefined)? config.nature : 'Device';
+			/**svg elements*/
+		    this.svg={};
 		},
 		
 		equals : function(o){
@@ -207,7 +209,9 @@
 												.buildHTML();
 			label.child(sl);
 			g2d.deleteGraphicsElement(this.Id);
-			g2d.insertSVG(label.toSVG());
+			var svgLabel = label.toSVG();
+			this.svg.label = svgLabel;
+			g2d.insertSVG(svgLabel);
 			if(this.paintType !== 'None'){
 				var svgRect = sl.getBBox();
 						
@@ -232,6 +236,7 @@
 						
 					}
 					if(this.paintType === 'Stroke' || this.paintType === 'Both' ){
+						
 						if(this.getOutlineColor() !== undefined){
 							tr.stroke(this.getOutlineColor()).strokeWidth(this.outlineWidth);
 						}

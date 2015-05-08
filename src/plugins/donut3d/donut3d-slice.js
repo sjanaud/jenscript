@@ -81,6 +81,7 @@
 		    /**fragment*/
 		    this.fragments = [];
 		    
+		   // alert("slice value : "+this.name+","+this.value);
 		    if(this.value <= 0 )
 		    	throw new Error('Slice value should be greater than 0');
 		},

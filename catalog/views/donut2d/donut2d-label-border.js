@@ -65,7 +65,11 @@ function createDonut2DLabelBorder(container, width, height) {
 	donut.addSlice(s5);
 
 	var s1Label = new JenScript.Donut2DBorderLabel({
-		text : "Silver"
+		text : "Silver",
+		fillColor:'black',
+		outlineColor : s1.getThemeColor(),
+		cornerRadius : 8,
+		outlineWidth : 2
 	});
 	s1.addSliceLabel(s1Label);
 

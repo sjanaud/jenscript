@@ -55,7 +55,8 @@
 						var slice = donut.slices[j];
 						var labels = slice.getSliceLabels();
 						for (var l = 0; l < labels.length; l++) {
-							labels[l].paintDonutSliceLabel(g2d,slice);
+							labels[l].paintDonut3DSliceLabel(g2d,slice);
+							
 						}
 					}
 				}

@@ -10,4 +10,5 @@ var views = {
 		v9  : {name : 'view9' ,   desc :'Donut3D Start Angle',fnName: 'createDonut3DStartAngle',   	file : 'donut3d-startangle.js'},
 		v10 : {name : 'view10' ,  desc :'Donut3D Thickness',fnName: 'createDonut3DThickness', 	 	file : 'donut3d-thickness.js'},
 		v11 : {name : 'view11' ,  desc :'Donut3D Tilt Angle',fnName: 'createDonut3DTilt', 	 		file : 'donut3d-tilt.js'},
+		v12 : {name : 'view12' ,  desc :'Donut3D Radial Label',fnName: 'createDonut3DLabelRadial', 	 		file : 'donut3d-label-radial.js'},
 };

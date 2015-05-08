@@ -255,6 +255,22 @@
 	        var sliceExtendsDegree = donutSlice.normalizedValue * 360;
 	        donutSlice.startAngleDegree= sliceStartDegree;
 	        donutSlice.endAngleDegree = sliceStartDegree + sliceExtendsDegree;
+	        
+	        //for label
+	        
+	        var medianDegree = sliceStartDegree + sliceExtendsDegree / 2;
+	        if (medianDegree > 360) {
+	            medianDegree = medianDegree - 360;
+	        }
+	        donutSlice.medianDegree=medianDegree;
+	        var c = this.getDonutCenter();
+	        var sliceCenterX = c.x + donutSlice.divergence * Math.cos(JenScript.Math.toRadians(medianDegree));
+	        var sliceCenterY = c.y - donutSlice.divergence * Math.sin(JenScript.Math.toRadians(medianDegree));
+	        
+	        donutSlice.sc = {x:sliceCenterX,y:sliceCenterY};
+	        
+	        //end for label
+	        
 	        var fragmentStartAngleDegree = sliceStartDegree;
 	        var fragmentExtends = sliceExtendsDegree;
 	        var resteExtends = sliceExtendsDegree;
@@ -320,7 +336,7 @@
 	     */
 	    createSliceFragment: function(donutSlice,startAngleDegree, extendsDegree) {
 
-	        var fragment = new JenScript.Donut3DSlice({name : donutSlice.name+".part", value : 0,themeColor: donutSlice.themeColor});
+	        var fragment = new JenScript.Donut3DSlice({name : donutSlice.name+".part", value : 1,themeColor: donutSlice.themeColor});
 	        fragment.fragment=true;
 	        fragment.parentSlice = donutSlice;
 	        
