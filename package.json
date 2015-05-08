@@ -1,10 +1,11 @@
 {
   "name": "jenscript",
   "version": "1.1.0",
-  "keyords": [
+  "keywords": [
     "javascript",
     "w3c",
     "svg",
+    "visualization",
     "charts"
   ],
   "description": "JavaScript SVG library to create charts components.",
@@ -18,7 +19,12 @@
     "url": "https://github.com/sjanaud/jenscript.git"
   },
   "author": "sebastien janaud",
-  "license": "ISC",
+  "licenses": [
+    {
+      "type": "BSD",
+      "url": "https://github.com/sjanaud/jenscript/blob/master/LICENSE"
+    }
+  ],
   "bugs": {
     "url": "https://github.com/sjanaud/jenscript/issues"
   },
