@@ -12,7 +12,7 @@ this.onmessage = function(event) {
 	oReq.addEventListener("load", transferComplete, false);
 	oReq.addEventListener("error", transferFailed, false);
 	oReq.addEventListener("abort", transferCanceled, false);
-	oReq.open("get", "/site/module/javascript/catalog/stock/assets/"+asset, true);
+	oReq.open("get", "/catalog/views/stock/assets/"+asset, true);
 	oReq.send();
 };
 

@@ -56,7 +56,7 @@ var WebLoader = function(proj,args,callback){
 		task.monitor = m;
 		
 		var dataCount = 0;
-		var dataWorker = new Worker(JenSoft.Context.path+ '/module/javascript/catalog/monitor/MonitorWorker.js');
+		var dataWorker = new Worker('/catalog/views/monitor/MonitorWorker.js');
 		dataWorker.addEventListener("message", function(event) {
 			if (event.data.startsWith !== undefined && event.data.startsWith('finish')) {
 				var yearFromWorker = event.data.split(':')[1];
