@@ -165,6 +165,16 @@
 	        this.host.repaintDonuts();
 		 },
 		 
+		 /**
+		  * add slices array in this donut
+		  * @param {Object} slice
+		  */
+		 addSlices : function (slices) {
+	       for (var s = 0; s < slices.length; s++) {
+	    	   this.addSlice(slices[s]);
+	       }
+		 },
+		 
 	    
 	    /**
 	     * get the top face of this donut 3d
