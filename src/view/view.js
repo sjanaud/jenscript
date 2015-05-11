@@ -40,18 +40,26 @@
 //			alert("style height : "+document.getElementById(this.name).style.height);
 			
 			var container = document.getElementById(this.name);
-			console.log('container : '+container);
+			
+			//console.log('container : '+container);
 			if(container === null || container === undefined){
 				console.log('jenscript view container does not exist');
 				var element = document.createElement('div');
 				element.setAttribute('id',this.name);
 				document.body.appendChild(element);
 				
+			}else{
+				while (container.hasChildNodes()) {
+					container.removeChild(container.lastChild);
+				}
 			}
+			
+			//TODO : auto size strategy ?
 			
 			/**view dimension*/
 			this.width = (config.width !== undefined)?config.width : document.getElementById(this.name).clientWidth;
 			this.height = (config.height !== undefined)?config.height : document.getElementById(this.name).clientHeight;
+			
 			
 			this.scale = (config.scale !== undefined)?config.scale : 1;
 			
@@ -122,13 +130,15 @@
 			/**create Part component*/
 			this.createPartComponents();
 			
-			JenScript.views[this.name] = this;
+			//JenScript.views[this.name] = this;
 			
 			this.contextualizeGraphics();
 			
 			//DO NOT REMOVE THIS LINE
 			var copyright = new JenScript.TextViewForeground({/*textColor:'rgb(255,255,50)',*/fontSize:6,x:this.west,y:this.north-2,text:'JenScript '+JenScript.version+' - www.jensoftapi.com'});
 			this.addViewForeground(copyright);
+			
+			console.log("view created with size : "+this.width+","+this.height);
 		},
 		
 		
