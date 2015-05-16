@@ -197,7 +197,7 @@ function showDashboardSource(viewName){
 	var view = getViewByName(viewName);
 
 	$.get(catalogJSBase+'/'+view.file, function(content) {
-		$('#sourceHolder').load('/catalog/fragments/jsview-source.html',function() {
+		$('#sourceHolder').load('/catalog/fragments/view-source.html',function() {
 			$('#viewTitle').html(view.desc);
 			try{
 				create(viewName,"demoView",400,300);
