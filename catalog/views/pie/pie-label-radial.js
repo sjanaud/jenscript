@@ -73,27 +73,53 @@ function createPieLabelRadial(container, width, height) {
 	pie.addEffect(fxl);
 
 	var s1Label = new JenScript.PieRadialLabel({
-		text : "Silver"
+		text : "Silver",
+		fillColor:'black',
+		outlineColor : s1.getThemeColor(),
+		cornerRadius : 8,
+		outlineWidth : 2,
+		//textColor :'white'
 	});
 	s1.setSliceLabel(s1Label);
 
 	var s2Label = new JenScript.PieRadialLabel({
-		text : "Platinium"
+		text : "Platinium",
+		fillColor:'black',
+		outlineColor : s2.getThemeColor(),
+		cornerRadius : 8,
+		outlineWidth : 2,
+		//textColor :'white'
 	});
 	s2.setSliceLabel(s2Label);
 
 	var s3Label = new JenScript.PieRadialLabel({
-		text : "Rhodium"
+		text : "Rhodium",
+		fillColor:'black',
+		outlineColor : s3.getThemeColor(),
+		cornerRadius : 8,
+		outlineWidth : 2,
+		//textColor :'white'
+		
 	});
 	s3.setSliceLabel(s3Label);
 
 	var s4Label = new JenScript.PieRadialLabel({
-		text : "Gold"
+		text : "Gold",
+		fillColor:'black',
+		outlineColor : s4.getThemeColor(),
+		cornerRadius : 8,
+		outlineWidth : 2,
+		//textColor :'white'
 	});
 	s4.setSliceLabel(s4Label);
 
 	var s5Label = new JenScript.PieRadialLabel({
-		text : "Uranium"
+		text : "Uranium",
+		fillColor:'black',
+		outlineColor : JenScript.Color.lighten(s5.getThemeColor(),50),
+		cornerRadius : 8,
+		outlineWidth : 2,
+		textColor :JenScript.Color.lighten(s5.getThemeColor(),50)
 	});
 	s5.setSliceLabel(s5Label);
 

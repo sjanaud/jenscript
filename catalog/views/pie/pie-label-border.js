@@ -74,7 +74,11 @@ function createPieLabelBorder(container, width, height) {
 	pie.addSlice(s5);
 
 	var s1Label = new JenScript.PieBorderLabel({
-		text : "Silver"
+		text : "Silver",
+		fillColor:'black',
+		outlineColor : s1.getThemeColor(),
+		cornerRadius : 8,
+		outlineWidth : 2
 	});
 	s1.setSliceLabel(s1Label);
 
