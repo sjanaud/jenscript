@@ -49,27 +49,7 @@ var JenScript = {};
 		            };
 		        })(),
 		        
-		        selectAll: function(pattern) {
-		        	var nodeList = document.querySelectorAll(pattern);
-		        	return {
-		        		nodes : nodeList,
-		        		style : function(style){
-		        			this.attr('style',style);
-		        		},
-		        		attr : function(name,value){
-		        			console.log('typeof value:'+typeof value);
-		        			if (typeof(value) == "function") {
-		        				// do something
-		        				alert('do something');
-		        			}
-		        			
-		        			for (var i = 0; i < this.nodes.length; ++i) {
-		        				  var n = this.nodes[i];
-		        				  n.setAttribute(name,value);
-		        			}
-		        		},
-		        	};
-		        },
+		       
 		        /**
 		         * View Part Name
 		         * @contructor
