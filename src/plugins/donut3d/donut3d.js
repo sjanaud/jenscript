@@ -165,6 +165,16 @@
 	        this.host.repaintDonuts();
 		 },
 		 
+	 	/**
+	     * create a new slice with given config, append it to this donut and return donut
+	     * @param config the slice config
+	     */
+	    slice : function(config){
+			var s = new JenScript.Donut3DSlice(config);
+			this.addSlice(s);
+			return this;
+		},
+		 
 		 /**
 		  * add slices array in this donut
 		  * @param {Object} slice
