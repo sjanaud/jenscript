@@ -55,7 +55,7 @@
 	
 	/**
 	 * Object Donut2DBorderLabel()
-	 * Defines Donut Border Label, a label which is paint on the pie border left or right side 
+	 * Defines Donut Border Label, a label which is paint on the donut border left or right side 
 	 * @param {Object} config
 	 * @param {String} [config.name] the label type name
 	 * @param {String} [config.text] the label text
@@ -69,7 +69,7 @@
 	 * @param {String} [config.outlineColor] the label outline color
 	 * @param {String} [config.cornerRadius] the label outline corner radius
 	 * @param {String} [config.fillColor] the label fill color
-	 * @param {Number} [config.margin] the margin distance from pie to draw the label
+	 * @param {Number} [config.margin] the margin distance from donut to draw the label
 	 * @param {Number} [config.linkExtends] the quad edge control point for label link
 	 */
 	JenScript.Donut2DBorderLabel = function(config) {
@@ -79,7 +79,7 @@
 	JenScript.Model.addMethods(JenScript.Donut2DBorderLabel, {
 		
 		/**
-		 * Initalize Donut2D Border Label, a label which is paint on the pie border left or right side 
+		 * Initalize Donut2D Border Label, a label which is paint on the donut border left or right side 
 		 * @param {Object} config
 		 * @param {String} [config.name] the label type name
 		 * @param {String} [config.text] the label text
@@ -199,7 +199,7 @@
 	 * @param {String} [config.outlineColor] the label outline color
 	 * @param {String} [config.cornerRadius] the label outline corner radius
 	 * @param {String} [config.fillColor] the label fill color
-	 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from pie radius
+	 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from donut radius
 	 */
 	JenScript.Donut2DRadialLabel = function(config) {
 		this.__init(config);
@@ -222,7 +222,7 @@
 		 * @param {String} [config.outlineColor] the label outline color
 		 * @param {String} [config.cornerRadius] the label outline corner radius
 		 * @param {String} [config.fillColor] the label fill color
-		 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from pie radius
+		 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from donut radius
 		 */
 		__init : function(config){
 			config = config || {};
