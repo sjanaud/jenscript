@@ -45,7 +45,7 @@
 		},
 		
 		/**
-		 * Abtract paint for donut 2D 
+		 * Abstract label paint for Donut2D 
 		 */
 		paintDonut2DSliceLabel : function(g2d,slice){
 			throw new Error('paintDonut2DSliceLabel method should be provide by override');
@@ -79,7 +79,7 @@
 	JenScript.Model.addMethods(JenScript.Donut2DBorderLabel, {
 		
 		/**
-		 * Initalize Donut2D Border Label, a label which is paint on the donut border left or right side 
+		 * Initialize Donut2D Border Label, a label which is paint on the donut border left or right side 
 		 * @param {Object} config
 		 * @param {String} [config.name] the label type name
 		 * @param {String} [config.text] the label text
@@ -130,7 +130,6 @@
 		paintDonut2DSliceLabel : function(g2d, slice) {
 		        var radius = slice.donut.getOuterRadius();
 		        var medianDegree = slice.medianDegree;
-
 		     
 		        var px1 = slice.donut.buildCenterX + (radius + slice.getDivergence())* Math.cos(JenScript.Math.toRadians(medianDegree));
 		        var py1 = slice.donut.buildCenterY - (radius + slice.getDivergence()) * Math.sin(JenScript.Math.toRadians(medianDegree));
@@ -167,16 +166,12 @@
 													.attr('stroke','darkgray')
 													.buildHTML();
 
-		       // slice.donut.svg.donutRoot.appendChild(quadlink);
-		        //shift to svg element from labels
 		        
 		        this.setTextAnchor(pos);
 		        this.setLocation(new JenScript.Point2D(px4,py4));
 		        var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 				this.setTextColor(ct);
 				
-				//this.setOutlineColor(this.outlineColor);
-				//this.setOutlineColor(this.fillColor);
 				this.paintLabel(g2d);
 				this.svg.label.appendChild(quadlink);
 		 }
@@ -233,7 +228,7 @@
 
 		/**
 		 * set offset radius for this radial label.
-		 * offset radius is the extention distance from radius to draw the radial label
+		 * offset radius is the extends distance from radius to draw the radial label
 		 * @param {Number} offsetRadius
 		 */
 		setOffsetRadius : function(offsetRadius) {
@@ -272,8 +267,6 @@
 			var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 			this.setTextColor(ct);
 			
-			//var co = (this.outlineColor !== undefined)? this.outlineColor : slice.themeColor;
-			//this.setOutlineColor(co);
 			this.paintLabel(g2d);
 		}
 	});
