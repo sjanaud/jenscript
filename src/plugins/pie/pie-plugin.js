@@ -186,7 +186,6 @@
 						
 						//slice fill?
 						
-						
 						if (s.getSliceLabel() !== undefined) {
 							s.getSliceLabel().paintPieSliceLabel(g2d, s);
 						}

@@ -1,4 +1,6 @@
 (function(){
+	
+	
 	/**
 	 * Object PieAbstractLabel()
 	 * Defines Pie Abstract Label
@@ -17,8 +19,9 @@
 	 * @param {String} [config.fillColor] the label fill color
 	 */
 	JenScript.PieAbstractLabel = function(config) {
-		this.init(config);
+		this._init(config);
 	};
+	JenScript.Model.inheritPrototype(JenScript.PieAbstractLabel,JenScript.AbstractLabel);
 	JenScript.Model.addMethods(JenScript.PieAbstractLabel,{
 		
 		/**
@@ -37,131 +40,18 @@
 		 * @param {String} [config.cornerRadius] the label outline corner radius
 		 * @param {String} [config.fillColor] the label fill color
 		 */
-		init : function(config){
-			config = config || {};
-			this.name = config.name;
-			this.location = config.location;
-			this.text = (config.text !== undefined)? config.text:'Label';
-			this.textColor = config.textColor;
-			this.fontSize = (config.fontSize !== undefined)? config.fontSize : 12;
-			this.textAnchor = (config.textAnchor !== undefined)? config.textAnchor : 'start';
-			this.shader = (config.shader !== undefined)? config.shader : {percents :['0%','50%','100%'] , colors :['rgba(0,0,0,0.5)','rgba(0,0,0,0.8)','rgba(0,0,0,0.9)']};
-			this.paintType = (config.paintType !== undefined)? config.paintType : 'Both';//Stroke //Fill //None
-			this.cornerRadius = (config.cornerRadius !== undefined)? config.cornerRadius : 10;
-			this.outlineColor = config.outlineColor;
-			this.fillColor = config.fillColor;
+		_init : function(config){
+			JenScript.AbstractLabel.call(this,config);
 		},
-		
-		setText : function(text) {
-			this.text = text;
-		},
-
-		getText : function() {
-			return this.text;
-		},
-		
-		setLocation : function(location) {
-			this.location = location;
-		},
-
-		getLocation : function() {
-			return this.location;
-		},
-
-		setTextColor : function(textColor) {
-			this.textColor = textColor;
-		},
-
-		getTextColor : function() {
-			return this.textColor;
-		},
-		
-		setFontSize : function(fontSize) {
-			this.fontSize = fontSize;
-		},
-
-		getFontSize : function() {
-			return this.fontSize;
-		},
-		
-		setTextAnchor : function(textAnchor) {
-			this.textAnchor = textAnchor;
-		},
-
-		getTextAnchor : function() {
-			return this.textAnchor;
-		},
-		
-		setShader : function(shader){
-			this.shader = shader;
-		},
-		
-		getShader : function(){
-			return this.shader;
-		},
-		
-		setOutlineColor : function(outlineColor){
-			this.outlineColor = outlineColor;
-		},
-		
-		getOutlineColor : function(){
-			return this.outlineColor;
-		},
-		
 		
 		/**
-		 * paint text and envelope if all parameter are setted.
-		 * @param {Object} graphics context
-		 * @param {Object} slice
+		 * Abstract label paint for Pie
 		 */
-		paintLabel : function(g2d){
-			var sl = new JenScript.SVGElement().name('text')
-												.attr('x',this.getLocation().getX())
-												.attr('y',this.getLocation().getY())
-												.attr('font-size',this.getFontSize())
-												.attr('fill',this.getTextColor())
-												.attr('text-anchor',this.getTextAnchor())
-												.textContent(this.getText())
-												.buildHTML();
-
-			g2d.insertSVG(sl);
-			if(this.paintType !== 'None'){
-				var svgRect = sl.getBBox();
-						
-				var tr = new JenScript.SVGRect().origin((svgRect.x-10),(svgRect.y-2))
-								.size((svgRect.width+20),(svgRect.height+4))
-								.radius(this.cornerRadius,this.cornerRadius)
-								.strokeNone()
-								.fillNone();
-						
-					if(this.paintType === 'Stroke' || this.paintType === 'Both' ){
-							tr.stroke(this.getOutlineColor());
-					}
-					if(this.paintType === 'Fill' || this.paintType === 'Both'){
-							if(this.fillColor !== undefined){
-								tr.fill(this.fillColor);
-							}else{
-								var gradientId = "gradient"+JenScript.sequenceId++;
-								var gradient= new JenScript.SVGLinearGradient().Id(gradientId).from(svgRect.x,(svgRect.y-2)).to(svgRect.x, (svgRect.y+4+svgRect.height)).shade(this.getShader().percents,this.getShader().colors).toSVG();
-								g2d.definesSVG(gradient);
-								tr.fillURL(gradientId);
-							}
-						
-					}
-					sl.parentNode.insertBefore(tr.toSVG(),sl);
-				}			
-		},
-
-		/**
-		 * paint pie slice label
-		 * @param {Object} g2d the graphics context
-		 * @param {Object} slice
-		 */
-		paintPieSliceLabel : function(g2d, slice) {
-			throw new Error("Abstract Pie Slice Label, this method should be provide by override.");
+		paintPieSliceLabel : function(g2d,slice){
+			throw new Error('paintPieSliceLabel method should be provide by override');
 		}
+		
 	});
-
 	
 	/**
 	 * Object PieBorderLabel()
@@ -183,13 +73,13 @@
 	 * @param {Number} [config.linkExtends] the quad edge control point for label link
 	 */
 	JenScript.PieBorderLabel = function(config) {
-		this._init(config);
+		this.__init(config);
 	};
 	JenScript.Model.inheritPrototype(JenScript.PieBorderLabel, JenScript.PieAbstractLabel);
 	JenScript.Model.addMethods(JenScript.PieBorderLabel, {
 		
 		/**
-		 * Initalize Pie Border Label, a label which is paint on the pie border left or right side 
+		 * Initialize Pie Border Label, a label which is paint on the pie border left or right side 
 		 * @param {Object} config
 		 * @param {String} [config.name] the label type name
 		 * @param {String} [config.text] the label text
@@ -206,15 +96,16 @@
 		 * @param {Number} [config.margin] the margin distance from pie to draw the label
 		 * @param {Number} [config.linkExtends] the quad edge control point for label link
 		 */
-		_init : function(config){
+		__init : function(config){
 			config = config || {};
 			this.margin = (config.margin !== undefined)? config.margin : 50;
 			this.linkExtends = (config.linkExtends !== undefined)? config.linkExtends : 30;
+			config.name = 'JenScript.PieBorderLabel';
 			JenScript.PieAbstractLabel.call(this, config);
 		},
 		
 		/**
-		 * set margin for this pie border label
+		 * set margin for this border label
 		 * @param {Object} margin
 		 */
 		setMargin : function(margin){
@@ -223,7 +114,7 @@
 		},
 		
 		/**
-		 * set links extends for this pie border label
+		 * set links extends for this border label
 		 * @param {Object} margin
 		 */
 		setLinkExtends : function(linkExtends){
@@ -237,9 +128,10 @@
 		 * @param {Object} slice
 		 */
 		paintPieSliceLabel : function(g2d, slice) {
-		        var radius = slice.pie.getRadius();
+		        var radius = slice.pie.radius;
 		        var medianDegree = slice.medianDegree;
 
+		     
 		        var px1 = slice.pie.buildCenterX + (radius + slice.getDivergence())* Math.cos(JenScript.Math.toRadians(medianDegree));
 		        var py1 = slice.pie.buildCenterY - (radius + slice.getDivergence()) * Math.sin(JenScript.Math.toRadians(medianDegree));
 		        var px2 = slice.pie.buildCenterX + (radius + this.linkExtends + slice.getDivergence())* Math.cos(JenScript.Math.toRadians(medianDegree));
@@ -275,15 +167,14 @@
 													.attr('stroke','darkgray')
 													.buildHTML();
 
-		        slice.pie.svg.pieRoot.appendChild(quadlink);
 		        
 		        this.setTextAnchor(pos);
 		        this.setLocation(new JenScript.Point2D(px4,py4));
 		        var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 				this.setTextColor(ct);
-				var co = (this.outlineColor !== undefined)? this.outlineColor : slice.themeColor;
-				this.setOutlineColor(co);
+				
 				this.paintLabel(g2d);
+				this.svg.label.appendChild(quadlink);
 		 }
 	});
 	
@@ -307,7 +198,7 @@
 	 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from pie radius
 	 */
 	JenScript.PieRadialLabel = function(config) {
-		this._init(config);
+		this.__init(config);
 	};
 	JenScript.Model.inheritPrototype(JenScript.PieRadialLabel, JenScript.PieAbstractLabel);
 	JenScript.Model.addMethods(JenScript.PieRadialLabel,{
@@ -329,16 +220,16 @@
 		 * @param {String} [config.fillColor] the label fill color
 		 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from pie radius
 		 */
-		_init : function(config){
+		__init : function(config){
 			config = config || {};
 			this.offsetRadius = (config.offsetRadius !== undefined)?config.offsetRadius : 20;
-			config.name = "PieRadialLabel";
+			config.name = 'JenScript.PieRadialLabel';
 			JenScript.PieAbstractLabel.call(this,config);
 		},
 
 		/**
 		 * set offset radius for this radial label.
-		 * offset radius is the extention distance from radius to draw the radial label
+		 * offset radius is the extends distance from radius to draw the radial label
 		 * @param {Number} offsetRadius
 		 */
 		setOffsetRadius : function(offsetRadius) {
@@ -347,7 +238,7 @@
 		},
 		
 		/**
-		 * paint pie slice radial label
+		 * paint slice radial label
 		 * @param {Object} g2d the graphics context
 		 * @param {Object} slice
 		 */
@@ -358,9 +249,6 @@
 				y : slice.sc.y - (slice.pie.radius + this.offsetRadius)
 						* Math.sin(JenScript.Math.toRadians(slice.medianDegree))
 			};
-			
-			
-			
 			var pos = "middle";
 			var dx = 0;
 			if (slice.medianDegree > 0 && slice.medianDegree < 90) {
@@ -375,13 +263,11 @@
 			} else if (slice.medianDegree === 90 || slice.medianDegree === 270) {
 				pos = "middle";
 			}
-			
 			this.setLocation(new JenScript.Point2D(anchor.x,anchor.y));
 			this.setTextAnchor(pos);
 			var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 			this.setTextColor(ct);
-			var co = (this.outlineColor !== undefined)? this.outlineColor : slice.themeColor;
-			this.setOutlineColor(co);
+			
 			this.paintLabel(g2d);
 		}
 	});
