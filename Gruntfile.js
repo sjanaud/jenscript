@@ -39,7 +39,7 @@ grunt.initConfig({
 			target: {
 				dest : "dist/jenscript.js",
 				src : [ 
-				        "src/core.js",
+				        "src/envns.js",
 						"src/model.js",
 						"src/math.js",
 						"src/palette/color.js",
