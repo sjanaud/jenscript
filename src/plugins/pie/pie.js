@@ -146,6 +146,7 @@
 			slice.pie = this;
 			this.slices[this.slices.length] = slice;
 			this.plugin.repaintPlugin();
+			return this;
 		},
 		
 		
@@ -157,6 +158,17 @@
 			this.addSlice(s);
 			return this;
 		},
+		
+		 /**
+		  * add slices array in this pie
+		  * @param {Object} slice
+		  */
+		 addSlices : function (slices) {
+	       for (var s = 0; s < slices.length; s++) {
+	    	   this.addSlice(slices[s]);
+	       }
+	       return this;
+		 },
 
 		/**
 		 * build slice
