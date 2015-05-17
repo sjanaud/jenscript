@@ -154,6 +154,17 @@
 			return this;
 		},
 		
+		 /**
+		  * add slices array in this donut
+		  * @param {Object} slice
+		  */
+		 addSlices : function (slices) {
+	       for (var s = 0; s < slices.length; s++) {
+	    	   this.addSlice(slices[s]);
+	       }
+	       return this;
+		 },
+		
 		/**
 		 * select the donut slice by the given name
 		 */

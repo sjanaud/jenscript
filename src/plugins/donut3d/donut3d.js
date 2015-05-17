@@ -163,6 +163,7 @@
 	        slice.donut=this;
 	        this.slices[this.slices.length] = slice;
 	        this.host.repaintDonuts();
+	        return this;
 		 },
 		 
 	 	/**
@@ -183,6 +184,7 @@
 	       for (var s = 0; s < slices.length; s++) {
 	    	   this.addSlice(slices[s]);
 	       }
+	       return this;
 		 },
 		 
 	    

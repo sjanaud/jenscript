@@ -154,6 +154,9 @@
 			if(label.textColor === undefined)
 				label.textColor = this.themeColor;
 			this.sliceLabels[this.sliceLabels.length] = label;
+			if(this.donut !== undefined && this.donut.plugin !== undefined){
+		        	this.donut.plugin.repaintDonuts();	
+		    }
 		},
 		
 		/**
