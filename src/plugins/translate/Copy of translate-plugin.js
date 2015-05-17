@@ -1,4 +1,5 @@
 (function(){
+	//copy with smooth effect, not safe
 	JenScript.TranslatePlugin = function(config) {
 		this._init(config);
 	};
