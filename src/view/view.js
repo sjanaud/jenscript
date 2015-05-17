@@ -25,25 +25,12 @@
 			/**div holder for the view, container Id*/
 			this.name = config.name;
 			this.Id = 'view_'+this.name;
-			
 			this.SVG_NS = "http://www.w3.org/2000/svg";
 			this.XLINK_NS = "http://www.w3.org/1999/xlink";
 			
-			
-//			alert("config width "+config.width);
-//			alert("config height "+config.height);
-//			alert("client width : "+document.getElementById(this.name).clientWidth);
-//			alert("client height : "+document.getElementById(this.name).clientHeight);
-//			alert("offset width : "+document.getElementById(this.name).offsetWidth);
-//			alert("offset height : "+document.getElementById(this.name).offsetHeight);
-//			alert("style width : "+document.getElementById(this.name).style.width);
-//			alert("style height : "+document.getElementById(this.name).style.height);
-			
 			var container = document.getElementById(this.name);
-			
-			//console.log('container : '+container);
 			if(container === null || container === undefined){
-				console.log('jenscript view container does not exist');
+				console.log('jenscript view container '+container+' does not exist');
 				var element = document.createElement('div');
 				element.setAttribute('id',this.name);
 				document.body.appendChild(element);
@@ -54,34 +41,30 @@
 				}
 			}
 			
-			//TODO : auto size strategy ?
-			
+			//TODO : auto size strategy
 			/**view dimension*/
-			this.width = (config.width !== undefined)?config.width : document.getElementById(this.name).clientWidth;
+			this.width  = (config.width !== undefined)?config.width : document.getElementById(this.name).clientWidth;
 			this.height = (config.height !== undefined)?config.height : document.getElementById(this.name).clientHeight;
-			
-			
-			this.scale = (config.scale !== undefined)?config.scale : 1;
+			this.scale  = (config.scale !== undefined)?config.scale : 1;
 			
 			/**part place holders*/
 			
 			if(config.holders!== undefined){
-				config.west  = (config.west !== undefined)? config.west : config.holders;
-				config.east  = (config.east !== undefined)? config.east : config.holders;
+				config.west   = (config.west !== undefined)?  config.west  : config.holders;
+				config.east   = (config.east !== undefined)?  config.east  : config.holders;
 				config.south  = (config.south !== undefined)? config.south : config.holders;
 				config.north  = (config.north !== undefined)? config.north : config.holders;
 			}
 			
-			this.west  = (config.west!== undefined)? config.west : 40;
-			this.east  = (config.east!== undefined)? config.east : 40;
-			this.north = (config.north!== undefined)? config.north : 40;
+			this.west  = (config.west!== undefined)?   config.west  : 40;
+			this.east  = (config.east!== undefined)?   config.east  : 40;
+			this.north = (config.north!== undefined)?  config.north : 40;
 			this.south = (config.south !== undefined)? config.south : 40;
-			
 
 			if(this.width-this.west-this.east < 0)
-				throw new Error('View width is two small');
+				throw new Error('View width is two small with e/w holders');
 			if(this.height-this.north-this.south < 0)
-				throw new Error('View height is two small, ');
+				throw new Error('View height is two small with n/s holders');
 			
 			/**view background painters*/
 			this.viewBackgrounds = []; 
@@ -102,7 +85,6 @@
 			
 			this.listeners = [];
 			
-			
 			this.dispatcherStrategy = (config.dispatcher !== undefined)? config.dispatcher : 'foreground';
 			/**
 			 * the widget plug-in is a specific plug-in to handle widget and window meta
@@ -113,7 +95,6 @@
 			var that = this;
 			
 			this.addViewListener('projectionRegister',function(){that.widgetPlugin.repaintPlugin('view listener 1');},'widget plugin attach :view projection register listener');
-			
 			
 			/**
 			 * the selector plug-in is a specific plug-in to handle projections meta
@@ -130,20 +111,17 @@
 			/**create Part component*/
 			this.createPartComponents();
 			
-			//JenScript.views[this.name] = this;
-			
+			/**contextualize graphics*/
 			this.contextualizeGraphics();
 			
 			//DO NOT REMOVE THIS LINE
 			var copyright = new JenScript.TextViewForeground({/*textColor:'rgb(255,255,50)',*/fontSize:6,x:this.west,y:this.north-2,text:'JenScript '+JenScript.version+' - www.jensoftapi.com'});
 			this.addViewForeground(copyright);
-			
-			console.log("view created with size : "+this.width+","+this.height);
 		},
 		
 		
 		/**
-		 * get the background clip for the given backgroun
+		 * get the background clip for the given background
 		 * @param {Object} background
 		 */
 		getBackgroundClip : function(background){
