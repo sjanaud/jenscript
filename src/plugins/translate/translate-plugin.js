@@ -202,14 +202,17 @@
 		 * shift to the given direction
 		 * @param {String} direction, West, East, North, South
 		 */
-		shift : function(direction) {
+		shift : function(direction, sample) {
 				this.lockPassive = true;
 		        var that = this;
-		        var step = 5;
-                var sleep = 5; 
-                var fragment = 20;
-                var deltaY = this.getProjection().getPixelHeight() / fragment;
-                var deltaX = this.getProjection().getPixelWidth() / fragment;
+		        if(sample === undefined){
+		        	sample  = {step : 5,sleep : 5,fraction : 20}
+		        }
+		        var step = (sample.step !== undefined)?sample.step : 5;
+                var sleep = (sample.sleep !== undefined)?sample.sleep : 5;
+                var fraction = (sample.fraction !== undefined)?sample.fraction : 20;
+                var deltaY = this.getProjection().getPixelHeight() / fraction;
+                var deltaX = this.getProjection().getPixelWidth() / fraction;
                 var dx = 0;
                 var dy = 0;
                 if (direction == 'North')
@@ -223,7 +226,6 @@
                 
                 var execute  = function(i,success){
                 	setTimeout(function(){
-                		//console.log("shift bound : "+dx*i+','+dy*i);
                 		that.boundTranslate(new JenScript.Point2D(dx*i,dy*i),false);
                 		success(i);
                 	},i*sleep);
