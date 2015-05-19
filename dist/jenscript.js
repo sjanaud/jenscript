@@ -10,7 +10,7 @@
 // 
 //
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-05-16
+// build: 2015-05-17
 // 
 // All Rights reserved
 
@@ -65,27 +65,7 @@ var JenScript = {};
 		            };
 		        })(),
 		        
-		        selectAll: function(pattern) {
-		        	var nodeList = document.querySelectorAll(pattern);
-		        	return {
-		        		nodes : nodeList,
-		        		style : function(style){
-		        			this.attr('style',style);
-		        		},
-		        		attr : function(name,value){
-		        			console.log('typeof value:'+typeof value);
-		        			if (typeof(value) == "function") {
-		        				// do something
-		        				alert('do something');
-		        			}
-		        			
-		        			for (var i = 0; i < this.nodes.length; ++i) {
-		        				  var n = this.nodes[i];
-		        				  n.setAttribute(name,value);
-		        			}
-		        		},
-		        	};
-		        },
+		       
 		        /**
 		         * View Part Name
 		         * @contructor
@@ -4359,7 +4339,7 @@ function stringInputToObject(color) {
 			
 			//console.log('container : '+container);
 			if(container === null || container === undefined){
-				console.log('jenscript view container does not exist');
+				console.log('jenscript view container '+container+' does not exist');
 				var element = document.createElement('div');
 				element.setAttribute('id',this.name);
 				document.body.appendChild(element);
@@ -11538,6 +11518,17 @@ function stringInputToObject(color) {
 			return this;
 		},
 		
+		 /**
+		  * add slices array in this donut
+		  * @param {Object} slice
+		  */
+		 addSlices : function (slices) {
+	       for (var s = 0; s < slices.length; s++) {
+	    	   this.addSlice(slices[s]);
+	       }
+	       return this;
+		 },
+		
 		/**
 		 * select the donut slice by the given name
 		 */
@@ -11848,6 +11839,9 @@ function stringInputToObject(color) {
 			if(label.textColor === undefined)
 				label.textColor = this.themeColor;
 			this.sliceLabels[this.sliceLabels.length] = label;
+			if(this.donut !== undefined && this.donut.plugin !== undefined){
+		        	this.donut.plugin.repaintDonuts();	
+		    }
 		},
 		
 		/**
@@ -12534,7 +12528,7 @@ function stringInputToObject(color) {
 		},
 		
 		/**
-		 * Abtract paint for donut 2D 
+		 * Abstract label paint for Donut2D 
 		 */
 		paintDonut2DSliceLabel : function(g2d,slice){
 			throw new Error('paintDonut2DSliceLabel method should be provide by override');
@@ -12568,7 +12562,7 @@ function stringInputToObject(color) {
 	JenScript.Model.addMethods(JenScript.Donut2DBorderLabel, {
 		
 		/**
-		 * Initalize Donut2D Border Label, a label which is paint on the donut border left or right side 
+		 * Initialize Donut2D Border Label, a label which is paint on the donut border left or right side 
 		 * @param {Object} config
 		 * @param {String} [config.name] the label type name
 		 * @param {String} [config.text] the label text
@@ -12619,7 +12613,6 @@ function stringInputToObject(color) {
 		paintDonut2DSliceLabel : function(g2d, slice) {
 		        var radius = slice.donut.getOuterRadius();
 		        var medianDegree = slice.medianDegree;
-
 		     
 		        var px1 = slice.donut.buildCenterX + (radius + slice.getDivergence())* Math.cos(JenScript.Math.toRadians(medianDegree));
 		        var py1 = slice.donut.buildCenterY - (radius + slice.getDivergence()) * Math.sin(JenScript.Math.toRadians(medianDegree));
@@ -12656,16 +12649,12 @@ function stringInputToObject(color) {
 													.attr('stroke','darkgray')
 													.buildHTML();
 
-		       // slice.donut.svg.donutRoot.appendChild(quadlink);
-		        //shift to svg element from labels
 		        
 		        this.setTextAnchor(pos);
 		        this.setLocation(new JenScript.Point2D(px4,py4));
 		        var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 				this.setTextColor(ct);
 				
-				//this.setOutlineColor(this.outlineColor);
-				//this.setOutlineColor(this.fillColor);
 				this.paintLabel(g2d);
 				this.svg.label.appendChild(quadlink);
 		 }
@@ -12722,7 +12711,7 @@ function stringInputToObject(color) {
 
 		/**
 		 * set offset radius for this radial label.
-		 * offset radius is the extention distance from radius to draw the radial label
+		 * offset radius is the extends distance from radius to draw the radial label
 		 * @param {Number} offsetRadius
 		 */
 		setOffsetRadius : function(offsetRadius) {
@@ -12761,8 +12750,6 @@ function stringInputToObject(color) {
 			var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 			this.setTextColor(ct);
 			
-			//var co = (this.outlineColor !== undefined)? this.outlineColor : slice.themeColor;
-			//this.setOutlineColor(co);
 			this.paintLabel(g2d);
 		}
 	});
@@ -12998,6 +12985,7 @@ function stringInputToObject(color) {
 	        slice.donut=this;
 	        this.slices[this.slices.length] = slice;
 	        this.host.repaintDonuts();
+	        return this;
 		 },
 		 
 	 	/**
@@ -13018,6 +13006,7 @@ function stringInputToObject(color) {
 	       for (var s = 0; s < slices.length; s++) {
 	    	   this.addSlice(slices[s]);
 	       }
+	       return this;
 		 },
 		 
 	    
@@ -14420,7 +14409,7 @@ function stringInputToObject(color) {
 		},
 		
 		/**
-		 * Abstract paint for donut 3D 
+		 * Abstract label paint for Donut3D 
 		 */
 		paintDonut3DSliceLabel : function(g2d,slice){
 			throw new Error('paintDonut3DSliceLabel method should be provide by override');
@@ -14454,7 +14443,7 @@ function stringInputToObject(color) {
 	JenScript.Model.addMethods(JenScript.Donut3DBorderLabel, {
 		
 		/**
-		 * Initalize Donut3D Border Label, a label which is paint on the donut border left or right side 
+		 * Initialize Donut3D Border Label, a label which is paint on the donut border left or right side 
 		 * @param {Object} config
 		 * @param {String} [config.name] the label type name
 		 * @param {String} [config.text] the label text
@@ -14557,8 +14546,6 @@ function stringInputToObject(color) {
 		        var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 				this.setTextColor(ct);
 				
-				//this.setOutlineColor(this.outlineColor);
-				//this.setOutlineColor(this.fillColor);
 				this.paintLabel(g2d);
 				this.svg.label.appendChild(quadlink);
 		 }
@@ -14615,7 +14602,7 @@ function stringInputToObject(color) {
 
 		/**
 		 * set offset radius for this radial label.
-		 * offset radius is the extention distance from radius to draw the radial label
+		 * offset radius is the extends distance from radius to draw the radial label
 		 * @param {Number} offsetRadius
 		 */
 		setOffsetRadius : function(offsetRadius) {
@@ -14654,8 +14641,6 @@ function stringInputToObject(color) {
 			var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 			this.setTextColor(ct);
 			
-			//var co = (this.outlineColor !== undefined)? this.outlineColor : slice.themeColor;
-			//this.setOutlineColor(co);
 			this.paintLabel(g2d);
 		}
 	});
@@ -15007,6 +14992,7 @@ function stringInputToObject(color) {
 			slice.pie = this;
 			this.slices[this.slices.length] = slice;
 			this.plugin.repaintPlugin();
+			return this;
 		},
 		
 		
@@ -15018,6 +15004,17 @@ function stringInputToObject(color) {
 			this.addSlice(s);
 			return this;
 		},
+		
+		 /**
+		  * add slices array in this pie
+		  * @param {Object} slice
+		  */
+		 addSlices : function (slices) {
+	       for (var s = 0; s < slices.length; s++) {
+	    	   this.addSlice(slices[s]);
+	       }
+	       return this;
+		 },
 
 		/**
 		 * build slice
@@ -15649,7 +15646,7 @@ function stringInputToObject(color) {
 		},
 		
 		/**
-		 * Abstract paint for Pie label
+		 * Abstract label paint for Pie
 		 */
 		paintPieSliceLabel : function(g2d,slice){
 			throw new Error('paintPieSliceLabel method should be provide by override');
@@ -15771,16 +15768,12 @@ function stringInputToObject(color) {
 													.attr('stroke','darkgray')
 													.buildHTML();
 
-		       // slice.donut.svg.donutRoot.appendChild(quadlink);
-		        //shift to svg element from labels
 		        
 		        this.setTextAnchor(pos);
 		        this.setLocation(new JenScript.Point2D(px4,py4));
 		        var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 				this.setTextColor(ct);
 				
-				//this.setOutlineColor(this.outlineColor);
-				//this.setOutlineColor(this.fillColor);
 				this.paintLabel(g2d);
 				this.svg.label.appendChild(quadlink);
 		 }
@@ -15803,7 +15796,7 @@ function stringInputToObject(color) {
 	 * @param {String} [config.outlineColor] the label outline color
 	 * @param {String} [config.cornerRadius] the label outline corner radius
 	 * @param {String} [config.fillColor] the label fill color
-	 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from donut radius
+	 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from pie radius
 	 */
 	JenScript.PieRadialLabel = function(config) {
 		this.__init(config);
@@ -15826,7 +15819,7 @@ function stringInputToObject(color) {
 		 * @param {String} [config.outlineColor] the label outline color
 		 * @param {String} [config.cornerRadius] the label outline corner radius
 		 * @param {String} [config.fillColor] the label fill color
-		 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from donut radius
+		 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from pie radius
 		 */
 		__init : function(config){
 			config = config || {};
@@ -15837,7 +15830,7 @@ function stringInputToObject(color) {
 
 		/**
 		 * set offset radius for this radial label.
-		 * offset radius is the extention distance from radius to draw the radial label
+		 * offset radius is the extends distance from radius to draw the radial label
 		 * @param {Number} offsetRadius
 		 */
 		setOffsetRadius : function(offsetRadius) {
@@ -15876,8 +15869,6 @@ function stringInputToObject(color) {
 			var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 			this.setTextColor(ct);
 			
-			//var co = (this.outlineColor !== undefined)? this.outlineColor : slice.themeColor;
-			//this.setOutlineColor(co);
 			this.paintLabel(g2d);
 		}
 	});
@@ -16086,14 +16077,17 @@ function stringInputToObject(color) {
 		 * shift to the given direction
 		 * @param {String} direction, West, East, North, South
 		 */
-		shift : function(direction) {
+		shift : function(direction, sample) {
 				this.lockPassive = true;
 		        var that = this;
-		        var step = 5;
-                var sleep = 5; 
-                var fragment = 20;
-                var deltaY = this.getProjection().getPixelHeight() / fragment;
-                var deltaX = this.getProjection().getPixelWidth() / fragment;
+		        if(sample === undefined){
+		        	sample  = {step : 5,sleep : 5,fraction : 20}
+		        }
+		        var step = (sample.step !== undefined)?sample.step : 5;
+                var sleep = (sample.sleep !== undefined)?sample.sleep : 5;
+                var fraction = (sample.fraction !== undefined)?sample.fraction : 20;
+                var deltaY = this.getProjection().getPixelHeight() / fraction;
+                var deltaX = this.getProjection().getPixelWidth() / fraction;
                 var dx = 0;
                 var dy = 0;
                 if (direction == 'North')
@@ -16107,7 +16101,6 @@ function stringInputToObject(color) {
                 
                 var execute  = function(i,success){
                 	setTimeout(function(){
-                		//console.log("shift bound : "+dx*i+','+dy*i);
                 		that.boundTranslate(new JenScript.Point2D(dx*i,dy*i),false);
                 		success(i);
                 	},i*sleep);
@@ -16277,27 +16270,40 @@ function stringInputToObject(color) {
 			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
 			config.barOrientation = 'Horizontal';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
+//			var percents = ['0%','20%','50%','80%','100%'];
+//		    var colors = [ 'rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0,0.6)', 'rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.6)','rgba(0, 0, 0, 0.1)' ];
+//		    var buttonDrawColor = 'rgb(91,151,168)';
+//		    var buttonRolloverDrawColor = 'rgb(247,239,100)';
+//			this.setShader({percents:percents, colors:colors});
+//		    this.setOutlineStrokeColor(buttonDrawColor);
+//		    this.setButtonDrawColor(buttonDrawColor);
+//		    this.setButtonRolloverDrawColor(buttonRolloverDrawColor);
+			
 			var percents = ['0%','20%','50%','80%','100%'];
 		    var colors = [ 'rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0,0.6)', 'rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.6)','rgba(0, 0, 0, 0.1)' ];
 		    var buttonDrawColor = 'rgb(91,151,168)';
 		    var buttonRolloverDrawColor = 'rgb(247,239,100)';
-			this.setShader({percents:percents, colors:colors});
-		    this.setOutlineStrokeColor(buttonDrawColor);
-		    this.setButtonDrawColor(buttonDrawColor);
-		    this.setButtonRolloverDrawColor(buttonRolloverDrawColor);
+			
+		    //this.setShader({percents:percents, colors:colors});
+		    this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
+		    this.setOutlineFillColor(config.outlineFillColor);
+		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
+		    
+		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
+		    
 		    this.setOrphanLock(true);
 		},
 	    onButton1Press : function() {
 	        if (!this.getHost().isLockSelected()) {
 	            return;
 	        }
-	        this.getHost().shift('West');
+	        this.getHost().shift('West', {step : 20,sleep: 5,fraction:10});
 	    },
 	    onButton2Press : function() {
 	    	if (!this.getHost().isLockSelected()) {
 	            return;
 	        }
-	        this.getHost().shift('East');
+	        this.getHost().shift('East', {step : 20, sleep: 5,fraction:10});
 	    },
 	    
 	    onRegister : function(){
@@ -17696,12 +17702,6 @@ function stringInputToObject(color) {
 		    var colors = [ 'rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0,0.6)', 'rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.6)','rgba(0, 0, 0, 0.1)' ];
 		    var buttonDrawColor = 'rgb(91,151,168)';
 		    var buttonRolloverDrawColor = 'rgb(247,239,100)';
-			
-		    
-//		    this.setShader({percents:percents, colors:colors});
-//		    this.setOutlineStrokeColor(buttonDrawColor);
-//		    this.setButtonDrawColor(buttonDrawColor);
-//		    this.setButtonRolloverDrawColor(buttonRolloverDrawColor);
 		    
 		    //this.setShader({percents:percents, colors:colors});
 		    this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
