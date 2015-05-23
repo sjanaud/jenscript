@@ -15,9 +15,9 @@
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
 			
 		    this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		    this.setOutlineFillColor(config.outlineFillColor);
 		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
 		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
+		   
 		    this.sample = (config.sample !== undefined)?config.sample : {step : 20,sleep: 5,fraction:10};
 		    this.setOrphanLock(true);
 		},
