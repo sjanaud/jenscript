@@ -8336,7 +8336,7 @@ function stringInputToObject(color) {
 		    if(config.buttonRolloverFillColor !== undefined){
 		    	this.setButtonRolloverFillColor(config.buttonRolloverFillColor);
 		    }
-		    
+		   
 		    if(config.buttonDrawColor !== undefined){
 		    	this.setButtonDrawColor(config.buttonDrawColor);
 		    }
@@ -8480,28 +8480,40 @@ function stringInputToObject(color) {
 	     * call when button 1 is roll over only call repaint button 2
 	     */
 	    onButton1RolloverOn : function() {
-	    	this.svg.button1.setAttribute('stroke',this.button1RolloverDrawColor);
+	    	if(this.button1RolloverDrawColor !== undefined)
+	    		this.svg.button1.setAttribute('stroke',this.button1RolloverDrawColor);
+	    	if(this.button1RolloverFillColor !== undefined)
+	    		this.svg.button1.setAttribute('fill',this.button1RolloverFillColor);
 	    },
 
 	    /**
 	     * call when button 1 is no longer roll over only call repaint button 1
 	     */
 	    onButton1RolloverOff : function() {
-	    	this.svg.button1.setAttribute('stroke',this.button1DrawColor);
+	    	if(this.button1DrawColor !== undefined)
+	    		this.svg.button1.setAttribute('stroke',this.button1DrawColor);
+	    	if(this.button1FillColor !== undefined)
+	    		this.svg.button1.setAttribute('fill',this.button1FillColor);
 	    },
 
 	    /**
 	     * call when button 1 is roll over only call repaint button 2
 	     */
 	    onButton2RolloverOn : function() {
-	    	this.svg.button2.setAttribute('stroke',this.button2RolloverDrawColor);
+	    	if(this.button2RolloverDrawColor !== undefined)
+	    		this.svg.button2.setAttribute('stroke',this.button2RolloverDrawColor);
+	    	if(this.button2RolloverFillColor !== undefined)
+	    		this.svg.button2.setAttribute('fill',this.button2RolloverFillColor);
 	    },
 
 	    /**
 	     * call when button 2 is no longer roll over
 	     */
 	    onButton2RolloverOff : function() {
-	    	this.svg.button2.setAttribute('stroke',this.button2DrawColor);
+	    	tif(this.button1DrawColor !== undefined)
+	    		this.svg.button2.setAttribute('stroke',this.button2DrawColor);
+	    	if(this.button1FillColor !== undefined)
+	    		this.svg.button2.setAttribute('fill',this.button2FillColor);
 	    },
 
 	    /**
@@ -16264,8 +16276,9 @@ function stringInputToObject(color) {
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
 			
 		    this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
-		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
+		   
+		    this.setButtonDrawColor((config.buttonDrawColor !== undefined)?config.buttonDrawColor : 'black');
+		    this.setButtonRolloverDrawColor((config.buttonRolloverDrawColor !== undefined)?config.buttonRolloverDrawColor : 'green');
 		   
 		    this.sample = (config.sample !== undefined)?config.sample : {step : 20,sleep: 5,fraction:10};
 		    this.setOrphanLock(true);
@@ -16305,10 +16318,10 @@ function stringInputToObject(color) {
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
 			
 			this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		    this.setOutlineFillColor(config.outlineFillColor);
 		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
 		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
 		    this.sample = (config.sample !== undefined)?config.sample : {step : 20,sleep: 5,fraction:10};
+		    
 		    this.setOrphanLock(true);
 		},
 		
