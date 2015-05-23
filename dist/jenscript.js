@@ -10,7 +10,7 @@
 // 
 //
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-05-17
+// build: 2015-05-23
 // 
 // All Rights reserved
 
@@ -4321,23 +4321,10 @@ function stringInputToObject(color) {
 			/**div holder for the view, container Id*/
 			this.name = config.name;
 			this.Id = 'view_'+this.name;
-			
 			this.SVG_NS = "http://www.w3.org/2000/svg";
 			this.XLINK_NS = "http://www.w3.org/1999/xlink";
 			
-			
-//			alert("config width "+config.width);
-//			alert("config height "+config.height);
-//			alert("client width : "+document.getElementById(this.name).clientWidth);
-//			alert("client height : "+document.getElementById(this.name).clientHeight);
-//			alert("offset width : "+document.getElementById(this.name).offsetWidth);
-//			alert("offset height : "+document.getElementById(this.name).offsetHeight);
-//			alert("style width : "+document.getElementById(this.name).style.width);
-//			alert("style height : "+document.getElementById(this.name).style.height);
-			
 			var container = document.getElementById(this.name);
-			
-			//console.log('container : '+container);
 			if(container === null || container === undefined){
 				console.log('jenscript view container '+container+' does not exist');
 				var element = document.createElement('div');
@@ -4350,34 +4337,30 @@ function stringInputToObject(color) {
 				}
 			}
 			
-			//TODO : auto size strategy ?
-			
+			//TODO : auto size strategy
 			/**view dimension*/
-			this.width = (config.width !== undefined)?config.width : document.getElementById(this.name).clientWidth;
+			this.width  = (config.width !== undefined)?config.width : document.getElementById(this.name).clientWidth;
 			this.height = (config.height !== undefined)?config.height : document.getElementById(this.name).clientHeight;
-			
-			
-			this.scale = (config.scale !== undefined)?config.scale : 1;
+			this.scale  = (config.scale !== undefined)?config.scale : 1;
 			
 			/**part place holders*/
 			
 			if(config.holders!== undefined){
-				config.west  = (config.west !== undefined)? config.west : config.holders;
-				config.east  = (config.east !== undefined)? config.east : config.holders;
+				config.west   = (config.west !== undefined)?  config.west  : config.holders;
+				config.east   = (config.east !== undefined)?  config.east  : config.holders;
 				config.south  = (config.south !== undefined)? config.south : config.holders;
 				config.north  = (config.north !== undefined)? config.north : config.holders;
 			}
 			
-			this.west  = (config.west!== undefined)? config.west : 40;
-			this.east  = (config.east!== undefined)? config.east : 40;
-			this.north = (config.north!== undefined)? config.north : 40;
+			this.west  = (config.west!== undefined)?   config.west  : 40;
+			this.east  = (config.east!== undefined)?   config.east  : 40;
+			this.north = (config.north!== undefined)?  config.north : 40;
 			this.south = (config.south !== undefined)? config.south : 40;
-			
 
 			if(this.width-this.west-this.east < 0)
-				throw new Error('View width is two small');
+				throw new Error('View width is two small with e/w holders');
 			if(this.height-this.north-this.south < 0)
-				throw new Error('View height is two small, ');
+				throw new Error('View height is two small with n/s holders');
 			
 			/**view background painters*/
 			this.viewBackgrounds = []; 
@@ -4398,7 +4381,6 @@ function stringInputToObject(color) {
 			
 			this.listeners = [];
 			
-			
 			this.dispatcherStrategy = (config.dispatcher !== undefined)? config.dispatcher : 'foreground';
 			/**
 			 * the widget plug-in is a specific plug-in to handle widget and window meta
@@ -4409,7 +4391,6 @@ function stringInputToObject(color) {
 			var that = this;
 			
 			this.addViewListener('projectionRegister',function(){that.widgetPlugin.repaintPlugin('view listener 1');},'widget plugin attach :view projection register listener');
-			
 			
 			/**
 			 * the selector plug-in is a specific plug-in to handle projections meta
@@ -4426,20 +4407,17 @@ function stringInputToObject(color) {
 			/**create Part component*/
 			this.createPartComponents();
 			
-			//JenScript.views[this.name] = this;
-			
+			/**contextualize graphics*/
 			this.contextualizeGraphics();
 			
 			//DO NOT REMOVE THIS LINE
 			var copyright = new JenScript.TextViewForeground({/*textColor:'rgb(255,255,50)',*/fontSize:6,x:this.west,y:this.north-2,text:'JenScript '+JenScript.version+' - www.jensoftapi.com'});
 			this.addViewForeground(copyright);
-			
-			console.log("view created with size : "+this.width+","+this.height);
 		},
 		
 		
 		/**
-		 * get the background clip for the given backgroun
+		 * get the background clip for the given background
 		 * @param {Object} background
 		 */
 		getBackgroundClip : function(background){
@@ -8351,6 +8329,20 @@ function stringInputToObject(color) {
 		    this.button1RolloverDrawColor = config.button1RolloverDrawColor;
 		    /** button 2 rollover draw color */
 		    this.button2RolloverDrawColor = config.button2RolloverDrawColor;
+		    
+		    if(config.buttonFillColor !== undefined){
+		    	this.setButtonFillColor(config.buttonFillColor);
+		    }
+		    if(config.buttonRolloverFillColor !== undefined){
+		    	this.setButtonRolloverFillColor(config.buttonRolloverFillColor);
+		    }
+		    
+		    if(config.buttonDrawColor !== undefined){
+		    	this.setButtonDrawColor(config.buttonDrawColor);
+		    }
+		    if(config.buttonRolloverDrawColor !== undefined){
+		    	this.setButtonRolloverDrawColor(config.buttonRolloverDrawColor);
+		    }
 		    
 		    /** outline bar widget stroke */
 		    this.buttonStrokeWidth = (config.buttonStrokeWidth !== undefined) ? config.buttonStrokeWidth: 2;
@@ -16081,7 +16073,7 @@ function stringInputToObject(color) {
 				this.lockPassive = true;
 		        var that = this;
 		        if(sample === undefined){
-		        	sample  = {step : 5,sleep : 5,fraction : 20}
+		        	sample  = {step : 5,sleep : 5,fraction : 20};
 		        }
 		        var step = (sample.step !== undefined)?sample.step : 5;
                 var sleep = (sample.sleep !== undefined)?sample.sleep : 5;
@@ -16270,40 +16262,25 @@ function stringInputToObject(color) {
 			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
 			config.barOrientation = 'Horizontal';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
-//			var percents = ['0%','20%','50%','80%','100%'];
-//		    var colors = [ 'rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0,0.6)', 'rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.6)','rgba(0, 0, 0, 0.1)' ];
-//		    var buttonDrawColor = 'rgb(91,151,168)';
-//		    var buttonRolloverDrawColor = 'rgb(247,239,100)';
-//			this.setShader({percents:percents, colors:colors});
-//		    this.setOutlineStrokeColor(buttonDrawColor);
-//		    this.setButtonDrawColor(buttonDrawColor);
-//		    this.setButtonRolloverDrawColor(buttonRolloverDrawColor);
 			
-			var percents = ['0%','20%','50%','80%','100%'];
-		    var colors = [ 'rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0,0.6)', 'rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.6)','rgba(0, 0, 0, 0.1)' ];
-		    var buttonDrawColor = 'rgb(91,151,168)';
-		    var buttonRolloverDrawColor = 'rgb(247,239,100)';
-			
-		    //this.setShader({percents:percents, colors:colors});
 		    this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		    this.setOutlineFillColor(config.outlineFillColor);
 		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
-		    
 		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
-		    
+		   
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 20,sleep: 5,fraction:10};
 		    this.setOrphanLock(true);
 		},
 	    onButton1Press : function() {
 	        if (!this.getHost().isLockSelected()) {
 	            return;
 	        }
-	        this.getHost().shift('West', {step : 20,sleep: 5,fraction:10});
+	        this.getHost().shift('West', this.sample);
 	    },
 	    onButton2Press : function() {
 	    	if (!this.getHost().isLockSelected()) {
 	            return;
 	        }
-	        this.getHost().shift('East', {step : 20, sleep: 5,fraction:10});
+	        this.getHost().shift('East', this.sample);
 	    },
 	    
 	    onRegister : function(){
@@ -16326,14 +16303,12 @@ function stringInputToObject(color) {
 			config.yIndex=1;
 			config.barOrientation = 'Vertical';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
-			var percents = ['0%','20%','50%','80%','100%'];
-		    var colors = [ 'rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0,0.6)', 'rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.6)','rgba(0, 0, 0, 0.1)' ];
-		    var buttonDrawColor = 'rgb(91,151,168)';
-		    var buttonRolloverDrawColor = 'rgb(247,239,100)';
-			this.setShader({percents:percents, colors:colors});
-		    this.setOutlineStrokeColor(buttonDrawColor);
-		    this.setButtonDrawColor(buttonDrawColor);
-		    this.setButtonRolloverDrawColor(buttonRolloverDrawColor);
+			
+			this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
+		    this.setOutlineFillColor(config.outlineFillColor);
+		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
+		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 20,sleep: 5,fraction:10};
 		    this.setOrphanLock(true);
 		},
 		
@@ -16342,14 +16317,14 @@ function stringInputToObject(color) {
 	        if (!this.getHost().isLockSelected()) {
 	            return;
 	        }
-	        this.getHost().shift('North');
+	        this.getHost().shift('North', this.sample);
 
 	    },
 	    onButton2Press : function() {
 	        if (!this.getHost().isLockSelected()) {
 	            return;
 	        }
-	        this.getHost().shift('South');
+	        this.getHost().shift('South', this.sample);
 	    },
 	    
 	    onRegister : function(){
@@ -17649,18 +17624,10 @@ function stringInputToObject(color) {
 			config.barOrientation = 'Horizontal';
 			JenScript.AbstractPlusMinusBarWidget.call(this,config);
 			
-			var percents = ['0%','20%','50%','80%','100%'];
-		    var colors = [ 'rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0,0.6)', 'rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.6)','rgba(0, 0, 0, 0.1)' ];
-		    var buttonDrawColor = 'rgb(91,151,168)';
-		    var buttonRolloverDrawColor = 'rgb(247,239,100)';
-			
-		    //this.setShader({percents:percents, colors:colors});
 		    this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
 		    this.setOutlineFillColor(config.outlineFillColor);
 		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
-		    
 		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
-		    
 		    this.setOrphanLock(true);
 		},
 		
@@ -17698,19 +17665,11 @@ function stringInputToObject(color) {
 			config.yIndex=0;
 			config.barOrientation = 'Vertical';
 			JenScript.AbstractPlusMinusBarWidget.call(this,config);
-			var percents = ['0%','20%','50%','80%','100%'];
-		    var colors = [ 'rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0,0.6)', 'rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.6)','rgba(0, 0, 0, 0.1)' ];
-		    var buttonDrawColor = 'rgb(91,151,168)';
-		    var buttonRolloverDrawColor = 'rgb(247,239,100)';
-		    
-		    //this.setShader({percents:percents, colors:colors});
-		    this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
+
+			this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
 		    this.setOutlineFillColor(config.outlineFillColor);
 		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
-		    
 		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
-		    
-		    
 		    this.setOrphanLock(true);
 		},
 		
