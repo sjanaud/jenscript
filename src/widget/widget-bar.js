@@ -291,6 +291,20 @@
 		    /** button 2 rollover draw color */
 		    this.button2RolloverDrawColor = config.button2RolloverDrawColor;
 		    
+		    if(config.buttonFillColor !== undefined){
+		    	this.setButtonFillColor(config.buttonFillColor);
+		    }
+		    if(config.buttonRolloverFillColor !== undefined){
+		    	this.setButtonRolloverFillColor(config.buttonRolloverFillColor);
+		    }
+		    
+		    if(config.buttonDrawColor !== undefined){
+		    	this.setButtonDrawColor(config.buttonDrawColor);
+		    }
+		    if(config.buttonRolloverDrawColor !== undefined){
+		    	this.setButtonRolloverDrawColor(config.buttonRolloverDrawColor);
+		    }
+		    
 		    /** outline bar widget stroke */
 		    this.buttonStrokeWidth = (config.buttonStrokeWidth !== undefined) ? config.buttonStrokeWidth: 2;
 		    
