@@ -297,7 +297,7 @@
 		    if(config.buttonRolloverFillColor !== undefined){
 		    	this.setButtonRolloverFillColor(config.buttonRolloverFillColor);
 		    }
-		    
+		   
 		    if(config.buttonDrawColor !== undefined){
 		    	this.setButtonDrawColor(config.buttonDrawColor);
 		    }
@@ -441,28 +441,40 @@
 	     * call when button 1 is roll over only call repaint button 2
 	     */
 	    onButton1RolloverOn : function() {
-	    	this.svg.button1.setAttribute('stroke',this.button1RolloverDrawColor);
+	    	if(this.button1RolloverDrawColor !== undefined)
+	    		this.svg.button1.setAttribute('stroke',this.button1RolloverDrawColor);
+	    	if(this.button1RolloverFillColor !== undefined)
+	    		this.svg.button1.setAttribute('fill',this.button1RolloverFillColor);
 	    },
 
 	    /**
 	     * call when button 1 is no longer roll over only call repaint button 1
 	     */
 	    onButton1RolloverOff : function() {
-	    	this.svg.button1.setAttribute('stroke',this.button1DrawColor);
+	    	if(this.button1DrawColor !== undefined)
+	    		this.svg.button1.setAttribute('stroke',this.button1DrawColor);
+	    	if(this.button1FillColor !== undefined)
+	    		this.svg.button1.setAttribute('fill',this.button1FillColor);
 	    },
 
 	    /**
 	     * call when button 1 is roll over only call repaint button 2
 	     */
 	    onButton2RolloverOn : function() {
-	    	this.svg.button2.setAttribute('stroke',this.button2RolloverDrawColor);
+	    	if(this.button2RolloverDrawColor !== undefined)
+	    		this.svg.button2.setAttribute('stroke',this.button2RolloverDrawColor);
+	    	if(this.button2RolloverFillColor !== undefined)
+	    		this.svg.button2.setAttribute('fill',this.button2RolloverFillColor);
 	    },
 
 	    /**
 	     * call when button 2 is no longer roll over
 	     */
 	    onButton2RolloverOff : function() {
-	    	this.svg.button2.setAttribute('stroke',this.button2DrawColor);
+	    	tif(this.button1DrawColor !== undefined)
+	    		this.svg.button2.setAttribute('stroke',this.button2DrawColor);
+	    	if(this.button1FillColor !== undefined)
+	    		this.svg.button2.setAttribute('fill',this.button2FillColor);
 	    },
 
 	    /**
