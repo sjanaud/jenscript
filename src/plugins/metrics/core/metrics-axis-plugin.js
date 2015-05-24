@@ -23,11 +23,11 @@
 			/** paint flag axis base line, default is false */
 			this.axisBaseLine =  (config.axisBaseLine !== undefined)?config.axisBaseLine:false;
 			
-			/** color axis base line, default is red */
-			this.axisBaseLineColor = 'black';
+			/** color axis base line, default is black */
+			this.axisBaseLineColor =  (config.axisBaseLineColor !== undefined)?config.axisBaseLineColor:'black';
 			
 			/** stroke axis base line, default is 0.8 */
-			this.axisBaseLineStrokeWidth = 0.8;
+			this.axisBaseLineStrokeWidth =  (config.axisBaseLineStrokeWidth !== undefined)?config.axisBaseLineStrokeWidth: 0.8;
 			
 			JenScript.MetricsPlugin.call(this,config);
 		},
