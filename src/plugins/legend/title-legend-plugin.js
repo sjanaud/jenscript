@@ -22,7 +22,7 @@
 			this.text = config.text;
 			this.fontSize = (config.fontSize !== undefined)?config.fontSize:12;
 			this.textColor = (config.textColor !== undefined)?config.textColor:'red';
-			
+			this.fontWeight = (config.fontWeight !== undefined)?config.fontWeight:'normal';
 			this.part = (config.part !== undefined)?config.part:JenScript.ViewPart.Device;
 			
 			this.layout = (config.layout !== undefined)?config.layout:'absolute'; //relative
@@ -51,6 +51,7 @@
 					.attr('x',this.x)
 					.attr('y',this.y)
 					.attr('font-size',this.fontSize)
+					.attr('font-weight',this.fontWeight)
 					.attr('fill',this.textColor)
 					.attr('text-anchor',this.textAnchor)
 					.textContent(this.text);
@@ -117,6 +118,7 @@
 					.attr('x',this.x)
 					.attr('y',this.y)
 					.attr('font-size',this.fontSize)
+					.attr('font-weight',this.fontWeight)
 					.attr('fill',this.textColor)
 					.attr('text-anchor',this.textAnchor)
 					.textContent(this.text);
