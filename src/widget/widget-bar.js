@@ -471,7 +471,7 @@
 	     * call when button 2 is no longer roll over
 	     */
 	    onButton2RolloverOff : function() {
-	    	tif(this.button1DrawColor !== undefined)
+	    	if(this.button1DrawColor !== undefined)
 	    		this.svg.button2.setAttribute('stroke',this.button2DrawColor);
 	    	if(this.button1FillColor !== undefined)
 	    		this.svg.button2.setAttribute('fill',this.button2FillColor);
