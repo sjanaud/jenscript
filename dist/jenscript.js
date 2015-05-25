@@ -10,7 +10,7 @@
 // 
 //
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-05-23
+// build: 2015-05-25
 // 
 // All Rights reserved
 
@@ -8510,7 +8510,7 @@ function stringInputToObject(color) {
 	     * call when button 2 is no longer roll over
 	     */
 	    onButton2RolloverOff : function() {
-	    	tif(this.button1DrawColor !== undefined)
+	    	if(this.button1DrawColor !== undefined)
 	    		this.svg.button2.setAttribute('stroke',this.button2DrawColor);
 	    	if(this.button1FillColor !== undefined)
 	    		this.svg.button2.setAttribute('fill',this.button2FillColor);
@@ -16276,7 +16276,6 @@ function stringInputToObject(color) {
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
 			
 		    this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		   
 		    this.setButtonDrawColor((config.buttonDrawColor !== undefined)?config.buttonDrawColor : 'black');
 		    this.setButtonRolloverDrawColor((config.buttonRolloverDrawColor !== undefined)?config.buttonRolloverDrawColor : 'green');
 		   
@@ -20689,11 +20688,11 @@ function stringInputToObject(color) {
 			/** paint flag axis base line, default is false */
 			this.axisBaseLine =  (config.axisBaseLine !== undefined)?config.axisBaseLine:false;
 			
-			/** color axis base line, default is red */
-			this.axisBaseLineColor = 'black';
+			/** color axis base line, default is black */
+			this.axisBaseLineColor =  (config.axisBaseLineColor !== undefined)?config.axisBaseLineColor:'black';
 			
 			/** stroke axis base line, default is 0.8 */
-			this.axisBaseLineStrokeWidth = 0.8;
+			this.axisBaseLineStrokeWidth =  (config.axisBaseLineStrokeWidth !== undefined)?config.axisBaseLineStrokeWidth: 0.8;
 			
 			JenScript.MetricsPlugin.call(this,config);
 		},
@@ -33655,7 +33654,7 @@ function stringInputToObject(color) {
 			this.text = config.text;
 			this.fontSize = (config.fontSize !== undefined)?config.fontSize:12;
 			this.textColor = (config.textColor !== undefined)?config.textColor:'red';
-			
+			this.fontWeight = (config.fontWeight !== undefined)?config.fontWeight:'normal';
 			this.part = (config.part !== undefined)?config.part:JenScript.ViewPart.Device;
 			
 			this.layout = (config.layout !== undefined)?config.layout:'absolute'; //relative
@@ -33684,6 +33683,7 @@ function stringInputToObject(color) {
 					.attr('x',this.x)
 					.attr('y',this.y)
 					.attr('font-size',this.fontSize)
+					.attr('font-weight',this.fontWeight)
 					.attr('fill',this.textColor)
 					.attr('text-anchor',this.textAnchor)
 					.textContent(this.text);
@@ -33750,6 +33750,7 @@ function stringInputToObject(color) {
 					.attr('x',this.x)
 					.attr('y',this.y)
 					.attr('font-size',this.fontSize)
+					.attr('font-weight',this.fontWeight)
 					.attr('fill',this.textColor)
 					.attr('text-anchor',this.textAnchor)
 					.textContent(this.text);
