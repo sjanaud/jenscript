@@ -874,30 +874,28 @@
 		                	var sg = gss[k];
 		                    if (sg instanceof JenScript.SymbolBarStacked) {
 		                        var stackedBar = sg;
-		                        if (stackedBar.getBound2D() != undefined   && stackedBar.getBound2D().contains(x, y)) {
+		                        if (stackedBar.getBound2D() !== undefined   && stackedBar.getBound2D().contains(x, y)) {
 		                        	_c(stackedBar);
 		                        }
 		                        var barStacks = stackedBar.getStacks();
 		     	                for (var j = 0; j < barStacks.length; j++) {
 		     	            	   var barStack = bars[j];
-		     	                    if (barStack.getBound2D() != undefined  && barStack.getBound2D().contains(x,y) && barStack.isLockEnter()) {
+		     	                    if (barStack.getBound2D() !== undefined  && barStack.getBound2D().contains(x,y) && barStack.isLockEnter()) {
 		     	                    	_c(barStack);
 		     	                    }
 		     	                }
 		                    }
 		                    else if (sg instanceof JenScript.SymbolBar) {
-		                        if (sg.getBound2D() != undefined  && sg.getBound2D().contains(x, y) && sg.isLockEnter()) {
+		                        if (sg.getBound2D() !== undefined  && sg.getBound2D().contains(x, y) && sg.isLockEnter()) {
 		                        	_c(sg);
 		                        }
 		                    }
 		                }
 		            }
 		            else if (symbolComponent instanceof JenScript.SymbolBar) {
-		                if (symbolComponent.getBound2D() != null
-		                        && symbolComponent.getBound2D().contains(x, y)
-		                        && symbolComponent.isLockEnter()) {
+		               // if (symbolComponent.getBound2D() !== undefined && symbolComponent.getBound2D().contains(x, y)) {
 		                	_c(symbolComponent);
-		                }
+		                //}
 		            }
 
 		        }
@@ -917,7 +915,6 @@
 	        if (bar.getBound2D() === undefined) {
 	            return;
 	        }
-	       
 	        if (bar.getBound2D().contains(x, y) && !bar.isLockEnter()) {
 	            bar.setLockEnter(true);
 	            this.fireSymbolEvent('enter',{symbol : bar, x:x,y:y, device :{x:x,y:y}});
