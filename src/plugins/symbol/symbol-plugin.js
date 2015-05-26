@@ -103,6 +103,8 @@
 		            //layer.paintLayer(g2d,viewPart,'LabelLayer');
 		        }
 		    },
+		    
+		    //TODO remove similar copy block
 
 		    /**
 		     * solve layer
@@ -113,28 +115,23 @@
 		        }
 		    },
 
-
 		   onRelease : function(evt,part,x, y) {
 		        for (var i = 0; i < this.countLayers(); i++) {
 		           this.getLayer(i).onRelease(evt,part,x, y);
 		        }
 		    },
 
-
 		   onPress : function(evt,part,x, y) {
 		        for (var i = 0; i < this.countLayers(); i++) {
 		            this.getLayer(i).onPress(evt,part,x, y);
 		        }
 		    },
-
 		   
 		   onMove : function(evt,part,x, y) {
 		        for (var i = 0; i < this.countLayers(); i++) {
 		            this.getLayer(i).onMove(evt,part,x, y);
 		        }
-
 		    },
-
 			
 		});
 })();
