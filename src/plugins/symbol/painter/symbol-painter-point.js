@@ -7,10 +7,14 @@
 		
 		_init : function(config){
 			config=config||{};
-			this.Id = 'symbolpoint'+JenScript.sequenceId++;
+			this.Id = 'symbolpainter'+JenScript.sequenceId++;
 			JenScript.SymbolPainter.call(this, config);
 		},
 		
+		/**
+		 * override this method provides a point painter
+		 * 
+		 */
 		paintSymbolPoint : function(g2d,point){},
 		
 		paintSymbol : function(g2d,symbol,viewPart) {
@@ -18,7 +22,6 @@
 		            this.paintSymbolPoint(g2d,symbol);
 		     }
 		}
-		
 	});
 	
 	JenScript.SymbolPointSquare = function(config) {
@@ -33,13 +36,9 @@
 		},
 		
 		paintSymbolPoint : function(g2d,point){
-			console.log('point painter : '+point);
 			var square = new JenScript.SVGRect().Id(this.Id).origin(point.devicePoint.x-2,point.devicePoint.y-2).size(4,4);
-			square.fill('yellow');
+			square.fill(point.getThemeColor());
 			g2d.insertSVG(square.toSVG());
 		},
-		
-		
 	});
-	
 })();

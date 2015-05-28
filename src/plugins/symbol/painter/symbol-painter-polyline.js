@@ -21,7 +21,7 @@
 				else
 					svgPolyline.lineTo(point.devicePoint.x,point.devicePoint.y);
 			}
-			g2d.insertSVG(svgPolyline.stroke('red').fillNone().toSVG());
+			g2d.insertSVG(svgPolyline.stroke(polyline.getThemeColor()).fillNone().toSVG());
 		},
 		
 		paintSymbol : function(g2d,symbol,viewPart) {
@@ -29,8 +29,5 @@
 		            this.paintSymbolPolyline(g2d,symbol);
 		     }
 		}
-		
 	});
-	
-	
 })();

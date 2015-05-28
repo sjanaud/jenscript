@@ -21,12 +21,7 @@
 	    },
 
 	    getThickness : function() {
-	        // double groupThickness = 0;
-	        // for (SymbolComponent b : symbolComponents) {
-	        // groupThickness = groupThickness + b.getThickness();
-	        // }
-	        // return groupThickness;
-	        return 50;
+	        return 0;
 	    },
 
 	    /***
@@ -91,6 +86,5 @@
 	    setSymbolComponents : function(symbolComponents) {
 	        this.symbolComponents = symbolComponents;
 	    }
-		
 	});
 })();

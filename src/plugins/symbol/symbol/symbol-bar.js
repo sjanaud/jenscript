@@ -14,8 +14,7 @@
 			/** the bar base */
 			this.base =  config.base;
 			this.setBase(this.base);
-			/** bar theme color */
-			this.themeColor = (config.themeColor !== undefined)?config.themeColor : 'gray';
+			
 			/** morphe style, default is Rectangle */
 			this.morpheStyle =(config.morpheStyle !== undefined)?config.morpheStyle: 'Rectangle';
 			
@@ -187,25 +186,6 @@
 		 */
 		setSymbol : function( symbol) {
 			this.symbol = symbol;
-		},
-
-		/**
-		 * get theme color
-		 * 
-		 * @return theme color
-		 */
-		getThemeColor : function() {
-			return this.themeColor;
-		},
-
-		/**
-		 * set the theme color
-		 * 
-		 * @param themeColor
-		 *            the theme color to set
-		 */
-		setThemeColor : function(themeColor) {
-			this.themeColor = themeColor;
 		},
 
 		getValue : function() {

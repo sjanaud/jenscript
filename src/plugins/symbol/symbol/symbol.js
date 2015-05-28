@@ -56,7 +56,9 @@
 		    /** bar opaque */
 		    this.opaque;
 		    /** bar thickness, default is 20 */
-		    this.thickness = (config.thickness !== undefined)?config.thickness : 20;
+		    this.thickness = (config.thickness !== undefined)?config.thickness : 0;
+		    /** bar theme color */
+			this.themeColor = (config.themeColor !== undefined)?config.themeColor : 'gray';
 		    /** bar name */
 		    this.name = config.name;
 		    /** bar host */
@@ -72,11 +74,29 @@
 		    this.bound2D;
 		},
 		
+
+		/**
+		 * get theme color
+		 * 
+		 * @return theme color
+		 */
+		getThemeColor : function() {
+			return this.themeColor;
+		},
+
+		/**
+		 * set the theme color
+		 * 
+		 * @param themeColor
+		 *            the theme color to set
+		 */
+		setThemeColor : function(themeColor) {
+			this.themeColor = themeColor;
+		},
 		
 		toString : function (){
 			return "SymbolComponent:"+this.Id;
 		},
-		
 		
 		equals : function(o){
 			if(o === undefined) return false;

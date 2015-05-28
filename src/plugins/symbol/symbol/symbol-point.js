@@ -16,7 +16,7 @@
 		    /** the point of this symbol */
 		   this.devicePoint;
 		    /** symbol point painter */
-		   this.pointSymbolPainters = [];//(config.pointSymbolPainter !== undefined)?config.pointSymbolPainter : new JenScript.SymbolPointSquare(); // = new ArrayList<AbstractPointSymbolPainter>();
+		   this.pointSymbolPainters = [];
 		   this.pointSymbolPainters[0] = new JenScript.SymbolPointSquare(); 
 		   /** sensible radius in pixel */
 		   this.sensibleRadius = 10;
