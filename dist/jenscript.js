@@ -26723,13 +26723,11 @@ function stringInputToObject(color) {
 
 	    
 	   paintLayer : function(g2d,viewPart,paintRequest) {
-		   console.log("paintLayer point ");
 	        if (viewPart === 'Device' && paintRequest === 'SymbolLayer') {
 	        	for (var i = 0; i < this.getSymbols().length; i++) {
 					var ps = this.getSymbols()[i];
 					
 	                if (!ps.isFiller) {
-	                	console.log("paint point symbol : "+ps);
 	                    if (ps instanceof JenScript.SymbolPoint && !(ps instanceof JenScript.SymbolPolylinePoint)) {
 	                    	var painters = ps.getPointSymbolPainters();
 	                    	for (var j = 0; j < painters.length; j++) {
@@ -26800,14 +26798,12 @@ function stringInputToObject(color) {
 	     *            the symbol point to solve
 	     */
 	    solveVPointSymbol : function(pointSymbol) {
-	    	console.log('solveVPointSymbol');
 	        var proj = this.getHost().getProjection();
 	        pointSymbol.setHost(this.getHost());
 	        var p2dUser = new JenScript.Point2D(0, pointSymbol.getValue());
 	        var p2ddevice = proj.userToPixel(p2dUser);
 	        pointSymbol.setDeviceValue(p2ddevice.getY());
 	        var x = this.getComponentXLocation(pointSymbol);
-	        console.log('x location of point : '+x);
 	        var devicePoint = new JenScript.Point2D(x, p2ddevice.getY());
 	        var rectangle = new JenScript.SVGRect().origin(devicePoint.getX() - pointSymbol.getSensibleRadius(),  devicePoint.getY() - pointSymbol.getSensibleRadius())
 	                                               .size(2 * pointSymbol.getSensibleRadius(),2 * pointSymbol.getSensibleRadius());
