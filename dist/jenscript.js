@@ -1,17 +1,11 @@
-// JenScript -  JavaScript SVG Framework
-// Product of JenSoftAPI - Visualization Frameworks
+// JenScript -  JavaScript HTML5/SVG Library
+// Product of JenSoftAPI - Visualization Java & JS Libraries
 // version : 1.1.0
-//
-// Author : JenSoft API 
 // Author : Sebastien Janaud 
-// 
-// Web Site : http://www.jensoftapi.com/
+// Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
-// 
-//
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-05-26
-// 
+// build: 2015-05-28
 // All Rights reserved
 
 /**
@@ -23028,7 +23022,9 @@ function stringInputToObject(color) {
 		    /** bar opaque */
 		    this.opaque;
 		    /** bar thickness, default is 20 */
-		    this.thickness = (config.thickness !== undefined)?config.thickness : 20;
+		    this.thickness = (config.thickness !== undefined)?config.thickness : 0;
+		    /** bar theme color */
+			this.themeColor = (config.themeColor !== undefined)?config.themeColor : 'gray';
 		    /** bar name */
 		    this.name = config.name;
 		    /** bar host */
@@ -23044,11 +23040,29 @@ function stringInputToObject(color) {
 		    this.bound2D;
 		},
 		
+
+		/**
+		 * get theme color
+		 * 
+		 * @return theme color
+		 */
+		getThemeColor : function() {
+			return this.themeColor;
+		},
+
+		/**
+		 * set the theme color
+		 * 
+		 * @param themeColor
+		 *            the theme color to set
+		 */
+		setThemeColor : function(themeColor) {
+			this.themeColor = themeColor;
+		},
 		
 		toString : function (){
 			return "SymbolComponent:"+this.Id;
 		},
-		
 		
 		equals : function(o){
 			if(o === undefined) return false;
@@ -23351,8 +23365,7 @@ function stringInputToObject(color) {
 			/** the bar base */
 			this.base =  config.base;
 			this.setBase(this.base);
-			/** bar theme color */
-			this.themeColor = (config.themeColor !== undefined)?config.themeColor : 'gray';
+			
 			/** morphe style, default is Rectangle */
 			this.morpheStyle =(config.morpheStyle !== undefined)?config.morpheStyle: 'Rectangle';
 			
@@ -23524,25 +23537,6 @@ function stringInputToObject(color) {
 		 */
 		setSymbol : function( symbol) {
 			this.symbol = symbol;
-		},
-
-		/**
-		 * get theme color
-		 * 
-		 * @return theme color
-		 */
-		getThemeColor : function() {
-			return this.themeColor;
-		},
-
-		/**
-		 * set the theme color
-		 * 
-		 * @param themeColor
-		 *            the theme color to set
-		 */
-		setThemeColor : function(themeColor) {
-			this.themeColor = themeColor;
 		},
 
 		getValue : function() {
@@ -24098,7 +24092,7 @@ function stringInputToObject(color) {
 		    /** the point of this symbol */
 		   this.devicePoint;
 		    /** symbol point painter */
-		   this.pointSymbolPainters = [];//(config.pointSymbolPainter !== undefined)?config.pointSymbolPainter : new JenScript.SymbolPointSquare(); // = new ArrayList<AbstractPointSymbolPainter>();
+		   this.pointSymbolPainters = [];
 		   this.pointSymbolPainters[0] = new JenScript.SymbolPointSquare(); 
 		   /** sensible radius in pixel */
 		   this.sensibleRadius = 10;
@@ -24247,12 +24241,7 @@ function stringInputToObject(color) {
 	    },
 
 	    getThickness : function() {
-	        // double groupThickness = 0;
-	        // for (SymbolComponent b : symbolComponents) {
-	        // groupThickness = groupThickness + b.getThickness();
-	        // }
-	        // return groupThickness;
-	        return 50;
+	        return 0;
 	    },
 
 	    /***
@@ -24317,7 +24306,6 @@ function stringInputToObject(color) {
 	    setSymbolComponents : function(symbolComponents) {
 	        this.symbolComponents = symbolComponents;
 	    }
-		
 	});
 })();
 (function(){
@@ -25371,10 +25359,14 @@ function stringInputToObject(color) {
 		
 		_init : function(config){
 			config=config||{};
-			this.Id = 'symbolpoint'+JenScript.sequenceId++;
+			this.Id = 'symbolpainter'+JenScript.sequenceId++;
 			JenScript.SymbolPainter.call(this, config);
 		},
 		
+		/**
+		 * override this method provides a point painter
+		 * 
+		 */
 		paintSymbolPoint : function(g2d,point){},
 		
 		paintSymbol : function(g2d,symbol,viewPart) {
@@ -25382,7 +25374,6 @@ function stringInputToObject(color) {
 		            this.paintSymbolPoint(g2d,symbol);
 		     }
 		}
-		
 	});
 	
 	JenScript.SymbolPointSquare = function(config) {
@@ -25397,15 +25388,11 @@ function stringInputToObject(color) {
 		},
 		
 		paintSymbolPoint : function(g2d,point){
-			console.log('point painter : '+point);
 			var square = new JenScript.SVGRect().Id(this.Id).origin(point.devicePoint.x-2,point.devicePoint.y-2).size(4,4);
-			square.fill('yellow');
+			square.fill(point.getThemeColor());
 			g2d.insertSVG(square.toSVG());
 		},
-		
-		
 	});
-	
 })();
 (function(){
 	JenScript.SymbolPolylinePainter = function(config) {
@@ -25430,7 +25417,7 @@ function stringInputToObject(color) {
 				else
 					svgPolyline.lineTo(point.devicePoint.x,point.devicePoint.y);
 			}
-			g2d.insertSVG(svgPolyline.stroke('red').fillNone().toSVG());
+			g2d.insertSVG(svgPolyline.stroke(polyline.getThemeColor()).fillNone().toSVG());
 		},
 		
 		paintSymbol : function(g2d,symbol,viewPart) {
@@ -25438,10 +25425,7 @@ function stringInputToObject(color) {
 		            this.paintSymbolPolyline(g2d,symbol);
 		     }
 		}
-		
 	});
-	
-	
 })();
 (function(){
 	
@@ -27037,28 +27021,23 @@ function stringInputToObject(color) {
 		        }
 		    },
 
-
 		   onRelease : function(evt,part,x, y) {
 		        for (var i = 0; i < this.countLayers(); i++) {
 		           this.getLayer(i).onRelease(evt,part,x, y);
 		        }
 		    },
 
-
 		   onPress : function(evt,part,x, y) {
 		        for (var i = 0; i < this.countLayers(); i++) {
 		            this.getLayer(i).onPress(evt,part,x, y);
 		        }
 		    },
-
 		   
 		   onMove : function(evt,part,x, y) {
 		        for (var i = 0; i < this.countLayers(); i++) {
 		            this.getLayer(i).onMove(evt,part,x, y);
 		        }
-
 		    },
-
 			
 		});
 })();
