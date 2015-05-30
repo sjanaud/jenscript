@@ -182,6 +182,10 @@
 		 * @param {Object} pie 
 		 */
 		paintPieEffect : function(g2d, pie) {
+			
+			//TODO : delete redundant gradient according to divergence. create map <divergence, gradient>
+			//and delete/create only if needed.
+			
 			//delete all useless olds gradients
 			for (var i = 0; i < this.gradientIds.length; i++) {
 				g2d.deleteGraphicsElement(this.gradientIds[i]);
