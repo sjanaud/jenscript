@@ -59,7 +59,7 @@
 			this.west  = (config.west!== undefined)?   config.west  : 40;
 			this.east  = (config.east!== undefined)?   config.east  : 40;
 			this.north = (config.north!== undefined)?  config.north : 40;
-			this.south = (config.south !== undefined)? config.south : 40;
+			this.south = (config.south!== undefined)? config.south : 40;
 
 			if(this.width-this.west-this.east < 0)
 				throw new Error('View width is two small with e/w holders');
@@ -269,7 +269,7 @@
 			
 			this.eastPart = new JenScript.ViewPartComponent({
 					part   : JenScript.ViewPart.East,
-					width  : this.west,
+					width  : this.east,
 					height : this.height-this.north-this.south,
 					view   : this});
 			
