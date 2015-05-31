@@ -126,35 +126,10 @@ var JenScript = {};
 		    		this.init(config);
 		    	},
 		    	
-		    	
-		    	
-		    	//stream wrapper
+		    	//stream wrapper function with interfaces builders
 	    		view : function(config){
-	    			var v = new JenScript.View(config);
-	    			return {
-	    				projection : function(type, config){
-	    					var p;
-	    					if('linear' === type)
-	    						p = new JenScript.LinearProjection(config);
-	    					if('logx' === type)
-		    					p = new JenScript.LogXProjection(config);
-	    					if('logy' === type)
-		    					p = new JenScript.LogYProjection(config);
-	    					if('logxy' === type)
-		    					p = new JenScript.LogXLogYProjection(config);
-	    					if('timex' === type)
-		    					p = new JenScript.TimeXProjection(config);
-	    					if('timey' === type)
-		    					p = new JenScript.TimeYProjection(config);
-	    					return {
-	    						pie : function(config){return new JenScript.PieBuilder(v,p,config);}
-	    					}
-	    				}
-	    			};
-
+	    			return new JenScript.ViewBuilder(config);
 				},
-		    	
-		    	
 		};
 
 		//EXPORT
@@ -4230,6 +4205,10 @@ function stringInputToObject(color) {
 	
 	JenScript.Model.addMethods(JenScript.View, {
 		
+		
+		toString : function(){
+			return 'JenScript.View[name :'+this.name+' , Id : '+this.Id+']';
+		},
 		/**
          * Initialize view with given parameters config.
          * @param {Object} config
@@ -5267,6 +5246,34 @@ function stringInputToObject(color) {
 			return folder;
 		}
 	});
+})();
+(function(){
+	JenScript.ViewBuilder = function(config){
+		var v = new JenScript.View(config);
+		return {
+			projection : function(type, config){
+				var p;
+				
+				if('linear' === type)
+					p = new JenScript.LinearProjection(config);
+				if('logx' === type)
+					p = new JenScript.LogXProjection(config);
+				if('logy' === type)
+					p = new JenScript.LogYProjection(config);
+				if('logxy' === type)
+					p = new JenScript.LogXLogYProjection(config);
+				if('timex' === type)
+					p = new JenScript.TimeXProjection(config);
+				if('timey' === type)
+					p = new JenScript.TimeYProjection(config);
+				
+				//interfaces
+				return {
+					pie : function(config){return new JenScript.PieBuilder(v,p,config);}
+				}
+			}
+		};
+	};
 })();
 (function(){
 	JenScript.Model.addMethods(JenScript.Projection,{
@@ -15839,6 +15846,9 @@ function stringInputToObject(color) {
 	});
 })();
 (function(){
+	
+	//R. Module pattern
+	
 	JenScript.PieBuilder = function(view,projection,config) {
 		view.registerProjection(projection);
 		var pp = new JenScript.PiePlugin();
@@ -15872,10 +15882,22 @@ function stringInputToObject(color) {
 			pie.addEffect(fx);
 			return this;
 		}
+		var linearFx = function(config){
+			effect('linear',config);
+			return this;
+		}
+		var reflectFx = function(config){
+			effect('reflection',config);
+			return this;
+		}
 		return {
 			slice : slice,
 			label : label,
-			effect : effect
+			effect : effect,
+			linearFx : linearFx,
+			reflectFx : reflectFx,
+			view : function(){return view;},
+			projection : function(){return projection;},
 		};
 	};
 })();
