@@ -2,6 +2,10 @@
 	
 	JenScript.Model.addMethods(JenScript.View, {
 		
+		
+		toString : function(){
+			return 'JenScript.View[name :'+this.name+' , Id : '+this.Id+']';
+		},
 		/**
          * Initialize view with given parameters config.
          * @param {Object} config
