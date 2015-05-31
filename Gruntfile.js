@@ -39,6 +39,7 @@ grunt.initConfig({
 			target: {
 				dest : "dist/jenscript.js",
 				src : [ 
+
 				        "src/envns.js",
 						"src/model.js",
 						"src/math.js",
@@ -46,15 +47,13 @@ grunt.initConfig({
 						"src/palette/texture.js",
 						"src/geom.js",
 						
-						
-						"src/geom.js",
-						
 						//GLYPH
 						"src/glyph/glyph.js",
 						"src/glyph/general-metrics-path.js",
 						
-						//VIEW
 						
+						
+						//VIEW
 						"src/view/proj-selector.js",
 						"src/view/view-background.js",
 						"src/view/view-foreground.js",
@@ -62,6 +61,7 @@ grunt.initConfig({
 						"src/view/svg-graphics.js",
 						"src/view/view.js",
 						
+					
 						
 						//PROJECTION
 						"src/projections/projection.js",
@@ -128,6 +128,7 @@ grunt.initConfig({
 						"src/plugins/pie/pie-fill.js",
 						"src/plugins/pie/pie-effect.js",
 						"src/plugins/pie/pie-label.js",
+						"src/plugins/pie/pie-builder.js",
 						
 						//TRANSLATE
 						"src/plugins/translate/translate-plugin.js",
@@ -312,6 +313,8 @@ grunt.initConfig({
 						
 						//TRANSFORM
 						"src/plugins/transforms/semantic-transform-plugin.js",
+						
+						
 						
 						
 						

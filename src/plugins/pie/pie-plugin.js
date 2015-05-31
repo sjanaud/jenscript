@@ -88,6 +88,7 @@
 			};
 			for (var i = 0; i < this.pies.length; i++) {
 				var pie = this.pies[i];
+				if(pie.solved){
 				for (var s = 0; s < pie.slices.length; s++) {
 					var slice = pie.slices[s];
 					var distance = Math.sqrt((slice.sc.y - deviceY)*(slice.sc.y - deviceY) + (slice.sc.x - deviceX)*(slice.sc.x - deviceX));
@@ -120,7 +121,7 @@
 					}else{
 						fire2(slice);
 					}
-				}
+				}}
 			}
 			return false;
 		},
@@ -182,8 +183,8 @@
 					for (var j = 0; j < pie.slices.length; j++) {
 						var s = pie.slices[j];
 						
+						//re fill/re stroke by slice for secondary paint style?
 						//slice stroke ?
-						
 						//slice fill?
 						
 						if (s.getSliceLabel() !== undefined) {

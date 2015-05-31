@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-05-30
+// build: 2015-05-31
 // All Rights reserved
 
 /**
@@ -126,20 +126,33 @@ var JenScript = {};
 		    		this.init(config);
 		    	},
 		    	
-		    	//stream wrapper ?
 		    	
-//		    	j : {
-//		    		view : function(config){
-//		    			if( Object.prototype.toString.call(config) == '[object String]' ) {
-//		    				   // a string
-//		    				alert('string');
-//		    			}else{
-//		    				
-//		    			}
-//		    			//if(typeof config)
-//						return new JenScript.View(config);
-//					},
-//		    	}
+		    	
+		    	//stream wrapper
+	    		view : function(config){
+	    			var v = new JenScript.View(config);
+	    			return {
+	    				projection : function(type, config){
+	    					var p;
+	    					if('linear' === type)
+	    						p = new JenScript.LinearProjection(config);
+	    					if('logx' === type)
+		    					p = new JenScript.LogXProjection(config);
+	    					if('logy' === type)
+		    					p = new JenScript.LogYProjection(config);
+	    					if('logxy' === type)
+		    					p = new JenScript.LogXLogYProjection(config);
+	    					if('timex' === type)
+		    					p = new JenScript.TimeXProjection(config);
+	    					if('timey' === type)
+		    					p = new JenScript.TimeYProjection(config);
+	    					return {
+	    						pie : function(config){return new JenScript.PieBuilder(v,p,config);}
+	    					}
+	    				}
+	    			};
+
+				},
 		    	
 		    	
 		};
@@ -148,12 +161,10 @@ var JenScript = {};
 		(function(root, factory) {
 		 if(typeof exports === 'object') {
 		     // Node
-			 console.log('export for node');
 		     module.exports = factory();
 		 }
 		 else if(typeof define === 'function' && define.amd) {
 		     // AMD
-			 console.log('export for amd');
 		     define(factory);
 		 }
 		 else {
@@ -161,82 +172,9 @@ var JenScript = {};
 		     root.returnExports = factory();
 		 }
 		}(this, function() {
-			//really need stream style? I'am not sure...
-//		    if (window === this) {
-//		    	window.jenscript = JenScript.j;
-//		    }
 			return JenScript;
 		}));
 })();
-
-//creates a global "addWheelListener" method
-//example: addWheelListener( elem, function( e ) { console.log( e.deltaY ); e.preventDefault(); } );
-(function(window,document) {
-
- var prefix = "", _addEventListener, onwheel, support;
-
- // detect event model
- if ( window.addEventListener ) {
-     _addEventListener = "addEventListener";
- } else {
-     _addEventListener = "attachEvent";
-     prefix = "on";
- }
-
- // detect available wheel event
- support = "onwheel" in document.createElement("div") ? "wheel" : // Modern browsers support "wheel"
-           document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
-           "DOMMouseScroll"; // let's assume that remaining browsers are older Firefox
-
- window.addWheelListener = function( elem, callback, useCapture ) {
-     _addWheelListener( elem, support, callback, useCapture );
-     console.log('add wheel listener  support'+support);
-     // handle MozMousePixelScroll in older Firefox
-     if( support == "DOMMouseScroll" ) {
-         _addWheelListener( elem, "MozMousePixelScroll", callback, useCapture );
-     }
- };
-
- function _addWheelListener( elem, eventName, callback, useCapture ) {
-     elem[ _addEventListener ]( prefix + eventName, support == "wheel" ? callback : function( originalEvent ) {
-         !originalEvent && ( originalEvent = window.event );
-
-         console.log("support : "+support);
-         
-         // create a normalized event object
-         var event = {
-             // keep a ref to the original event object
-             originalEvent: originalEvent,
-             target: originalEvent.target || originalEvent.srcElement,
-             type: "wheel",
-             deltaMode: originalEvent.type == "MozMousePixelScroll" ? 0 : 1,
-             deltaX: 0,
-             deltaZ: 0,
-             preventDefault: function() {
-                 originalEvent.preventDefault ?
-                     originalEvent.preventDefault() :
-                     originalEvent.returnValue = false;
-             }
-         };
-         
-         // calculate deltaY (and deltaX) according to the event
-         if ( support == "mousewheel" ) {
-             event.deltaY = - 1/40 * originalEvent.wheelDelta;
-        	 //event.deltaY =  originalEvent.wheelDelta;
-             // Webkit also support wheelDeltaX
-            // originalEvent.wheelDeltaX && ( event.deltaX = - 1/40 * originalEvent.wheelDeltaX );
-        	 originalEvent.wheelDeltaX && ( event.deltaX =  originalEvent.wheelDeltaX );
-         } else {
-             event.deltaY = - 1/40 *originalEvent.detail;
-         }
-
-         // it's time to fire the callback
-         return callback( event );
-
-     }, useCapture || false );
- }
-
-})(window,document);
 (function() {
 	JenScript.Model = {
 			
@@ -14733,6 +14671,7 @@ function stringInputToObject(color) {
 			};
 			for (var i = 0; i < this.pies.length; i++) {
 				var pie = this.pies[i];
+				if(pie.solved){
 				for (var s = 0; s < pie.slices.length; s++) {
 					var slice = pie.slices[s];
 					var distance = Math.sqrt((slice.sc.y - deviceY)*(slice.sc.y - deviceY) + (slice.sc.x - deviceX)*(slice.sc.x - deviceX));
@@ -14765,7 +14704,7 @@ function stringInputToObject(color) {
 					}else{
 						fire2(slice);
 					}
-				}
+				}}
 			}
 			return false;
 		},
@@ -14827,8 +14766,8 @@ function stringInputToObject(color) {
 					for (var j = 0; j < pie.slices.length; j++) {
 						var s = pie.slices[j];
 						
+						//re fill/re stroke by slice for secondary paint style?
 						//slice stroke ?
-						
 						//slice fill?
 						
 						if (s.getSliceLabel() !== undefined) {
@@ -14846,7 +14785,7 @@ function stringInputToObject(color) {
 	/**
 	 * Object Pie()
 	 * Defines Pie
-	 * @param {Object} config
+	 * @param {Object} config the pie configuration
 	 * @param {Object} [config.name] pie name
 	 * @param {Object} [config.radius] pie radius in pixel
 	 * @param {Object} [config.nature] pie projection nature, User or Device
@@ -14867,8 +14806,20 @@ function stringInputToObject(color) {
 		this.effects= [];
 		this.slices = [];
 		this.svg={};
+		
+		//TODO paint strategy : stream or final render?
+		//check is this paint strategy pattern is good enough ?
+		//really need paint strategy? paint is fast enough? wait for user feedback...
+		
+		this.paint = true;
 	};
 	JenScript.Model.addMethods(JenScript.Pie,{
+		
+		
+		repaint : function(){
+			if(this.plugin !== undefined && this.paint)
+			this.plugin.repaintPlugin();
+		},
 		
 		/**
 		 * set pie center x
@@ -14876,7 +14827,7 @@ function stringInputToObject(color) {
 		 */
 		setX : function(x) {
 			this.x = x;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -14893,7 +14844,7 @@ function stringInputToObject(color) {
 		 */
 		setY : function(y) {
 			this.y = y;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -14910,7 +14861,7 @@ function stringInputToObject(color) {
 		 */
 		setRadius : function(radius) {
 			this.radius = radius;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -14927,7 +14878,7 @@ function stringInputToObject(color) {
 		 */
 		setNature : function(nature) {
 			this.nature = nature;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -14944,7 +14895,7 @@ function stringInputToObject(color) {
 		 */
 		setStartAngleDegree : function(startAngleDegree) {
 			this.startAngleDegree = startAngleDegree;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -14961,7 +14912,7 @@ function stringInputToObject(color) {
 		 */
 		addEffect : function(effect) {
 			this.effects[this.effects.length] = effect;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 		
 		/**
@@ -14970,7 +14921,7 @@ function stringInputToObject(color) {
 		 */
 		setStroke : function(stroke) {
 			this.stroke = stroke;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -14979,7 +14930,7 @@ function stringInputToObject(color) {
 		 */
 		setFill : function(fill) {
 			this.fill = fill;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -14989,7 +14940,7 @@ function stringInputToObject(color) {
 		addSlice : function(slice) {
 			slice.pie = this;
 			this.slices[this.slices.length] = slice;
-			this.plugin.repaintPlugin();
+			this.repaint();
 			return this;
 		},
 		
@@ -15079,7 +15030,7 @@ function stringInputToObject(color) {
 	    
 
 		/**
-		 * build pie by slice normlization, center projection and build slices geometry
+		 * build pie by slice normalization, center projection and build slices geometry
 		 */
 		solvePie : function() {
 			var that = this;
@@ -15100,6 +15051,7 @@ function stringInputToObject(color) {
 				var s = this.slices[i];
 				this.buildSlice(s);
 			}
+			this.solved = true;
 		},
 		
 		/**
@@ -15158,8 +15110,13 @@ function stringInputToObject(color) {
 			this.themeColor =(config.themeColor !== undefined)?config.themeColor:JenScript.createColor();
 			this.divergence =  (config.divergence !== undefined)?config.divergence:0;
 			
-			if(this.value <= 0 )
+			if(this.value < 0 )
 			    	throw new Error('Slice value should be greater than 0');
+		},
+		
+		repaint : function(){
+			if(this.pie !== undefined)
+			this.pie.repaint();
 		},
 		
 		setName : function(name) {
@@ -15171,7 +15128,10 @@ function stringInputToObject(color) {
 		},
 
 		setValue : function(value) {
+			if(this.value < 0 )
+		    	throw new Error('Slice value should be greater than 0');
 			this.value = value;
+			this.repaint();
 		},
 
 		getValue : function() {
@@ -15186,6 +15146,7 @@ function stringInputToObject(color) {
 			if(sliceLabel !== undefined)
 				sliceLabel.slice = this;
 			this.sliceLabel = sliceLabel;
+			this.repaint();
 		},
 
 		getSliceLabel : function() {
@@ -15194,6 +15155,7 @@ function stringInputToObject(color) {
 
 		setThemeColor : function(themeColor) {
 			this.themeColor = themeColor;
+			this.repaint();
 		},
 
 		getThemeColor : function() {
@@ -15202,6 +15164,7 @@ function stringInputToObject(color) {
 
 		setDivergence : function(divergence) {
 			this.divergence = divergence;
+			this.repaint();
 		},
 
 		getDivergence : function() {
@@ -15549,6 +15512,10 @@ function stringInputToObject(color) {
 		 * @param {Object} pie 
 		 */
 		paintPieEffect : function(g2d, pie) {
+			
+			//TODO : delete redundant gradient according to divergence. create map <divergence, gradient>
+			//and delete/create only if needed.
+			
 			//delete all useless olds gradients
 			for (var i = 0; i < this.gradientIds.length; i++) {
 				g2d.deleteGraphicsElement(this.gradientIds[i]);
@@ -15871,6 +15838,49 @@ function stringInputToObject(color) {
 		}
 	});
 })();
+(function(){
+	JenScript.PieBuilder = function(view,projection,config) {
+		view.registerProjection(projection);
+		var pp = new JenScript.PiePlugin();
+		projection.registerPlugin(pp);
+		var pie = new JenScript.Pie(config);
+		pp.addPie(pie);
+		var fill = new JenScript.PieDefaultFill();
+		pie.setFill(fill);
+		var lastSlice;
+		var slice = function(config){
+			var s = new JenScript.PieSlice(config);
+			lastSlice = s;
+			pie.addSlice(s);
+			return this;
+		}
+		var label = function(type,config){
+			var l;
+			if('radial' === type)
+				l = new JenScript.PieRadialLabel(config);
+			if('border' === type)
+				l = new JenScript.PieBorderLabel(config);
+			lastSlice.setSliceLabel(l);
+			return this;
+		}
+		var effect = function(type, config){
+			var fx;
+			if('linear' === type)
+				fx = new JenScript.PieLinearEffect(config);
+			if('reflection' === type)
+				fx = new JenScript.PieReflectionEffect(config);
+			pie.addEffect(fx);
+			return this;
+		}
+		return {
+			slice : slice,
+			label : label,
+			effect : effect
+		};
+	};
+})();
+
+
 (function(){
 	
 	JenScript.TranslateMode = function(mode) {

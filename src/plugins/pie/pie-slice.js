@@ -28,8 +28,13 @@
 			this.themeColor =(config.themeColor !== undefined)?config.themeColor:JenScript.createColor();
 			this.divergence =  (config.divergence !== undefined)?config.divergence:0;
 			
-			if(this.value <= 0 )
+			if(this.value < 0 )
 			    	throw new Error('Slice value should be greater than 0');
+		},
+		
+		repaint : function(){
+			if(this.pie !== undefined)
+			this.pie.repaint();
 		},
 		
 		setName : function(name) {
@@ -41,7 +46,10 @@
 		},
 
 		setValue : function(value) {
+			if(this.value < 0 )
+		    	throw new Error('Slice value should be greater than 0');
 			this.value = value;
+			this.repaint();
 		},
 
 		getValue : function() {
@@ -56,6 +64,7 @@
 			if(sliceLabel !== undefined)
 				sliceLabel.slice = this;
 			this.sliceLabel = sliceLabel;
+			this.repaint();
 		},
 
 		getSliceLabel : function() {
@@ -64,6 +73,7 @@
 
 		setThemeColor : function(themeColor) {
 			this.themeColor = themeColor;
+			this.repaint();
 		},
 
 		getThemeColor : function() {
@@ -72,6 +82,7 @@
 
 		setDivergence : function(divergence) {
 			this.divergence = divergence;
+			this.repaint();
 		},
 
 		getDivergence : function() {

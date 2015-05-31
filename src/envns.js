@@ -116,20 +116,33 @@ var JenScript = {};
 		    		this.init(config);
 		    	},
 		    	
-		    	//stream wrapper ?
 		    	
-//		    	j : {
-//		    		view : function(config){
-//		    			if( Object.prototype.toString.call(config) == '[object String]' ) {
-//		    				   // a string
-//		    				alert('string');
-//		    			}else{
-//		    				
-//		    			}
-//		    			//if(typeof config)
-//						return new JenScript.View(config);
-//					},
-//		    	}
+		    	
+		    	//stream wrapper
+	    		view : function(config){
+	    			var v = new JenScript.View(config);
+	    			return {
+	    				projection : function(type, config){
+	    					var p;
+	    					if('linear' === type)
+	    						p = new JenScript.LinearProjection(config);
+	    					if('logx' === type)
+		    					p = new JenScript.LogXProjection(config);
+	    					if('logy' === type)
+		    					p = new JenScript.LogYProjection(config);
+	    					if('logxy' === type)
+		    					p = new JenScript.LogXLogYProjection(config);
+	    					if('timex' === type)
+		    					p = new JenScript.TimeXProjection(config);
+	    					if('timey' === type)
+		    					p = new JenScript.TimeYProjection(config);
+	    					return {
+	    						pie : function(config){return new JenScript.PieBuilder(v,p,config);}
+	    					}
+	    				}
+	    			};
+
+				},
 		    	
 		    	
 		};
@@ -138,12 +151,10 @@ var JenScript = {};
 		(function(root, factory) {
 		 if(typeof exports === 'object') {
 		     // Node
-			 console.log('export for node');
 		     module.exports = factory();
 		 }
 		 else if(typeof define === 'function' && define.amd) {
 		     // AMD
-			 console.log('export for amd');
 		     define(factory);
 		 }
 		 else {
@@ -151,79 +162,6 @@ var JenScript = {};
 		     root.returnExports = factory();
 		 }
 		}(this, function() {
-			//really need stream style? I'am not sure...
-//		    if (window === this) {
-//		    	window.jenscript = JenScript.j;
-//		    }
 			return JenScript;
 		}));
 })();
-
-//creates a global "addWheelListener" method
-//example: addWheelListener( elem, function( e ) { console.log( e.deltaY ); e.preventDefault(); } );
-(function(window,document) {
-
- var prefix = "", _addEventListener, onwheel, support;
-
- // detect event model
- if ( window.addEventListener ) {
-     _addEventListener = "addEventListener";
- } else {
-     _addEventListener = "attachEvent";
-     prefix = "on";
- }
-
- // detect available wheel event
- support = "onwheel" in document.createElement("div") ? "wheel" : // Modern browsers support "wheel"
-           document.onmousewheel !== undefined ? "mousewheel" : // Webkit and IE support at least "mousewheel"
-           "DOMMouseScroll"; // let's assume that remaining browsers are older Firefox
-
- window.addWheelListener = function( elem, callback, useCapture ) {
-     _addWheelListener( elem, support, callback, useCapture );
-     console.log('add wheel listener  support'+support);
-     // handle MozMousePixelScroll in older Firefox
-     if( support == "DOMMouseScroll" ) {
-         _addWheelListener( elem, "MozMousePixelScroll", callback, useCapture );
-     }
- };
-
- function _addWheelListener( elem, eventName, callback, useCapture ) {
-     elem[ _addEventListener ]( prefix + eventName, support == "wheel" ? callback : function( originalEvent ) {
-         !originalEvent && ( originalEvent = window.event );
-
-         console.log("support : "+support);
-         
-         // create a normalized event object
-         var event = {
-             // keep a ref to the original event object
-             originalEvent: originalEvent,
-             target: originalEvent.target || originalEvent.srcElement,
-             type: "wheel",
-             deltaMode: originalEvent.type == "MozMousePixelScroll" ? 0 : 1,
-             deltaX: 0,
-             deltaZ: 0,
-             preventDefault: function() {
-                 originalEvent.preventDefault ?
-                     originalEvent.preventDefault() :
-                     originalEvent.returnValue = false;
-             }
-         };
-         
-         // calculate deltaY (and deltaX) according to the event
-         if ( support == "mousewheel" ) {
-             event.deltaY = - 1/40 * originalEvent.wheelDelta;
-        	 //event.deltaY =  originalEvent.wheelDelta;
-             // Webkit also support wheelDeltaX
-            // originalEvent.wheelDeltaX && ( event.deltaX = - 1/40 * originalEvent.wheelDeltaX );
-        	 originalEvent.wheelDeltaX && ( event.deltaX =  originalEvent.wheelDeltaX );
-         } else {
-             event.deltaY = - 1/40 *originalEvent.detail;
-         }
-
-         // it's time to fire the callback
-         return callback( event );
-
-     }, useCapture || false );
- }
-
-})(window,document);

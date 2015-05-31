@@ -2,7 +2,7 @@
 	/**
 	 * Object Pie()
 	 * Defines Pie
-	 * @param {Object} config
+	 * @param {Object} config the pie configuration
 	 * @param {Object} [config.name] pie name
 	 * @param {Object} [config.radius] pie radius in pixel
 	 * @param {Object} [config.nature] pie projection nature, User or Device
@@ -23,8 +23,20 @@
 		this.effects= [];
 		this.slices = [];
 		this.svg={};
+		
+		//TODO paint strategy : stream or final render?
+		//check is this paint strategy pattern is good enough ?
+		//really need paint strategy? paint is fast enough? wait for user feedback...
+		
+		this.paint = true;
 	};
 	JenScript.Model.addMethods(JenScript.Pie,{
+		
+		
+		repaint : function(){
+			if(this.plugin !== undefined && this.paint)
+			this.plugin.repaintPlugin();
+		},
 		
 		/**
 		 * set pie center x
@@ -32,7 +44,7 @@
 		 */
 		setX : function(x) {
 			this.x = x;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -49,7 +61,7 @@
 		 */
 		setY : function(y) {
 			this.y = y;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -66,7 +78,7 @@
 		 */
 		setRadius : function(radius) {
 			this.radius = radius;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -83,7 +95,7 @@
 		 */
 		setNature : function(nature) {
 			this.nature = nature;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -100,7 +112,7 @@
 		 */
 		setStartAngleDegree : function(startAngleDegree) {
 			this.startAngleDegree = startAngleDegree;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -117,7 +129,7 @@
 		 */
 		addEffect : function(effect) {
 			this.effects[this.effects.length] = effect;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 		
 		/**
@@ -126,7 +138,7 @@
 		 */
 		setStroke : function(stroke) {
 			this.stroke = stroke;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -135,7 +147,7 @@
 		 */
 		setFill : function(fill) {
 			this.fill = fill;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 
 		/**
@@ -145,7 +157,7 @@
 		addSlice : function(slice) {
 			slice.pie = this;
 			this.slices[this.slices.length] = slice;
-			this.plugin.repaintPlugin();
+			this.repaint();
 			return this;
 		},
 		
@@ -235,7 +247,7 @@
 	    
 
 		/**
-		 * build pie by slice normlization, center projection and build slices geometry
+		 * build pie by slice normalization, center projection and build slices geometry
 		 */
 		solvePie : function() {
 			var that = this;
@@ -256,6 +268,7 @@
 				var s = this.slices[i];
 				this.buildSlice(s);
 			}
+			this.solved = true;
 		},
 		
 		/**
