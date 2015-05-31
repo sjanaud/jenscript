@@ -60,6 +60,7 @@ grunt.initConfig({
 						"src/view/view-part.js",
 						"src/view/svg-graphics.js",
 						"src/view/view.js",
+						"src/view/view-builder.js",
 						
 					
 						
@@ -218,8 +219,6 @@ grunt.initConfig({
 						"src/plugins/symbol/layer/symbol-layer-point.js",
 						
 						"src/plugins/symbol/symbol-plugin.js",
-						
-						
 						
 						
 						//RADAR
