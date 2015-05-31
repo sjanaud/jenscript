@@ -1,4 +1,7 @@
 (function(){
+	
+	//R. Module pattern
+	
 	JenScript.PieBuilder = function(view,projection,config) {
 		view.registerProjection(projection);
 		var pp = new JenScript.PiePlugin();
@@ -32,10 +35,22 @@
 			pie.addEffect(fx);
 			return this;
 		}
+		var linearFx = function(config){
+			effect('linear',config);
+			return this;
+		}
+		var reflectFx = function(config){
+			effect('reflection',config);
+			return this;
+		}
 		return {
 			slice : slice,
 			label : label,
-			effect : effect
+			effect : effect,
+			linearFx : linearFx,
+			reflectFx : reflectFx,
+			view : function(){return view;},
+			projection : function(){return projection;},
 		};
 	};
 })();
