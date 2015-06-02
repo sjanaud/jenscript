@@ -141,6 +141,7 @@
 			this.incidence = (config.incidence !== undefined)?config.incidence : 120;
 			this.offset = (config.offset !== undefined)?config.offset : 3;
 			this.fillOpacity = (config.fillOpacity !== undefined)?config.fillOpacity : 1;
+			this.shader = config.shader;
 			this.gradientIds = [];
 			JenScript.AbstractPieEffect.call(this, config);
 		},
@@ -213,10 +214,13 @@
 				var percents = ['0%','49%','51%','100%'];
 				var colors = ['rgb(60,60,60)','rgb(255,255,255)','rgb(255,255,255)','rgb(255,255,255)'];
 				var opacity = [0.8,0,0,0.8];
+				if(this.shader === undefined){
+					this.shader = {percents : percents, colors: colors,opacity:opacity};
+				}
 				
 				var gradientSliceId = 'gradient'+JenScript.sequenceId++;
 				this.gradientIds[this.gradientIds.length] = gradientSliceId;
-				var gradient= new JenScript.SVGLinearGradient().Id(gradientSliceId).from(start.x,start.y).to(end.x, end.y).shade(percents,colors,opacity).toSVG();
+				var gradient= new JenScript.SVGLinearGradient().Id(gradientSliceId).from(start.x,start.y).to(end.x, end.y).shade(this.shader.percents,this.shader.colors,this.shader.opacity).toSVG();
 				
 				g2d.definesSVG(gradient);
 				var fxPath = "M" + ss.x + "," + ss.y + " A"
