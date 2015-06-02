@@ -12296,13 +12296,15 @@ function stringInputToObject(color) {
 		    /** offset radius */
 		    this.offsetRadius = 3;
 		    /** gradient incidence angle degree */
-		    this.incidenceAngleDegree = 120;
-		    /** shader */
-		    this.shader;
+		    this.incidence = (config.incidence !== undefined)?config.incidence : 120;
 		    /** default shader fractions */
 		    this.defaultShader = {percents : [ '0%', '49%', '51%', '100%' ],opacity:[0.6,0,0,0.6], colors : ['rgb(60, 60, 60)', 'rgb(255,255,255)','rgb(255,255,255)','rgb(255, 255, 255)']};
+		    /** shader */
+		    this.shader = (config.shader !== undefined)?config.shader : this.defaultShader;
+
 		    /**effect name*/
 		    config.name = 'JenScript.Donut2DLinearEffect';
+		    this.fillOpacity = (config.fillOpacity !== undefined)?config.fillOpacity : 1;
 		    this.gradientsIds = [];
 		    JenScript.AbstractDonut2DEffect.call(this,config);        
 		},
@@ -12340,8 +12342,8 @@ function stringInputToObject(color) {
 								+ innerRadius + " 0 " + largeArcFlag + ",1 " + sliceInnerBegin.x + ","
 								+ sliceInnerBegin.y+' Z';                       
 
-		        var start = polar(outerRadius,this.incidenceAngleDegree);
-		        var end   = polar(outerRadius,this.incidenceAngleDegree+180);
+		        var start = polar(outerRadius,this.incidence);
+		        var end   = polar(outerRadius,this.incidence+180);
 		        if (this.shader === undefined) {
 		           this.shader = this.defaultShader;
 		        }
@@ -12709,10 +12711,11 @@ function stringInputToObject(color) {
 		projection.registerPlugin(dp);
 		
 		var donut = new JenScript.Donut2D(config);
-		pp.addDonut(donut);
+		dp.addDonut(donut);
 		
 		var labels = [];
 		var slices = [];
+		var effects = [];
 		var lastSlice;
 		
 		//improve with index 
@@ -12729,8 +12732,26 @@ function stringInputToObject(color) {
 				l = new JenScript.Donut2DRadialLabel(config);
 			if('border' === type)
 				l = new JenScript.Donut2DBorderLabel(config);
-			lastSlice.setSliceLabel(l);
+			lastSlice.addSliceLabel(l);
 			labels.push(l);
+			return this;
+		}
+		var effect = function(type, config){
+			var fx;
+			if('linear' === type)
+				fx = new JenScript.Donut2DLinearEffect(config);
+			if('reflection' === type)
+				fx = new JenScript.Donut2DReflectionEffect(config);
+			donut.addEffect(fx);
+			effects.push(fx);
+			return this;
+		}
+		var linearFx = function(config){
+			effect('linear',config);
+			return this;
+		}
+		var reflectFx = function(config){
+			effect('reflection',config);
 			return this;
 		}
 		
@@ -12739,6 +12760,9 @@ function stringInputToObject(color) {
 		return {
 			slice : slice,
 			label : label,
+			effect : effect,
+			linearFx : linearFx,
+			reflectFx : reflectFx,
 			
 			view : function(){return view;},
 			projection : function(){return projection;},
@@ -14651,7 +14675,7 @@ function stringInputToObject(color) {
 		projection.registerPlugin(dp);
 		
 		var donut = new JenScript.Donut3D(config);
-		pp.addDonut(donut);
+		dp.addDonut(donut);
 		
 		var labels = [];
 		var slices = [];
@@ -14671,7 +14695,7 @@ function stringInputToObject(color) {
 				l = new JenScript.Donut3DRadialLabel(config);
 			if('border' === type)
 				l = new JenScript.Donut3DBorderLabel(config);
-			lastSlice.setSliceLabel(l);
+			lastSlice.addSliceLabel(l);
 			labels.push(l);
 			return this;
 		}

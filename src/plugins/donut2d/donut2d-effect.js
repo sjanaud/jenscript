@@ -56,13 +56,15 @@
 		    /** offset radius */
 		    this.offsetRadius = 3;
 		    /** gradient incidence angle degree */
-		    this.incidenceAngleDegree = 120;
-		    /** shader */
-		    this.shader;
+		    this.incidence = (config.incidence !== undefined)?config.incidence : 120;
 		    /** default shader fractions */
 		    this.defaultShader = {percents : [ '0%', '49%', '51%', '100%' ],opacity:[0.6,0,0,0.6], colors : ['rgb(60, 60, 60)', 'rgb(255,255,255)','rgb(255,255,255)','rgb(255, 255, 255)']};
+		    /** shader */
+		    this.shader = (config.shader !== undefined)?config.shader : this.defaultShader;
+
 		    /**effect name*/
 		    config.name = 'JenScript.Donut2DLinearEffect';
+		    this.fillOpacity = (config.fillOpacity !== undefined)?config.fillOpacity : 1;
 		    this.gradientsIds = [];
 		    JenScript.AbstractDonut2DEffect.call(this,config);        
 		},
@@ -100,8 +102,8 @@
 								+ innerRadius + " 0 " + largeArcFlag + ",1 " + sliceInnerBegin.x + ","
 								+ sliceInnerBegin.y+' Z';                       
 
-		        var start = polar(outerRadius,this.incidenceAngleDegree);
-		        var end   = polar(outerRadius,this.incidenceAngleDegree+180);
+		        var start = polar(outerRadius,this.incidence);
+		        var end   = polar(outerRadius,this.incidence+180);
 		        if (this.shader === undefined) {
 		           this.shader = this.defaultShader;
 		        }

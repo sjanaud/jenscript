@@ -8,7 +8,7 @@
 		projection.registerPlugin(dp);
 		
 		var donut = new JenScript.Donut3D(config);
-		pp.addDonut(donut);
+		dp.addDonut(donut);
 		
 		var labels = [];
 		var slices = [];
@@ -28,7 +28,7 @@
 				l = new JenScript.Donut3DRadialLabel(config);
 			if('border' === type)
 				l = new JenScript.Donut3DBorderLabel(config);
-			lastSlice.setSliceLabel(l);
+			lastSlice.addSliceLabel(l);
 			labels.push(l);
 			return this;
 		}

@@ -8,10 +8,11 @@
 		projection.registerPlugin(dp);
 		
 		var donut = new JenScript.Donut2D(config);
-		pp.addDonut(donut);
+		dp.addDonut(donut);
 		
 		var labels = [];
 		var slices = [];
+		var effects = [];
 		var lastSlice;
 		
 		//improve with index 
@@ -28,8 +29,26 @@
 				l = new JenScript.Donut2DRadialLabel(config);
 			if('border' === type)
 				l = new JenScript.Donut2DBorderLabel(config);
-			lastSlice.setSliceLabel(l);
+			lastSlice.addSliceLabel(l);
 			labels.push(l);
+			return this;
+		}
+		var effect = function(type, config){
+			var fx;
+			if('linear' === type)
+				fx = new JenScript.Donut2DLinearEffect(config);
+			if('reflection' === type)
+				fx = new JenScript.Donut2DReflectionEffect(config);
+			donut.addEffect(fx);
+			effects.push(fx);
+			return this;
+		}
+		var linearFx = function(config){
+			effect('linear',config);
+			return this;
+		}
+		var reflectFx = function(config){
+			effect('reflection',config);
 			return this;
 		}
 		
@@ -38,6 +57,9 @@
 		return {
 			slice : slice,
 			label : label,
+			effect : effect,
+			linearFx : linearFx,
+			reflectFx : reflectFx,
 			
 			view : function(){return view;},
 			projection : function(){return projection;},
