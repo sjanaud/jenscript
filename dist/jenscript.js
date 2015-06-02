@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-05-31
+// build: 2015-06-01
 // All Rights reserved
 
 /**
@@ -15477,6 +15477,7 @@ function stringInputToObject(color) {
 			config.name = "JenScript.PieLinearEffect";
 			this.incidence = (config.incidence !== undefined)?config.incidence : 120;
 			this.offset = (config.offset !== undefined)?config.offset : 3;
+			this.fillOpacity = (config.fillOpacity !== undefined)?config.fillOpacity : 1;
 			this.gradientIds = [];
 			JenScript.AbstractPieEffect.call(this, config);
 		},
@@ -15563,6 +15564,7 @@ function stringInputToObject(color) {
 				var sFx = new JenScript.SVGElement().name('path')
 														.attr('fill','url(#'+gradientSliceId+')')
 														.attr('d',fxPath)
+														.attr('fill-opacity',this.fillOpacity)
 														.buildHTML();
 			
 				
@@ -15857,11 +15859,18 @@ function stringInputToObject(color) {
 		pp.addPie(pie);
 		var fill = new JenScript.PieDefaultFill();
 		pie.setFill(fill);
+		
+		var labels = [];
+		var slices = [];
+		var effects = [];
 		var lastSlice;
+		
+		//improve with index 
 		var slice = function(config){
 			var s = new JenScript.PieSlice(config);
 			lastSlice = s;
 			pie.addSlice(s);
+			slices.push(s);
 			return this;
 		}
 		var label = function(type,config){
@@ -15871,6 +15880,7 @@ function stringInputToObject(color) {
 			if('border' === type)
 				l = new JenScript.PieBorderLabel(config);
 			lastSlice.setSliceLabel(l);
+			labels.push(l);
 			return this;
 		}
 		var effect = function(type, config){
@@ -15878,8 +15888,9 @@ function stringInputToObject(color) {
 			if('linear' === type)
 				fx = new JenScript.PieLinearEffect(config);
 			if('reflection' === type)
-				fx = new JenScript.PieReflectionEffect(config);
+				fx = new JenScript.PieReflectionEffect();
 			pie.addEffect(fx);
+			effects.push(fx);
 			return this;
 		}
 		var linearFx = function(config){
@@ -15890,14 +15901,21 @@ function stringInputToObject(color) {
 			effect('reflection',config);
 			return this;
 		}
+		
+		//Pie Builder Interface
 		return {
 			slice : slice,
 			label : label,
 			effect : effect,
 			linearFx : linearFx,
 			reflectFx : reflectFx,
+			
 			view : function(){return view;},
 			projection : function(){return projection;},
+			pie : function(){return pie;},
+			labels : function(){return labels;},
+			slices : function(){return slice;},
+			effects : function(){return effects;},
 		};
 	};
 })();
