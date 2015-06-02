@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-06-01
+// build: 2015-06-02
 // All Rights reserved
 
 /**
@@ -5267,9 +5267,11 @@ function stringInputToObject(color) {
 				if('timey' === type)
 					p = new JenScript.TimeYProjection(config);
 				
-				//interfaces
+				//builder interfaces
 				return {
-					pie : function(config){return new JenScript.PieBuilder(v,p,config);}
+					pie : function(config){return new JenScript.PieBuilder(v,p,config);},
+					donut3d : function(config){return new JenScript.Donut3DBuilder(v,p,config);},
+					donut2d : function(config){return new JenScript.Donut2DBuilder(v,p,config);},
 				}
 			}
 		};
@@ -12698,6 +12700,57 @@ function stringInputToObject(color) {
 	});
 })();
 (function(){
+	
+	//R. Module pattern
+	
+	JenScript.Donut2DBuilder = function(view,projection,config) {
+		view.registerProjection(projection);
+		var dp = new JenScript.Donut2DPlugin();
+		projection.registerPlugin(dp);
+		
+		var donut = new JenScript.Donut2D(config);
+		pp.addDonut(donut);
+		
+		var labels = [];
+		var slices = [];
+		var lastSlice;
+		
+		//improve with index 
+		var slice = function(config){
+			var s = new JenScript.Donut2DSlice(config);
+			lastSlice = s;
+			donut.addSlice(s);
+			slices.push(s);
+			return this;
+		}
+		var label = function(type,config){
+			var l;
+			if('radial' === type)
+				l = new JenScript.Donut2DRadialLabel(config);
+			if('border' === type)
+				l = new JenScript.Donut2DBorderLabel(config);
+			lastSlice.setSliceLabel(l);
+			labels.push(l);
+			return this;
+		}
+		
+		
+		//Pie Builder Interface
+		return {
+			slice : slice,
+			label : label,
+			
+			view : function(){return view;},
+			projection : function(){return projection;},
+			donut : function(){return donut;},
+			labels : function(){return labels;},
+			slices : function(){return slice;},
+		};
+	};
+})();
+
+
+(function(){
 	/**
 	 * Donut 3D Plugin
 	 * @param {Object} config
@@ -14589,6 +14642,57 @@ function stringInputToObject(color) {
 	});
 })();
 (function(){
+	
+	//R. Module pattern
+	
+	JenScript.Donut3DBuilder = function(view,projection,config) {
+		view.registerProjection(projection);
+		var dp = new JenScript.Donut3DPlugin();
+		projection.registerPlugin(dp);
+		
+		var donut = new JenScript.Donut3D(config);
+		pp.addDonut(donut);
+		
+		var labels = [];
+		var slices = [];
+		var lastSlice;
+		
+		//improve with index 
+		var slice = function(config){
+			var s = new JenScript.Donut3DSlice(config);
+			lastSlice = s;
+			donut.addSlice(s);
+			slices.push(s);
+			return this;
+		}
+		var label = function(type,config){
+			var l;
+			if('radial' === type)
+				l = new JenScript.Donut3DRadialLabel(config);
+			if('border' === type)
+				l = new JenScript.Donut3DBorderLabel(config);
+			lastSlice.setSliceLabel(l);
+			labels.push(l);
+			return this;
+		}
+		
+		
+		//Pie Builder Interface
+		return {
+			slice : slice,
+			label : label,
+			
+			view : function(){return view;},
+			projection : function(){return projection;},
+			donut : function(){return donut;},
+			labels : function(){return labels;},
+			slices : function(){return slice;},
+		};
+	};
+})();
+
+
+(function(){
 	/**
 	 * Pie Plugin takes the responsibility to paint pies
 	 */
@@ -15478,6 +15582,7 @@ function stringInputToObject(color) {
 			this.incidence = (config.incidence !== undefined)?config.incidence : 120;
 			this.offset = (config.offset !== undefined)?config.offset : 3;
 			this.fillOpacity = (config.fillOpacity !== undefined)?config.fillOpacity : 1;
+			this.shader = config.shader;
 			this.gradientIds = [];
 			JenScript.AbstractPieEffect.call(this, config);
 		},
@@ -15550,10 +15655,13 @@ function stringInputToObject(color) {
 				var percents = ['0%','49%','51%','100%'];
 				var colors = ['rgb(60,60,60)','rgb(255,255,255)','rgb(255,255,255)','rgb(255,255,255)'];
 				var opacity = [0.8,0,0,0.8];
+				if(this.shader === undefined){
+					this.shader = {percents : percents, colors: colors,opacity:opacity};
+				}
 				
 				var gradientSliceId = 'gradient'+JenScript.sequenceId++;
 				this.gradientIds[this.gradientIds.length] = gradientSliceId;
-				var gradient= new JenScript.SVGLinearGradient().Id(gradientSliceId).from(start.x,start.y).to(end.x, end.y).shade(percents,colors,opacity).toSVG();
+				var gradient= new JenScript.SVGLinearGradient().Id(gradientSliceId).from(start.x,start.y).to(end.x, end.y).shade(this.shader.percents,this.shader.colors,this.shader.opacity).toSVG();
 				
 				g2d.definesSVG(gradient);
 				var fxPath = "M" + ss.x + "," + ss.y + " A"
@@ -15888,7 +15996,7 @@ function stringInputToObject(color) {
 			if('linear' === type)
 				fx = new JenScript.PieLinearEffect(config);
 			if('reflection' === type)
-				fx = new JenScript.PieReflectionEffect();
+				fx = new JenScript.PieReflectionEffect(config);
 			pie.addEffect(fx);
 			effects.push(fx);
 			return this;

@@ -18,9 +18,11 @@
 				if('timey' === type)
 					p = new JenScript.TimeYProjection(config);
 				
-				//interfaces
+				//builder interfaces
 				return {
-					pie : function(config){return new JenScript.PieBuilder(v,p,config);}
+					pie : function(config){return new JenScript.PieBuilder(v,p,config);},
+					donut3d : function(config){return new JenScript.Donut3DBuilder(v,p,config);},
+					donut2d : function(config){return new JenScript.Donut2DBuilder(v,p,config);},
 				}
 			}
 		};
