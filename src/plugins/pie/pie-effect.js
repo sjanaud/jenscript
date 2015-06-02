@@ -140,6 +140,7 @@
 			config.name = "JenScript.PieLinearEffect";
 			this.incidence = (config.incidence !== undefined)?config.incidence : 120;
 			this.offset = (config.offset !== undefined)?config.offset : 3;
+			this.fillOpacity = (config.fillOpacity !== undefined)?config.fillOpacity : 1;
 			this.gradientIds = [];
 			JenScript.AbstractPieEffect.call(this, config);
 		},
@@ -226,6 +227,7 @@
 				var sFx = new JenScript.SVGElement().name('path')
 														.attr('fill','url(#'+gradientSliceId+')')
 														.attr('d',fxPath)
+														.attr('fill-opacity',this.fillOpacity)
 														.buildHTML();
 			
 				
