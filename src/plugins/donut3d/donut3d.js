@@ -24,8 +24,10 @@
 		  */
 		 init:function(config){
 			 config = config || {};
-			 
-			 /** donut 3d name */
+			 /**donut instance Id*/
+			 this.Id = 'donut3d'+JenScript.sequenceId++;
+			
+			/** donut 3d name */
 			 this.name = (config.name !== undefined)? config.name : 'donut3D'+JenScript.sequenceId++;
 			
 			 /** inner radius in pixel */
@@ -75,6 +77,11 @@
 
 		    /** slices of this donut 3D */
 		    this.slices = [];
+		    
+		    this.effects = [];
+		    
+		    /**svg elements*/
+		    this.svg={};
 		 },
 		 
 		 
@@ -114,6 +121,15 @@
 		 setNature : function(n){
 			this.nature = n;
 		 },
+		 
+	 	/**
+		 * add Donut3D effect
+		 * @param {Object} effect to add
+		 */
+		addEffect : function(effect){
+			this.effects[this.effects.length]  = effect;
+			this.host.repaintPlugin();
+		},
 		 
 		 /**
 		  * shift start angle for this donut

@@ -122,6 +122,7 @@ grunt.initConfig({
 						"src/plugins/donut3d/donut3d-paint.js",
 						"src/plugins/donut3d/donut3d-label.js",
 						"src/plugins/donut3d/donut3d-builder.js",
+						"src/plugins/donut3d/donut3d-effect.js",
 						
 						//PIE
 						"src/plugins/pie/pie-plugin.js",

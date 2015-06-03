@@ -33,11 +33,26 @@
 			return this;
 		}
 		
+		var effect = function(type, config){
+			var fx;
+			if('reflection' === type)
+				fx = new JenScript.Donut3DReflectionEffect(config);
+			donut.addEffect(fx);
+			effects.push(fx);
+			return this;
+		}
+		var reflectFx = function(config){
+			effect('reflection',config);
+			return this;
+		}
+		
 		
 		//Pie Builder Interface
 		return {
 			slice : slice,
 			label : label,
+			effect : effect,
+			reflectFx : reflectFx,
 			
 			view : function(){return view;},
 			projection : function(){return projection;},

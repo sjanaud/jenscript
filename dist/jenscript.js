@@ -12823,13 +12823,23 @@ function stringInputToObject(color) {
 				var donut = this.donuts[i];
 				if(donut.isSolvable()){
 					donut.solveDonut3D();
+					
+					g2d.deleteGraphicsElement(donut.Id);
+					donut.svg.donutRoot = new JenScript.SVGGroup().Id(donut.Id).toSVG();
+					g2d.insertSVG(donut.svg.donutRoot);
+					
 					donut.donut3DPaint.paintDonut3D(g2d, donut);
+					
+					for (var i = 0; i < donut.effects.length; i++) {
+						var effect = donut.effects[i];
+						effect.effectDonut3D(g2d,donut);
+					}
+					
 					for (var j = 0; j < donut.slices.length; j++) {
 						var slice = donut.slices[j];
 						var labels = slice.getSliceLabels();
 						for (var l = 0; l < labels.length; l++) {
 							labels[l].paintDonut3DSliceLabel(g2d,slice);
-							
 						}
 					}
 				}
@@ -12863,8 +12873,10 @@ function stringInputToObject(color) {
 		  */
 		 init:function(config){
 			 config = config || {};
-			 
-			 /** donut 3d name */
+			 /**donut instance Id*/
+			 this.Id = 'donut3d'+JenScript.sequenceId++;
+			
+			/** donut 3d name */
 			 this.name = (config.name !== undefined)? config.name : 'donut3D'+JenScript.sequenceId++;
 			
 			 /** inner radius in pixel */
@@ -12914,6 +12926,11 @@ function stringInputToObject(color) {
 
 		    /** slices of this donut 3D */
 		    this.slices = [];
+		    
+		    this.effects = [];
+		    
+		    /**svg elements*/
+		    this.svg={};
 		 },
 		 
 		 
@@ -12953,6 +12970,15 @@ function stringInputToObject(color) {
 		 setNature : function(n){
 			this.nature = n;
 		 },
+		 
+	 	/**
+		 * add Donut3D effect
+		 * @param {Object} effect to add
+		 */
+		addEffect : function(effect){
+			this.effects[this.effects.length]  = effect;
+			this.host.repaintPlugin();
+		},
 		 
 		 /**
 		  * shift start angle for this donut
@@ -14003,7 +14029,9 @@ function stringInputToObject(color) {
 													.attr('fill','url(#'+gradientId+')')
 													.attr('opacity',this.alphaOuter)
 													.buildHTML();
-			g2d.insertSVG(outerEffect);
+			
+			donut3d.svg.donutRoot.appendChild(outerEffect);
+			//g2d.insertSVG(outerEffect);
 		},
 		
 		
@@ -14060,7 +14088,8 @@ function stringInputToObject(color) {
 												.attr('fill','url(#'+gradientId+')')
 												.attr('opacity',this.alphaInner)
 												.buildHTML();
-			g2d.insertSVG(innerEffect);
+			donut3d.svg.donutRoot.appendChild(innerEffect);
+			//g2d.insertSVG(innerEffect);
 		},
 		
 		/**
@@ -14159,7 +14188,9 @@ function stringInputToObject(color) {
 									.attr('fill','url(#'+gradientId+')')
 									//.attr('clip-path','url(#'+clipId1+')')
 									.buildHTML();
-				g2d.insertSVG(topFaceEffect);
+				
+				donut3d.svg.donutRoot.appendChild(topFaceEffect);
+				//g2d.insertSVG(topFaceEffect);
 			}
 		},
 		
@@ -14181,7 +14212,8 @@ function stringInputToObject(color) {
 														.attr('opacity',this.alphaFill)
 														.attr('fill',s.themeColor)
 														.buildHTML();
-					g2d.insertSVG(outerFace);
+					donut3d.svg.donutRoot.appendChild(outerFace);
+					//g2d.insertSVG(outerFace);
 				}
 			}
 
@@ -14195,7 +14227,8 @@ function stringInputToObject(color) {
 														.attr('opacity',this.alphaFill)
 														.attr('fill',s.themeColor)
 														.buildHTML();
-					g2d.insertSVG(bottomFace);
+					donut3d.svg.donutRoot.appendChild(bottomFace);
+					//g2d.insertSVG(bottomFace);
 				}
 			}
 
@@ -14223,7 +14256,8 @@ function stringInputToObject(color) {
 															.attr('fill',s.themeColor)
 															//.attr('clip-path','url(#'+clipId1+')')
 															.buildHTML();
-					g2d.insertSVG(visibleInnerBackFace);
+					donut3d.svg.donutRoot.appendChild(visibleInnerBackFace);
+					//g2d.insertSVG(visibleInnerBackFace);
 				}
 			}
 			
@@ -14238,8 +14272,9 @@ function stringInputToObject(color) {
 												.attr('opacity',this.alphaFill)
 												.attr('fill',s.themeColor)
 												.buildHTML();
-						g2d.insertSVG(startFace);
-
+						//g2d.insertSVG(startFace);
+						donut3d.svg.donutRoot.appendChild(startFace);
+						
 						if (s.parentSlice.isFirst(s) && (s.parentSlice.startAngleDegree <= 90 || s.parentSlice.startAngleDegree >= 270)) {
 							//paintStartEffect(g2d, donut3d, s);
 						}
@@ -14256,8 +14291,9 @@ function stringInputToObject(color) {
 															.attr('opacity',this.alphaFill)
 															.attr('fill',s.themeColor)
 															.buildHTML();
-						g2d.insertSVG(endFace);
-
+						//g2d.insertSVG(endFace);
+						donut3d.svg.donutRoot.appendChild(endFace);
+						
 						if (s.parentSlice.isLast(s) && (s.endAngleDegree >= 90 && s.endAngleDegree <= 270)) {
 							//paintEndEffect(g2d, donut3d, s);
 						}
@@ -14276,7 +14312,8 @@ function stringInputToObject(color) {
 									.attr('opacity',this.alphaFill)
 									.attr('fill',s.themeColor)
 									.buildHTML();
-					g2d.insertSVG(topFace);
+					//g2d.insertSVG(topFace);
+					donut3d.svg.donutRoot.appendChild(topFace);
 				}
 			}
 
@@ -14294,8 +14331,8 @@ function stringInputToObject(color) {
 												.attr('opacity',this.alphaFill)
 												.attr('fill',s.themeColor)
 												.buildHTML();
-					g2d.insertSVG(innerFace);
-
+					//g2d.insertSVG(innerFace);
+					donut3d.svg.donutRoot.appendChild(innerFace);
 				}
 				
 			}
@@ -14309,7 +14346,8 @@ function stringInputToObject(color) {
 												.attr('opacity',this.alphaFill)
 												.attr('fill',s.themeColor)
 												.buildHTML();
-					g2d.insertSVG(bottomFace);
+					//g2d.insertSVG(bottomFace);
+					donut3d.svg.donutRoot.appendChild(bottomFace);
 				}
 			}
 			
@@ -14324,7 +14362,9 @@ function stringInputToObject(color) {
 																.attr('opacity',this.alphaFill)
 																.attr('fill',s.themeColor)
 																.buildHTML();
-						g2d.insertSVG(startFace);
+						//g2d.insertSVG(startFace);
+						donut3d.svg.donutRoot.appendChild(startFace);
+						
 						if (s.parentSlice.isFirst(s) && (s.startAngleDegree < 90 || s.startAngleDegree > 270)) {
 							//paintStartEffect(g2d, donut3d, s);
 						}
@@ -14341,7 +14381,9 @@ function stringInputToObject(color) {
 																.attr('opacity',this.alphaFill)
 																.attr('fill',s.themeColor)
 																.buildHTML();
-						g2d.insertSVG(endFace);
+						//g2d.insertSVG(endFace);
+						donut3d.svg.donutRoot.appendChild(endFace);
+						
 						if (s.parentSlice.isLast(s) && (s.endAngleDegree > 90 && s.endAngleDegree < 270)) {
 							//paintEndEffect(g2d, donut3d, s);
 						}
@@ -14359,7 +14401,8 @@ function stringInputToObject(color) {
 														.attr('opacity',this.alphaFill)
 														.attr('fill',s.themeColor)
 														.buildHTML();
-					g2d.insertSVG(outerFace);
+					//g2d.insertSVG(outerFace);
+					donut3d.svg.donutRoot.appendChild(outerFace);
 				}
 			}
 			/**
@@ -14372,7 +14415,8 @@ function stringInputToObject(color) {
 														.attr('opacity',this.alphaFill)
 														.attr('fill',s.themeColor)
 														.buildHTML();
-					g2d.insertSVG(topFace);
+					//g2d.insertSVG(topFace);
+					donut3d.svg.donutRoot.appendChild(topFace);
 				}
 			}
 		},
@@ -14697,11 +14741,26 @@ function stringInputToObject(color) {
 			return this;
 		}
 		
+		var effect = function(type, config){
+			var fx;
+			if('reflection' === type)
+				fx = new JenScript.Donut3DReflectionEffect(config);
+			donut.addEffect(fx);
+			effects.push(fx);
+			return this;
+		}
+		var reflectFx = function(config){
+			effect('reflection',config);
+			return this;
+		}
+		
 		
 		//Pie Builder Interface
 		return {
 			slice : slice,
 			label : label,
+			effect : effect,
+			reflectFx : reflectFx,
 			
 			view : function(){return view;},
 			projection : function(){return projection;},
@@ -14713,6 +14772,107 @@ function stringInputToObject(color) {
 })();
 
 
+(function(){
+
+	/**
+	 * Object AbstractDonut3DEffect()
+	 * Defines Abstract Donut3D Effect
+	 * @param {Object} config
+	 * @param {Object} [config.name] donut effect name
+	 */
+	JenScript.AbstractDonut3DEffect = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.AbstractDonut3DEffect,{
+		/**
+		 * Initialize Abstract Donut2D Effect
+		 * @param {Object} config
+		 * @param {Object} [config.name] donut effect name
+		 */
+		init : function(config){
+			config = config || {};
+			this.name = config.name;
+		},
+		/**
+	     * effect donut 3D
+	     * @param {Object} g2d
+	     * @param {Object} donut3D
+	     */
+	    effectDonut3D : function(g2d,donut3D){}
+	});
+	
+	
+	
+	/**
+	 * Object Donut3DReflectionEffect()
+	 * Defines Donut3D Reflection Effect
+	 * @param {Object} config
+	 * @param {Object} [config.deviation]
+	 * @param {Object} [config.opacity]
+	 */
+	JenScript.Donut3DReflectionEffect = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut3DReflectionEffect, JenScript.AbstractDonut3DEffect);
+	JenScript.Model.addMethods(JenScript.Donut3DReflectionEffect,{
+		
+		/**
+		 * Initialize Donut3D Reflection Effect
+		 * @param {Object} config
+		 * @param {Object} [config.deviation] blur deviation, default 3 pixels
+		 * @param {Object} [config.opacity] effect opacity, default 0.3
+		 * @param {Object} [config.verticalOffset] effect vertical offset, default 5 pixels
+		 * @param {Object} [config.length] effect length [0,1], 1 reflect whole donut, 0.5 half of the donut, etc
+		 */
+		_init: function(config){
+			config = config || {};
+			this.deviation = (config.deviation !== undefined)?config.deviation : 3;
+			this.opacity = (config.opacity !== undefined)?config.opacity : 0.3;
+			this.length = (config.length !== undefined)?config.length : 0.5;
+			this.verticalOffset = (config.verticalOffset !== undefined)?config.verticalOffset : 0;
+			config.name = "JenScript.Donut3DReflectionEffect";
+			JenScript.AbstractDonut3DEffect.call(this,config);
+		},
+		
+		/**
+		 * Paint donut reflection effect
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} donut 
+		 */
+		effectDonut3D : function(g2d, donut) {
+			var bbox = donut.svg.donutRoot.getBBox();
+			
+			 //clip
+			var clipId = 'clip'+JenScript.sequenceId++;
+			var rectClip = new JenScript.SVGRect().origin(bbox.x,bbox.y+bbox.height).size(bbox.width,bbox.height*this.length);
+			var clip = new JenScript.SVGClipPath().Id(clipId).appendPath(rectClip);
+			g2d.definesSVG(clip.toSVG());
+				
+			
+			//filter
+			var filterId = 'filter'+JenScript.sequenceId++;
+			var filter = new JenScript.SVGFilter().Id(filterId).from(bbox.x,bbox.y).size(bbox.width,bbox.height).toSVG();
+			var gaussianFilter = new JenScript.SVGElement().name('feGaussianBlur')
+															.attr('in','SourceGraphic')
+															.attr('stdDeviation',this.deviation);
+															
+			filter.appendChild(gaussianFilter.buildHTML());
+			g2d.definesSVG(filter);
+		
+			var e = donut.svg.donutRoot.cloneNode(true);
+			e.removeAttribute('id');
+			e.setAttribute('filter','url(#'+filterId+')');
+			e.setAttribute('transform','translate(0,'+bbox.height+'), scale(1,-1), translate(0,'+(-2*(bbox.y+bbox.height/2)-this.verticalOffset)+')'  );
+			e.setAttribute('opacity',this.opacity);
+			
+			var ng = new JenScript.SVGElement().name('g').buildHTML();
+			e.setAttribute('id',e.getAttribute('id')+'_reflection'+JenScript.sequenceId++);
+			ng.setAttribute('clip-path','url(#'+clipId+')');
+			ng.appendChild(e);
+			g2d.insertSVG(ng);	
+		}
+	});
+})();
 (function(){
 	/**
 	 * Pie Plugin takes the responsibility to paint pies

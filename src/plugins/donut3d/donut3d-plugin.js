@@ -50,13 +50,23 @@
 				var donut = this.donuts[i];
 				if(donut.isSolvable()){
 					donut.solveDonut3D();
+					
+					g2d.deleteGraphicsElement(donut.Id);
+					donut.svg.donutRoot = new JenScript.SVGGroup().Id(donut.Id).toSVG();
+					g2d.insertSVG(donut.svg.donutRoot);
+					
 					donut.donut3DPaint.paintDonut3D(g2d, donut);
+					
+					for (var i = 0; i < donut.effects.length; i++) {
+						var effect = donut.effects[i];
+						effect.effectDonut3D(g2d,donut);
+					}
+					
 					for (var j = 0; j < donut.slices.length; j++) {
 						var slice = donut.slices[j];
 						var labels = slice.getSliceLabels();
 						for (var l = 0; l < labels.length; l++) {
 							labels[l].paintDonut3DSliceLabel(g2d,slice);
-							
 						}
 					}
 				}

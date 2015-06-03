@@ -106,7 +106,9 @@
 													.attr('fill','url(#'+gradientId+')')
 													.attr('opacity',this.alphaOuter)
 													.buildHTML();
-			g2d.insertSVG(outerEffect);
+			
+			donut3d.svg.donutRoot.appendChild(outerEffect);
+			//g2d.insertSVG(outerEffect);
 		},
 		
 		
@@ -163,7 +165,8 @@
 												.attr('fill','url(#'+gradientId+')')
 												.attr('opacity',this.alphaInner)
 												.buildHTML();
-			g2d.insertSVG(innerEffect);
+			donut3d.svg.donutRoot.appendChild(innerEffect);
+			//g2d.insertSVG(innerEffect);
 		},
 		
 		/**
@@ -262,7 +265,9 @@
 									.attr('fill','url(#'+gradientId+')')
 									//.attr('clip-path','url(#'+clipId1+')')
 									.buildHTML();
-				g2d.insertSVG(topFaceEffect);
+				
+				donut3d.svg.donutRoot.appendChild(topFaceEffect);
+				//g2d.insertSVG(topFaceEffect);
 			}
 		},
 		
@@ -284,7 +289,8 @@
 														.attr('opacity',this.alphaFill)
 														.attr('fill',s.themeColor)
 														.buildHTML();
-					g2d.insertSVG(outerFace);
+					donut3d.svg.donutRoot.appendChild(outerFace);
+					//g2d.insertSVG(outerFace);
 				}
 			}
 
@@ -298,7 +304,8 @@
 														.attr('opacity',this.alphaFill)
 														.attr('fill',s.themeColor)
 														.buildHTML();
-					g2d.insertSVG(bottomFace);
+					donut3d.svg.donutRoot.appendChild(bottomFace);
+					//g2d.insertSVG(bottomFace);
 				}
 			}
 
@@ -326,7 +333,8 @@
 															.attr('fill',s.themeColor)
 															//.attr('clip-path','url(#'+clipId1+')')
 															.buildHTML();
-					g2d.insertSVG(visibleInnerBackFace);
+					donut3d.svg.donutRoot.appendChild(visibleInnerBackFace);
+					//g2d.insertSVG(visibleInnerBackFace);
 				}
 			}
 			
@@ -341,8 +349,9 @@
 												.attr('opacity',this.alphaFill)
 												.attr('fill',s.themeColor)
 												.buildHTML();
-						g2d.insertSVG(startFace);
-
+						//g2d.insertSVG(startFace);
+						donut3d.svg.donutRoot.appendChild(startFace);
+						
 						if (s.parentSlice.isFirst(s) && (s.parentSlice.startAngleDegree <= 90 || s.parentSlice.startAngleDegree >= 270)) {
 							//paintStartEffect(g2d, donut3d, s);
 						}
@@ -359,8 +368,9 @@
 															.attr('opacity',this.alphaFill)
 															.attr('fill',s.themeColor)
 															.buildHTML();
-						g2d.insertSVG(endFace);
-
+						//g2d.insertSVG(endFace);
+						donut3d.svg.donutRoot.appendChild(endFace);
+						
 						if (s.parentSlice.isLast(s) && (s.endAngleDegree >= 90 && s.endAngleDegree <= 270)) {
 							//paintEndEffect(g2d, donut3d, s);
 						}
@@ -379,7 +389,8 @@
 									.attr('opacity',this.alphaFill)
 									.attr('fill',s.themeColor)
 									.buildHTML();
-					g2d.insertSVG(topFace);
+					//g2d.insertSVG(topFace);
+					donut3d.svg.donutRoot.appendChild(topFace);
 				}
 			}
 
@@ -397,8 +408,8 @@
 												.attr('opacity',this.alphaFill)
 												.attr('fill',s.themeColor)
 												.buildHTML();
-					g2d.insertSVG(innerFace);
-
+					//g2d.insertSVG(innerFace);
+					donut3d.svg.donutRoot.appendChild(innerFace);
 				}
 				
 			}
@@ -412,7 +423,8 @@
 												.attr('opacity',this.alphaFill)
 												.attr('fill',s.themeColor)
 												.buildHTML();
-					g2d.insertSVG(bottomFace);
+					//g2d.insertSVG(bottomFace);
+					donut3d.svg.donutRoot.appendChild(bottomFace);
 				}
 			}
 			
@@ -427,7 +439,9 @@
 																.attr('opacity',this.alphaFill)
 																.attr('fill',s.themeColor)
 																.buildHTML();
-						g2d.insertSVG(startFace);
+						//g2d.insertSVG(startFace);
+						donut3d.svg.donutRoot.appendChild(startFace);
+						
 						if (s.parentSlice.isFirst(s) && (s.startAngleDegree < 90 || s.startAngleDegree > 270)) {
 							//paintStartEffect(g2d, donut3d, s);
 						}
@@ -444,7 +458,9 @@
 																.attr('opacity',this.alphaFill)
 																.attr('fill',s.themeColor)
 																.buildHTML();
-						g2d.insertSVG(endFace);
+						//g2d.insertSVG(endFace);
+						donut3d.svg.donutRoot.appendChild(endFace);
+						
 						if (s.parentSlice.isLast(s) && (s.endAngleDegree > 90 && s.endAngleDegree < 270)) {
 							//paintEndEffect(g2d, donut3d, s);
 						}
@@ -462,7 +478,8 @@
 														.attr('opacity',this.alphaFill)
 														.attr('fill',s.themeColor)
 														.buildHTML();
-					g2d.insertSVG(outerFace);
+					//g2d.insertSVG(outerFace);
+					donut3d.svg.donutRoot.appendChild(outerFace);
 				}
 			}
 			/**
@@ -475,7 +492,8 @@
 														.attr('opacity',this.alphaFill)
 														.attr('fill',s.themeColor)
 														.buildHTML();
-					g2d.insertSVG(topFace);
+					//g2d.insertSVG(topFace);
+					donut3d.svg.donutRoot.appendChild(topFace);
 				}
 			}
 		},
