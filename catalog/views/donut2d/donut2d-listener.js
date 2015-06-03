@@ -49,7 +49,6 @@ function createDonut2DListener(container, width, height) {
 	labelPlugin.addLabel(label);
 	
 	var updateText = function(action, point) {
-		console.log("update text");
 		label.setText(action);
 		label.setTextAnchor('middle');
 		label.setX(point.x);
@@ -60,21 +59,21 @@ function createDonut2DListener(container, width, height) {
 	/**
 	 * add Donut listener such as press, release, move, enter, exit and click
 	 */
-	donut2DPlugin.addDonutListener('enter', function(slice) {
-		updateText("enter "+slice.name,slice.devicePoint);
+	donut2DPlugin.addDonutListener('enter', function(event) {
+		updateText("enter "+event.slice.name,event.device);
 	});
-	donut2DPlugin.addDonutListener('exit', function(slice) {
-		updateText("exit "+slice.name,slice.devicePoint);
+	donut2DPlugin.addDonutListener('exit', function(event) {
+		updateText("exit "+event.slice.name,slice.device);
 		setTimeout(function(){label.setText(undefined);label.repaintPlugin();},1000);
 	});
-	donut2DPlugin.addDonutListener('press', function(slice) {
-		updateText("press "+slice.name,slice.devicePoint);
+	donut2DPlugin.addDonutListener('press', function(event) {
+		updateText("press "+event.slice.name,slice.device);
 	});
-	donut2DPlugin.addDonutListener('release', function(slice) {
-		updateText("release "+slice.name,slice.devicePoint);
+	donut2DPlugin.addDonutListener('release', function(event) {
+		updateText("release "+event.slice.name,slice.device);
 	});
-	donut2DPlugin.addDonutListener('move', function(slice) {
-		updateText("rollover "+slice.name,slice.devicePoint);
+	donut2DPlugin.addDonutListener('move', function(event) {
+		updateText("rollover "+event.slice.name,slice.device);
 	});
 
 	var s1 = new JenScript.Donut2DSlice({

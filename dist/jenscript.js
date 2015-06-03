@@ -11119,37 +11119,34 @@ function stringInputToObject(color) {
 		 * @param {Number} the device x coordinate
 		 * @param {Number} the device y coordinate
 		 */
-		fireDonutEvent : function(action,slice,deviceX,deviceY){
+		fireDonutEvent : function(action,event){
 			for (var l = 0; l < this.donutListeners.length; l++) {
 				if(this.donutListeners[l].action === action){
-					var dp = new JenScript.Point2D(deviceX,deviceY);
-					slice.devicePoint = dp;
-					this.donutListeners[l].onEvent(slice);
+					this.donutListeners[l].onEvent(event);
 				}
 			}
 		},
 		
 		dispatchDonutAction : function(evt,action,deviceX,deviceY){
-			
 			var that = this;
 			var fire1 = function(slice){
 				if(action === 'move'){
 					if(!slice.lockRollover){
 						
 						slice.lockRollover = true;
-						that.fireDonutEvent('enter',slice,deviceX,deviceY);
-						that.fireDonutEvent('move',slice,deviceX,deviceY);
+						that.fireDonutEvent('enter',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
+						that.fireDonutEvent('move',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 					}else{
-						that.fireDonutEvent('move',slice,deviceX,deviceY);
+						that.fireDonutEvent('move',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 					}
 				}
 				else if(action === 'press'){
 					//slice.lockPress = true;
-					that.fireDonutEvent('press',slice,deviceX,deviceY);
+					that.fireDonutEvent('press',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 				}
 				else if(action === 'release' ){
 					//slice.lockPress = false;
-					that.fireDonutEvent('release',slice,deviceX,deviceY);
+					that.fireDonutEvent('release',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 				}
 				else{
 					
@@ -11159,7 +11156,7 @@ function stringInputToObject(color) {
 				//console.log('fire 2 for slice : '+slice.name);
 				if(action === 'move' && slice.lockRollover){
 					slice.lockRollover = false;
-					that.fireDonutEvent('exit',slice,deviceX,deviceY);
+					that.fireDonutEvent('exit',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 					return true;	
 				}else{
 					
