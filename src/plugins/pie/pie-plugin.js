@@ -61,17 +61,17 @@
 				if(action === 'move'){
 					if(!slice.lockRollover){
 						slice.lockRollover = true;
-						that.firePieEvent('enter',slice);
-						that.firePieEvent('move',slice);
+						that.firePieEvent('enter',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
+						that.firePieEvent('move',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 					}else{
-						that.firePieEvent('move',slice);
+						that.firePieEvent('move',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 					}
 				}
 				else if(action === 'press'){
-					that.firePieEvent('press',slice);
+					that.firePieEvent('press',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 				}
 				else if(action === 'release' ){
-					that.firePieEvent('release',slice);
+					that.firePieEvent('release',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 				}
 				else{
 					
@@ -80,7 +80,7 @@
 			var fire2 = function(slice){
 				if(action === 'move' && slice.lockRollover){
 					slice.lockRollover = false;
-					that.firePieEvent('exit',slice);
+					that.firePieEvent('exit',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 					return true;	
 				}else{
 					
