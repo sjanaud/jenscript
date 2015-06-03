@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-06-02
+// build: 2015-06-03
 // All Rights reserved
 
 /**
@@ -14779,17 +14779,17 @@ function stringInputToObject(color) {
 				if(action === 'move'){
 					if(!slice.lockRollover){
 						slice.lockRollover = true;
-						that.firePieEvent('enter',slice);
-						that.firePieEvent('move',slice);
+						that.firePieEvent('enter',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
+						that.firePieEvent('move',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 					}else{
-						that.firePieEvent('move',slice);
+						that.firePieEvent('move',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 					}
 				}
 				else if(action === 'press'){
-					that.firePieEvent('press',slice);
+					that.firePieEvent('press',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 				}
 				else if(action === 'release' ){
-					that.firePieEvent('release',slice);
+					that.firePieEvent('release',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 				}
 				else{
 					
@@ -14798,7 +14798,7 @@ function stringInputToObject(color) {
 			var fire2 = function(slice){
 				if(action === 'move' && slice.lockRollover){
 					slice.lockRollover = false;
-					that.firePieEvent('exit',slice);
+					that.firePieEvent('exit',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 					return true;	
 				}else{
 					

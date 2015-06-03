@@ -70,23 +70,23 @@ function createPieWithListener(container, width, height) {
 	/**
 	 * add Donut listener such as press, release, move, enter, exit
 	 */
-	piePlugin.addPieListener('enter', function(slice) {
-		console.log('Enter slice ' + slice.name + ' from pie : '
-				+ slice.pie.name);
+	piePlugin.addPieListener('enter', function(event) {
+		console.log('Enter slice ' + event.slice.name + ' from pie : '
+				+ event.slice.pie.name);
 	});
-	piePlugin.addPieListener('exit', function(slice) {
-		console.log('Exit slice ' + slice.name + ' from pie : '
-				+ slice.pie.name);
+	piePlugin.addPieListener('exit', function(event) {
+		console.log('Exit slice ' + event.slice.name + ' from pie : '
+				+ event.slice.pie.name);
 	});
-	piePlugin.addPieListener('press', function(slice) {
-		console.log('Press slice ' + slice.name + ' from pie : '
-				+ slice.pie.name);
+	piePlugin.addPieListener('press', function(event) {
+		console.log('Press slice ' + event.slice.name + ' from pie : '
+				+ event.slice.pie.name);
 	});
-	piePlugin.addPieListener('release', function(slice) {
-		console.log('Release slice ' + slice.name + ' from pie : '
-				+ slice.pie.name);
+	piePlugin.addPieListener('release', function(event) {
+		console.log('Release slice ' + event.slice.name + ' from pie : '
+				+ event.slice.pie.name);
 	});
-	piePlugin.addPieListener('move', function(slice) {
+	piePlugin.addPieListener('move', function(event) {
 		// console.log('Move slice '+slice.name+' from donut :
 		// '+slice.donut.name);
 	});
