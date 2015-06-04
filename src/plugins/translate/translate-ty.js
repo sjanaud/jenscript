@@ -7,8 +7,8 @@
 		___init: function(config){
 			config = config || {};
 			config.Id = 'translate_ty'+JenScript.sequenceId++;
-			config.width=18;
-			config.height=80;
+			config.width=16;
+			config.height=100;
 			config.xIndex=100;
 			config.yIndex=1;
 			config.barOrientation = 'Vertical';
