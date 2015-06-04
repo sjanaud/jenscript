@@ -5,6 +5,7 @@
 	 * @param {Object} config the pie configuration
 	 * @param {Object} [config.name] pie name
 	 * @param {Object} [config.radius] pie radius in pixel
+	 * @param {Object} [config.opacity] pie opacity
 	 * @param {Object} [config.nature] pie projection nature, User or Device
 	 * @param {Object} [config.x] pie center x, depends on projection nature
 	 * @param {Object} [config.y] pie center y, depends on projection nature
@@ -14,15 +15,16 @@
 	JenScript.Pie = function(config){
 		config = config||{};
 		this.name = (config.name !== undefined)?config.name:'Pie name undefined';
-		this.Id = 'pie'+JenScript.sequenceId++;
+		this.Id = (config.Id !== undefined)?config.Id:'pie'+JenScript.sequenceId++;
 		this.x =  (config.x !== undefined)?config.x:0;
 		this.y =  (config.y !== undefined)?config.y:0;
 		this.radius =  (config.radius !== undefined)?config.radius:80;
+		this.opacity =  (config.opacity !== undefined)?config.opacity:1;
 		this.startAngleDegree =  (config.startAngleDegree !== undefined)?config.startAngleDegree:0;
 		this.nature =  (config.nature !== undefined)?config.nature:'User';
 		this.effects= [];
 		this.slices = [];
-		this.svg={};
+		this.svg= {};
 		
 		//TODO paint strategy : stream or final render?
 		//check is this paint strategy pattern is good enough ?

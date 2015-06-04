@@ -17,17 +17,19 @@
 		 * @param {Object} config
 		 * @param {Object} [config.name] pie slice name
 		 * @param {Object} [config.value] pie slice value, this value will be ratio normalized
+		 * @param {Object} [config.opacity] slice opacity
 		 * @param {Object} [config.themeColor] pie slice color, randomized if undefined
 		 * @param {Object} [config.divergence] pie divergence from center
 		 * 
 		 */
 		init: function(config){
-			this.Id = 'slice'+JenScript.sequenceId++;
+			config = config||{};
+			this.Id = (config.Id !== undefined)?config.Id:'slice'+JenScript.sequenceId++;
 			this.name = (config.name !== undefined)?config.name:'PieSlice name undefined';
 			this.value =  (config.value !== undefined)?config.value:1;
+			this.opacity =  (config.opacity !== undefined)?config.opacity:1;
 			this.themeColor =(config.themeColor !== undefined)?config.themeColor:JenScript.createColor();
 			this.divergence =  (config.divergence !== undefined)?config.divergence:0;
-			
 			if(this.value < 0 )
 			    	throw new Error('Slice value should be greater than 0');
 		},

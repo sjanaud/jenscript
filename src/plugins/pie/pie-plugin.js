@@ -165,7 +165,7 @@
 					pie.solvePie();
 					
 					g2d.deleteGraphicsElement(pie.Id);
-					pie.svg.pieRoot = new JenScript.SVGGroup().Id(pie.Id).toSVG();
+					pie.svg.pieRoot = new JenScript.SVGGroup().Id(pie.Id).opacity(pie.opacity).toSVG();
 					g2d.insertSVG(pie.svg.pieRoot);
 					
 					if(pie.stroke !== undefined){
@@ -187,10 +187,14 @@
 						//slice stroke ?
 						//slice fill?
 						
+						//route graphics to pieRoot
+						var g2dIn = new JenScript.Graphics({definitions : this.svgPluginPartsDefinitions[part],graphics : pie.svg.pieRoot, selectors : this.getProjection().getView().svgSelectors});
 						if (s.getSliceLabel() !== undefined) {
-							s.getSliceLabel().paintPieSliceLabel(g2d, s);
+							s.getSliceLabel().paintPieSliceLabel(g2dIn, s);
 						}
 					}
+					
+					
 				}
 			}
 		}

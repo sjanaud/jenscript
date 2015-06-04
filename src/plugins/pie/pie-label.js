@@ -172,7 +172,7 @@
 		        this.setLocation(new JenScript.Point2D(px4,py4));
 		        var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 				this.setTextColor(ct);
-				
+				this.setOpacity(slice.opacity);
 				this.paintLabel(g2d);
 				this.svg.label.appendChild(quadlink);
 		 }
@@ -267,7 +267,7 @@
 			this.setTextAnchor(pos);
 			var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 			this.setTextColor(ct);
-			
+			this.setOpacity(slice.opacity);
 			this.paintLabel(g2d);
 		}
 	});

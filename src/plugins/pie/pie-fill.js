@@ -18,7 +18,9 @@
 		 * @param {String} [config.name] fill name
 		 */
 		init : function(config){
-			config =config || {};
+			config = config||{};
+			this.Id = (config.Id !== undefined)?config.Id:'_fill'+JenScript.sequenceId++;
+			this.opacity =  (config.opacity !== undefined)?config.opacity:1;
 			this.name = config.name;
 		},
 		
@@ -63,16 +65,26 @@
 		 * @param {Object} pie to fill
 		 */
 		fillPie : function(g2d, pie) {
+			var pieFill = new JenScript.SVGGroup().Id(pie.Id+this.Id).opacity(this.opacity).toSVG();
+			g2d.deleteGraphicsElement(pie.Id+this.Id);
+			
 			for (var i = 0; i < pie.slices.length; i++) {
 				var s = pie.slices[i];
 				var c = (this.fillColor !== undefined)?this.fillColor : s.themeColor;
-				var sliceFill = new JenScript.SVGElement().name('path')
+				var fill = new JenScript.SVGElement().name('path')
 													.attr('fill',c)
 													.attr('d',s.svgPath)
 													.buildHTML();
 				
-				pie.svg.pieRoot.appendChild(sliceFill);
+				
+				
+				var sliceFill = new JenScript.SVGGroup().Id(pie.Id+this.Id+s.Id).opacity(s.opacity).toSVG();
+				g2d.deleteGraphicsElement(pie.Id+this.Id+s.Id);
+				sliceFill.appendChild(fill);
+				pieFill.appendChild(sliceFill);
 			}
+			
+			pie.svg.pieRoot.appendChild(pieFill);
 		}
 	});
 })();

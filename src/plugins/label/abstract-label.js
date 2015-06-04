@@ -41,7 +41,8 @@
 		 */
 		init : function(config){
 			config = config || {};
-			this.Id = (config.Id !== undefined)?config.Id:'Label'+JenScript.sequenceId++;
+			this.Id = (config.Id !== undefined)?config.Id:'label'+JenScript.sequenceId++;
+			this.opacity =  (config.opacity !== undefined)? config.opacity : 1;
 			this.name = (config.name !== undefined)? config.name:'Unamed Label';
 			this.location = (config.location !== undefined)? config.location:new JenScript.Point2D(0,0);
 			
@@ -179,6 +180,14 @@
 			return this.fillColor;
 		},
 		
+		setOpacity : function(opacity){
+			this.opacity = opacity;
+		},
+		
+		getOpacity : function(){
+			return this.opacity;
+		},
+		
 		
 		/**
 		 * paint text and envelope if all parameter are setted.
@@ -186,7 +195,7 @@
 		 * @param {Object} graphics context
 		 */
 		paintLabel : function(g2d){
-			var label = new JenScript.SVGGroup().Id(this.Id);
+			var label = new JenScript.SVGGroup().Id(this.Id).opacity(this.opacity);
 			//console.log('location initial x,y:'+this.getLocation().x+','+this.getLocation().y);
 			var lx,ly;
 			if(this.proj !== undefined && this.nature === 'User'){

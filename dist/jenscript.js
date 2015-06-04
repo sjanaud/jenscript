@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-06-03
+// build: 2015-06-04
 // All Rights reserved
 
 /**
@@ -3394,9 +3394,12 @@ function stringInputToObject(color) {
 			}
 			else{
 				var gfxNode = document.getElementById(graphicsId);
-				while (gfxNode.firstChild) {
-					gfxNode.removeChild(gfxNode.firstChild);
+				if(gfxNode !== null){
+					while (gfxNode.firstChild) {
+						gfxNode.removeChild(gfxNode.firstChild);
+					}
 				}
+				
 			}
 		},
 		
@@ -3410,7 +3413,7 @@ function stringInputToObject(color) {
 		},
 		
 		/**
-		 * get the given graphics element specified by Id
+		 * delete the given graphics element specified by Id
 		 * @param {String} graphicsId
 		 * @returns graphics element
 		 */
@@ -3419,9 +3422,6 @@ function stringInputToObject(color) {
 			if(element !== undefined && element!== null && element.parentNode!==undefined && element.parentNode!==null){
 				var removed = element.parentNode.removeChild(element);
 				return removed;
-				//console.log("deleteGraphicsElement "+removed+' ok');
-			}else{
-				//console.log('graphics element with Id '+graphicsId+' not found');
 			}
 		},
 		
@@ -9980,7 +9980,8 @@ function stringInputToObject(color) {
 		 */
 		init : function(config){
 			config = config || {};
-			this.Id = (config.Id !== undefined)?config.Id:'Label'+JenScript.sequenceId++;
+			this.Id = (config.Id !== undefined)?config.Id:'label'+JenScript.sequenceId++;
+			this.opacity =  (config.opacity !== undefined)? config.opacity : 1;
 			this.name = (config.name !== undefined)? config.name:'Unamed Label';
 			this.location = (config.location !== undefined)? config.location:new JenScript.Point2D(0,0);
 			
@@ -10118,6 +10119,14 @@ function stringInputToObject(color) {
 			return this.fillColor;
 		},
 		
+		setOpacity : function(opacity){
+			this.opacity = opacity;
+		},
+		
+		getOpacity : function(){
+			return this.opacity;
+		},
+		
 		
 		/**
 		 * paint text and envelope if all parameter are setted.
@@ -10125,7 +10134,7 @@ function stringInputToObject(color) {
 		 * @param {Object} graphics context
 		 */
 		paintLabel : function(g2d){
-			var label = new JenScript.SVGGroup().Id(this.Id);
+			var label = new JenScript.SVGGroup().Id(this.Id).opacity(this.opacity);
 			//console.log('location initial x,y:'+this.getLocation().x+','+this.getLocation().y);
 			var lx,ly;
 			if(this.proj !== undefined && this.nature === 'User'){
@@ -11957,7 +11966,9 @@ function stringInputToObject(color) {
 				g2d.definesSVG(gradient);
 		        
 				var svg = new JenScript.SVGElement().name('path')
-								.attr('d',s.face).attr('stroke','none').attr('fill','url(#'+gradientId+')').attr('fill-opacity',s.fillOpacity);
+								.attr('d',s.face).attr('stroke','none')
+								.attr('fill','url(#'+gradientId+')')
+								.attr('fill-opacity',s.fillOpacity);
 	
 				donut2D.svg.donutRoot.appendChild(svg.buildHTML());
 	        }
@@ -15040,7 +15051,7 @@ function stringInputToObject(color) {
 					pie.solvePie();
 					
 					g2d.deleteGraphicsElement(pie.Id);
-					pie.svg.pieRoot = new JenScript.SVGGroup().Id(pie.Id).toSVG();
+					pie.svg.pieRoot = new JenScript.SVGGroup().Id(pie.Id).opacity(pie.opacity).toSVG();
 					g2d.insertSVG(pie.svg.pieRoot);
 					
 					if(pie.stroke !== undefined){
@@ -15062,10 +15073,14 @@ function stringInputToObject(color) {
 						//slice stroke ?
 						//slice fill?
 						
+						//route graphics to pieRoot
+						var g2dIn = new JenScript.Graphics({definitions : this.svgPluginPartsDefinitions[part],graphics : pie.svg.pieRoot, selectors : this.getProjection().getView().svgSelectors});
 						if (s.getSliceLabel() !== undefined) {
-							s.getSliceLabel().paintPieSliceLabel(g2d, s);
+							s.getSliceLabel().paintPieSliceLabel(g2dIn, s);
 						}
 					}
+					
+					
 				}
 			}
 		}
@@ -15080,6 +15095,7 @@ function stringInputToObject(color) {
 	 * @param {Object} config the pie configuration
 	 * @param {Object} [config.name] pie name
 	 * @param {Object} [config.radius] pie radius in pixel
+	 * @param {Object} [config.opacity] pie opacity
 	 * @param {Object} [config.nature] pie projection nature, User or Device
 	 * @param {Object} [config.x] pie center x, depends on projection nature
 	 * @param {Object} [config.y] pie center y, depends on projection nature
@@ -15089,15 +15105,16 @@ function stringInputToObject(color) {
 	JenScript.Pie = function(config){
 		config = config||{};
 		this.name = (config.name !== undefined)?config.name:'Pie name undefined';
-		this.Id = 'pie'+JenScript.sequenceId++;
+		this.Id = (config.Id !== undefined)?config.Id:'pie'+JenScript.sequenceId++;
 		this.x =  (config.x !== undefined)?config.x:0;
 		this.y =  (config.y !== undefined)?config.y:0;
 		this.radius =  (config.radius !== undefined)?config.radius:80;
+		this.opacity =  (config.opacity !== undefined)?config.opacity:1;
 		this.startAngleDegree =  (config.startAngleDegree !== undefined)?config.startAngleDegree:0;
 		this.nature =  (config.nature !== undefined)?config.nature:'User';
 		this.effects= [];
 		this.slices = [];
-		this.svg={};
+		this.svg= {};
 		
 		//TODO paint strategy : stream or final render?
 		//check is this paint strategy pattern is good enough ?
@@ -15391,17 +15408,19 @@ function stringInputToObject(color) {
 		 * @param {Object} config
 		 * @param {Object} [config.name] pie slice name
 		 * @param {Object} [config.value] pie slice value, this value will be ratio normalized
+		 * @param {Object} [config.opacity] slice opacity
 		 * @param {Object} [config.themeColor] pie slice color, randomized if undefined
 		 * @param {Object} [config.divergence] pie divergence from center
 		 * 
 		 */
 		init: function(config){
-			this.Id = 'slice'+JenScript.sequenceId++;
+			config = config||{};
+			this.Id = (config.Id !== undefined)?config.Id:'slice'+JenScript.sequenceId++;
 			this.name = (config.name !== undefined)?config.name:'PieSlice name undefined';
 			this.value =  (config.value !== undefined)?config.value:1;
+			this.opacity =  (config.opacity !== undefined)?config.opacity:1;
 			this.themeColor =(config.themeColor !== undefined)?config.themeColor:JenScript.createColor();
 			this.divergence =  (config.divergence !== undefined)?config.divergence:0;
-			
 			if(this.value < 0 )
 			    	throw new Error('Slice value should be greater than 0');
 		},
@@ -15562,7 +15581,9 @@ function stringInputToObject(color) {
 		 * @param {String} [config.name] fill name
 		 */
 		init : function(config){
-			config =config || {};
+			config = config||{};
+			this.Id = (config.Id !== undefined)?config.Id:'_fill'+JenScript.sequenceId++;
+			this.opacity =  (config.opacity !== undefined)?config.opacity:1;
 			this.name = config.name;
 		},
 		
@@ -15607,16 +15628,27 @@ function stringInputToObject(color) {
 		 * @param {Object} pie to fill
 		 */
 		fillPie : function(g2d, pie) {
+			var pieFill = new JenScript.SVGGroup().Id(pie.Id+this.Id).opacity(this.opacity).toSVG();
+			g2d.deleteGraphicsElement(pie.Id+this.Id);
+			
 			for (var i = 0; i < pie.slices.length; i++) {
 				var s = pie.slices[i];
 				var c = (this.fillColor !== undefined)?this.fillColor : s.themeColor;
-				var sliceFill = new JenScript.SVGElement().name('path')
+				var fill = new JenScript.SVGElement().name('path')
 													.attr('fill',c)
 													.attr('d',s.svgPath)
 													.buildHTML();
 				
-				pie.svg.pieRoot.appendChild(sliceFill);
+				
+				
+				var sliceFill = new JenScript.SVGGroup().Id(pie.Id+this.Id+s.Id).opacity(s.opacity).toSVG();
+				
+				g2d.deleteGraphicsElement(pie.Id+this.Id+s.Id);
+				sliceFill.appendChild(fill);
+				pieFill.appendChild(sliceFill);
 			}
+			
+			pie.svg.pieRoot.appendChild(pieFill);
 		}
 	});
 })();
@@ -15638,7 +15670,10 @@ function stringInputToObject(color) {
 		 * @param {String} [config.name] the effect name
 		 */
 		init:function(config){
+			config = config||{};
+			this.Id = (config.Id !== undefined)?config.Id:'_effect'+JenScript.sequenceId++;
 			this.name = config.name;
+			this.opacity =  (config.opacity !== undefined)?config.opacity:1;
 			this.projection = undefined;
 		},
 		
@@ -15706,6 +15741,10 @@ function stringInputToObject(color) {
 		 * @param {Object} pie 
 		 */
 		paintPieEffect : function(g2d, pie) {
+			
+			var pieEffect = new JenScript.SVGGroup().Id(pie.Id+this.Id).opacity(this.opacity).toSVG();
+			g2d.deleteGraphicsElement(pie.Id+this.Id);
+			
 			var bbox = pie.svg.pieRoot.getBBox();
 			
 			 //clip
@@ -15735,8 +15774,12 @@ function stringInputToObject(color) {
 			e.setAttribute('id',e.getAttribute('id')+'_reflection'+JenScript.sequenceId++);
 			ng.setAttribute('clip-path','url(#'+clipId+')');
 			ng.appendChild(e);
-			g2d.insertSVG(ng);	
+			
+			//g2d.insertSVG(ng);	
+			pieEffect.appendChild(ng);
+			pie.svg.pieRoot.appendChild(pieEffect);
 		}
+		
 	});
 
 	/**
@@ -15811,6 +15854,11 @@ function stringInputToObject(color) {
 			//and delete/create only if needed.
 			
 			//delete all useless olds gradients
+			
+			
+			var pieEffect = new JenScript.SVGGroup().Id(pie.Id+this.Id).opacity(this.opacity).toSVG();
+			g2d.deleteGraphicsElement(pie.Id+this.Id);
+			
 			for (var i = 0; i < this.gradientIds.length; i++) {
 				g2d.deleteGraphicsElement(this.gradientIds[i]);
 			}
@@ -15856,9 +15904,17 @@ function stringInputToObject(color) {
 														.attr('fill-opacity',this.fillOpacity)
 														.buildHTML();
 			
+				g2d.deleteGraphicsElement(pie.Id+this.Id+s.Id);
+				var sliceEffect = new JenScript.SVGGroup().Id(pie.Id+this.Id+s.Id).opacity(s.opacity).toSVG();
 				
-				pie.svg.pieRoot.appendChild(sFx);
+				//s.svg.effects[s.Id+this.Id] = sliceEffect;
+				sliceEffect.appendChild(sFx);
+				
+				//pie.svg.pieRoot.appendChild(sliceEffect);
+				pieEffect.appendChild(sliceEffect);
 			}
+			
+			pie.svg.pieRoot.appendChild(pieEffect);
 		}
 	});
 })();
@@ -16036,7 +16092,7 @@ function stringInputToObject(color) {
 		        this.setLocation(new JenScript.Point2D(px4,py4));
 		        var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 				this.setTextColor(ct);
-				
+				this.setOpacity(slice.opacity);
 				this.paintLabel(g2d);
 				this.svg.label.appendChild(quadlink);
 		 }
@@ -16131,7 +16187,7 @@ function stringInputToObject(color) {
 			this.setTextAnchor(pos);
 			var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
 			this.setTextColor(ct);
-			
+			this.setOpacity(slice.opacity);
 			this.paintLabel(g2d);
 		}
 	});
@@ -16642,8 +16698,8 @@ function stringInputToObject(color) {
 		___init: function(config){
 			config = config || {};
 			config.Id = 'translate_ty'+JenScript.sequenceId++;
-			config.width=18;
-			config.height=80;
+			config.width=16;
+			config.height=100;
 			config.xIndex=100;
 			config.yIndex=1;
 			config.barOrientation = 'Vertical';
@@ -20929,7 +20985,7 @@ function stringInputToObject(color) {
 			/**TODO, get only non undefined values and not all block*/
 			this.minor =  {tickMarkerSize : 2,tickMarkerColor:'rgb(230, 193, 153)',tickMarkerStroke:0.8,tickTextOffset : 0};
 			this.median = {tickMarkerSize : 4,tickMarkerColor:'rgb(230, 193, 153)',tickMarkerStroke:1.2,tickTextColor:'rgb(230, 193, 153)',tickTextFontSize:10,tickTextOffset : 0};
-			this.major =  {tickMarkerSize : 6,tickMarkerColor:'rgb(235, 214, 92)',tickMarkerStroke:1.6,tickTextColor:'rgb(235, 214, 92)',tickTextFontSize:12,tickTextOffset : 0};
+			this.major =  {tickMarkerSize : 6,tickMarkerColor:'rgb(37, 38, 41)',tickMarkerStroke:1.6,tickTextColor:'rgb(37, 38, 41)',tickTextFontSize:12,tickTextOffset : 0};
 			
 			if(config.minor !== undefined){
 				this.minor.tickMarkerSize = (config.minor.tickMarkerSize !== undefined) ? config.minor.tickMarkerSize : 2;
@@ -20946,9 +21002,9 @@ function stringInputToObject(color) {
 			}
 			if(config.major !== undefined){
 				this.major.tickMarkerSize 	= (config.major.tickMarkerSize !== undefined) ? config.major.tickMarkerSize : 6;
-				this.major.tickMarkerColor 	= (config.major.tickMarkerColor !== undefined) ? config.major.tickMarkerColor : 'rgb(235, 214, 92)';
+				this.major.tickMarkerColor 	= (config.major.tickMarkerColor !== undefined) ? config.major.tickMarkerColor : 'rgb(37, 38, 41)';
 				this.major.tickMarkerStroke 	= (config.major.tickMarkerStroke !== undefined) ? config.major.tickMarkerStroke : 1.8;
-				this.major.tickTextColor 	= (config.major.tickTextColor !== undefined) ? config.major.tickTextColor : 'rgb(235, 214, 92)';
+				this.major.tickTextColor 	= (config.major.tickTextColor !== undefined) ? config.major.tickTextColor : 'rgb(37, 38, 41)';
 				this.major.tickTextFontSize 	= (config.major.tickTextFontSize !== undefined) ? config.major.tickTextFontSize : 12;
 				this.major.tickTextOffset 	= (config.major.tickTextOffset !== undefined) ? config.major.tickTextOffset : 0;
 			}

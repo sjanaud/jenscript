@@ -31,9 +31,12 @@
 			}
 			else{
 				var gfxNode = document.getElementById(graphicsId);
-				while (gfxNode.firstChild) {
-					gfxNode.removeChild(gfxNode.firstChild);
+				if(gfxNode !== null){
+					while (gfxNode.firstChild) {
+						gfxNode.removeChild(gfxNode.firstChild);
+					}
 				}
+				
 			}
 		},
 		
@@ -47,7 +50,7 @@
 		},
 		
 		/**
-		 * get the given graphics element specified by Id
+		 * delete the given graphics element specified by Id
 		 * @param {String} graphicsId
 		 * @returns graphics element
 		 */
@@ -56,9 +59,6 @@
 			if(element !== undefined && element!== null && element.parentNode!==undefined && element.parentNode!==null){
 				var removed = element.parentNode.removeChild(element);
 				return removed;
-				//console.log("deleteGraphicsElement "+removed+' ok');
-			}else{
-				//console.log('graphics element with Id '+graphicsId+' not found');
 			}
 		},
 		

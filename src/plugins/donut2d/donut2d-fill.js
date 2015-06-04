@@ -120,7 +120,9 @@
 				g2d.definesSVG(gradient);
 		        
 				var svg = new JenScript.SVGElement().name('path')
-								.attr('d',s.face).attr('stroke','none').attr('fill','url(#'+gradientId+')').attr('fill-opacity',s.fillOpacity);
+								.attr('d',s.face).attr('stroke','none')
+								.attr('fill','url(#'+gradientId+')')
+								.attr('fill-opacity',s.fillOpacity);
 	
 				donut2D.svg.donutRoot.appendChild(svg.buildHTML());
 	        }

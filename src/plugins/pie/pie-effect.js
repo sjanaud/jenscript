@@ -16,7 +16,10 @@
 		 * @param {String} [config.name] the effect name
 		 */
 		init:function(config){
+			config = config||{};
+			this.Id = (config.Id !== undefined)?config.Id:'_effect'+JenScript.sequenceId++;
 			this.name = config.name;
+			this.opacity =  (config.opacity !== undefined)?config.opacity:1;
 			this.projection = undefined;
 		},
 		
@@ -53,6 +56,8 @@
 	 * @param {Object} config
 	 * @param {Object} [config.deviation]
 	 * @param {Object} [config.opacity]
+	 * @param {Object} [config.length]
+	 * @param {Object} [config.verticalOffset]
 	 */
 	JenScript.PieReflectionEffect = function(config) {
 		this._init(config);
@@ -84,6 +89,10 @@
 		 * @param {Object} pie 
 		 */
 		paintPieEffect : function(g2d, pie) {
+			
+			var pieEffect = new JenScript.SVGGroup().Id(pie.Id+this.Id).opacity(this.opacity).toSVG();
+			g2d.deleteGraphicsElement(pie.Id+this.Id);
+			
 			var bbox = pie.svg.pieRoot.getBBox();
 			
 			 //clip
@@ -113,8 +122,11 @@
 			e.setAttribute('id',e.getAttribute('id')+'_reflection'+JenScript.sequenceId++);
 			ng.setAttribute('clip-path','url(#'+clipId+')');
 			ng.appendChild(e);
-			g2d.insertSVG(ng);	
+			
+			pieEffect.appendChild(ng);
+			pie.svg.pieRoot.appendChild(pieEffect);
 		}
+		
 	});
 
 	/**
@@ -189,6 +201,11 @@
 			//and delete/create only if needed.
 			
 			//delete all useless olds gradients
+			
+			
+			var pieEffect = new JenScript.SVGGroup().Id(pie.Id+this.Id).opacity(this.opacity).toSVG();
+			g2d.deleteGraphicsElement(pie.Id+this.Id);
+			
 			for (var i = 0; i < this.gradientIds.length; i++) {
 				g2d.deleteGraphicsElement(this.gradientIds[i]);
 			}
@@ -234,9 +251,17 @@
 														.attr('fill-opacity',this.fillOpacity)
 														.buildHTML();
 			
+				g2d.deleteGraphicsElement(pie.Id+this.Id+s.Id);
+				var sliceEffect = new JenScript.SVGGroup().Id(pie.Id+this.Id+s.Id).opacity(s.opacity).toSVG();
 				
-				pie.svg.pieRoot.appendChild(sFx);
+				//s.svg.effects[s.Id+this.Id] = sliceEffect;
+				sliceEffect.appendChild(sFx);
+				
+				//pie.svg.pieRoot.appendChild(sliceEffect);
+				pieEffect.appendChild(sliceEffect);
 			}
+			
+			pie.svg.pieRoot.appendChild(pieEffect);
 		}
 	});
 })();

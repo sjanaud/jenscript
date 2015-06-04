@@ -123,7 +123,9 @@
 	 * Defines Donut2D Reflection Effect
 	 * @param {Object} config
 	 * @param {Object} [config.deviation]
+	 * @param {Object} [config.length]
 	 * @param {Object} [config.opacity]
+	 * @param {Object} [config.verticalOffset]
 	 */
 	JenScript.Donut2DReflectionEffect = function(config) {
 		this._init(config);
