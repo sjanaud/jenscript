@@ -306,7 +306,7 @@
 		    }
 		    
 		    /** outline bar widget stroke */
-		    this.buttonStrokeWidth = (config.buttonStrokeWidth !== undefined) ? config.buttonStrokeWidth: 2;
+		    this.buttonStrokeWidth = (config.buttonStrokeWidth !== undefined) ? config.buttonStrokeWidth: 1;
 		    
 		    /** visible flag for button 1 */
 		    this.button1Visible = true;
@@ -583,8 +583,8 @@
 	                end = { x: boundFolder.getX() + boundFolder.getWidth(),y: boundFolder.getCenterY()};
 	            }
 	            var gradientId = 'gradient'+JenScript.sequenceId++;
-	            var gradient= new JenScript.SVGLinearGradient().Id(gradientId).from(start.x,start.y).to(end.x,end.y).shade(this.shader.percents,this.shader.colors).toSVG();
-				
+	            var gradient= new JenScript.SVGLinearGradient().Id(gradientId).from(start.x,start.y).to(end.x,end.y).shade(this.shader.percents,this.shader.colors,this.shader.opacity).toSVG();
+				console.log('shade bar');
 	            g2d.definesSVG(gradient);
 				this.geometry.outlineShape.fill('url(#'+gradientId+')');
 	        }

@@ -7,18 +7,13 @@
 		___init: function(config){
 			config = config || {};
 			config.Id = 'translate_ty'+JenScript.sequenceId++;
-			config.width=16;
-			config.height=100;
-			config.xIndex=100;
-			config.yIndex=1;
+			config.width=(config.width !== undefined)?config.width:16;
+			config.height=(config.height !== undefined)?config.height:100;
+			config.xIndex=(config.xIndex !== undefined)?config.xIndex:100;
+			config.yIndex=(config.yIndex !== undefined)?config.yIndex:1;
 			config.barOrientation = 'Vertical';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
-			
-			this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
-		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
-		    this.sample = (config.sample !== undefined)?config.sample : {step : 20,sleep: 5,fraction:10};
-		    
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 10,sleep: 5,fraction:10};
 		    this.setOrphanLock(true);
 		},
 		

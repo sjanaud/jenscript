@@ -13,12 +13,7 @@
 			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
 			config.barOrientation = 'Horizontal';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
-			
-		    this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		    this.setButtonDrawColor((config.buttonDrawColor !== undefined)?config.buttonDrawColor : 'black');
-		    this.setButtonRolloverDrawColor((config.buttonRolloverDrawColor !== undefined)?config.buttonRolloverDrawColor : 'green');
-		   
-		    this.sample = (config.sample !== undefined)?config.sample : {step : 20,sleep: 5,fraction:10};
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 10,sleep: 5,fraction:10};
 		    this.setOrphanLock(true);
 		},
 	    onButton1Press : function() {

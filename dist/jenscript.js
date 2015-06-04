@@ -8286,7 +8286,7 @@ function stringInputToObject(color) {
 		    }
 		    
 		    /** outline bar widget stroke */
-		    this.buttonStrokeWidth = (config.buttonStrokeWidth !== undefined) ? config.buttonStrokeWidth: 2;
+		    this.buttonStrokeWidth = (config.buttonStrokeWidth !== undefined) ? config.buttonStrokeWidth: 1;
 		    
 		    /** visible flag for button 1 */
 		    this.button1Visible = true;
@@ -8563,8 +8563,8 @@ function stringInputToObject(color) {
 	                end = { x: boundFolder.getX() + boundFolder.getWidth(),y: boundFolder.getCenterY()};
 	            }
 	            var gradientId = 'gradient'+JenScript.sequenceId++;
-	            var gradient= new JenScript.SVGLinearGradient().Id(gradientId).from(start.x,start.y).to(end.x,end.y).shade(this.shader.percents,this.shader.colors).toSVG();
-				
+	            var gradient= new JenScript.SVGLinearGradient().Id(gradientId).from(start.x,start.y).to(end.x,end.y).shade(this.shader.percents,this.shader.colors,this.shader.opacity).toSVG();
+				console.log('shade bar');
 	            g2d.definesSVG(gradient);
 				this.geometry.outlineShape.fill('url(#'+gradientId+')');
 	        }
@@ -12371,7 +12371,9 @@ function stringInputToObject(color) {
 	 * Defines Donut2D Reflection Effect
 	 * @param {Object} config
 	 * @param {Object} [config.deviation]
+	 * @param {Object} [config.length]
 	 * @param {Object} [config.opacity]
+	 * @param {Object} [config.verticalOffset]
 	 */
 	JenScript.Donut2DReflectionEffect = function(config) {
 		this._init(config);
@@ -15642,7 +15644,6 @@ function stringInputToObject(color) {
 				
 				
 				var sliceFill = new JenScript.SVGGroup().Id(pie.Id+this.Id+s.Id).opacity(s.opacity).toSVG();
-				
 				g2d.deleteGraphicsElement(pie.Id+this.Id+s.Id);
 				sliceFill.appendChild(fill);
 				pieFill.appendChild(sliceFill);
@@ -15710,6 +15711,8 @@ function stringInputToObject(color) {
 	 * @param {Object} config
 	 * @param {Object} [config.deviation]
 	 * @param {Object} [config.opacity]
+	 * @param {Object} [config.length]
+	 * @param {Object} [config.verticalOffset]
 	 */
 	JenScript.PieReflectionEffect = function(config) {
 		this._init(config);
@@ -15775,7 +15778,6 @@ function stringInputToObject(color) {
 			ng.setAttribute('clip-path','url(#'+clipId+')');
 			ng.appendChild(e);
 			
-			//g2d.insertSVG(ng);	
 			pieEffect.appendChild(ng);
 			pie.svg.pieRoot.appendChild(pieEffect);
 		}
@@ -16662,13 +16664,15 @@ function stringInputToObject(color) {
 			config.xIndex=(config.xIndex !== undefined)?config.xIndex:2;
 			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
 			config.barOrientation = 'Horizontal';
+			
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
 			
-		    this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		    this.setButtonDrawColor((config.buttonDrawColor !== undefined)?config.buttonDrawColor : 'black');
-		    this.setButtonRolloverDrawColor((config.buttonRolloverDrawColor !== undefined)?config.buttonRolloverDrawColor : 'green');
+		    //this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
+		    
+		    //this.setButtonDrawColor((config.buttonDrawColor !== undefined)?config.buttonDrawColor : 'black');
+		    //this.setButtonRolloverDrawColor((config.buttonRolloverDrawColor !== undefined)?config.buttonRolloverDrawColor : 'red');
 		   
-		    this.sample = (config.sample !== undefined)?config.sample : {step : 20,sleep: 5,fraction:10};
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 10,sleep: 5,fraction:10};
 		    this.setOrphanLock(true);
 		},
 	    onButton1Press : function() {
@@ -16698,18 +16702,14 @@ function stringInputToObject(color) {
 		___init: function(config){
 			config = config || {};
 			config.Id = 'translate_ty'+JenScript.sequenceId++;
-			config.width=16;
-			config.height=100;
-			config.xIndex=100;
-			config.yIndex=1;
+			config.width=(config.width !== undefined)?config.width:16;
+			config.height=(config.height !== undefined)?config.height:100;
+			config.xIndex=(config.xIndex !== undefined)?config.xIndex:100;
+			config.yIndex=(config.yIndex !== undefined)?config.yIndex:1;
 			config.barOrientation = 'Vertical';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
 			
-			this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
-		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
-		    this.sample = (config.sample !== undefined)?config.sample : {step : 20,sleep: 5,fraction:10};
-		    
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 10,sleep: 5,fraction:10};
 		    this.setOrphanLock(true);
 		},
 		
