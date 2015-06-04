@@ -14,7 +14,7 @@
 			/**TODO, get only non undefined values and not all block*/
 			this.minor =  {tickMarkerSize : 2,tickMarkerColor:'rgb(230, 193, 153)',tickMarkerStroke:0.8,tickTextOffset : 0};
 			this.median = {tickMarkerSize : 4,tickMarkerColor:'rgb(230, 193, 153)',tickMarkerStroke:1.2,tickTextColor:'rgb(230, 193, 153)',tickTextFontSize:10,tickTextOffset : 0};
-			this.major =  {tickMarkerSize : 6,tickMarkerColor:'rgb(235, 214, 92)',tickMarkerStroke:1.6,tickTextColor:'rgb(235, 214, 92)',tickTextFontSize:12,tickTextOffset : 0};
+			this.major =  {tickMarkerSize : 6,tickMarkerColor:'rgb(37, 38, 41)',tickMarkerStroke:1.6,tickTextColor:'rgb(37, 38, 41)',tickTextFontSize:12,tickTextOffset : 0};
 			
 			if(config.minor !== undefined){
 				this.minor.tickMarkerSize = (config.minor.tickMarkerSize !== undefined) ? config.minor.tickMarkerSize : 2;
@@ -31,9 +31,9 @@
 			}
 			if(config.major !== undefined){
 				this.major.tickMarkerSize 	= (config.major.tickMarkerSize !== undefined) ? config.major.tickMarkerSize : 6;
-				this.major.tickMarkerColor 	= (config.major.tickMarkerColor !== undefined) ? config.major.tickMarkerColor : 'rgb(235, 214, 92)';
+				this.major.tickMarkerColor 	= (config.major.tickMarkerColor !== undefined) ? config.major.tickMarkerColor : 'rgb(37, 38, 41)';
 				this.major.tickMarkerStroke 	= (config.major.tickMarkerStroke !== undefined) ? config.major.tickMarkerStroke : 1.8;
-				this.major.tickTextColor 	= (config.major.tickTextColor !== undefined) ? config.major.tickTextColor : 'rgb(235, 214, 92)';
+				this.major.tickTextColor 	= (config.major.tickTextColor !== undefined) ? config.major.tickTextColor : 'rgb(37, 38, 41)';
 				this.major.tickTextFontSize 	= (config.major.tickTextFontSize !== undefined) ? config.major.tickTextFontSize : 12;
 				this.major.tickTextOffset 	= (config.major.tickTextOffset !== undefined) ? config.major.tickTextOffset : 0;
 			}
