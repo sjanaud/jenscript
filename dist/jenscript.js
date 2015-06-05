@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-06-04
+// build: 2015-06-05
 // All Rights reserved
 
 /**
@@ -16664,14 +16664,7 @@ function stringInputToObject(color) {
 			config.xIndex=(config.xIndex !== undefined)?config.xIndex:2;
 			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
 			config.barOrientation = 'Horizontal';
-			
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
-			
-		    //this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		    
-		    //this.setButtonDrawColor((config.buttonDrawColor !== undefined)?config.buttonDrawColor : 'black');
-		    //this.setButtonRolloverDrawColor((config.buttonRolloverDrawColor !== undefined)?config.buttonRolloverDrawColor : 'red');
-		   
 		    this.sample = (config.sample !== undefined)?config.sample : {step : 10,sleep: 5,fraction:10};
 		    this.setOrphanLock(true);
 		},
@@ -16708,7 +16701,6 @@ function stringInputToObject(color) {
 			config.yIndex=(config.yIndex !== undefined)?config.yIndex:1;
 			config.barOrientation = 'Vertical';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
-			
 		    this.sample = (config.sample !== undefined)?config.sample : {step : 10,sleep: 5,fraction:10};
 		    this.setOrphanLock(true);
 		},
@@ -18020,15 +18012,11 @@ function stringInputToObject(color) {
 			config.Id = 'lensX'+JenScript.sequenceId++;
 			config.width=(config.width !== undefined)?config.width : 100;
 			config.height=(config.height !== undefined)?config.height : 16;
-			config.xIndex=2;
-			config.yIndex=100;
+			config.xIndex=(config.xIndex !== undefined)?config.xIndex:3;
+			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
 			config.barOrientation = 'Horizontal';
 			JenScript.AbstractPlusMinusBarWidget.call(this,config);
 			
-		    this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		    this.setOutlineFillColor(config.outlineFillColor);
-		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
-		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
 		    this.setOrphanLock(true);
 		},
 		
@@ -18062,15 +18050,11 @@ function stringInputToObject(color) {
 			config.Id = 'LensY'+JenScript.sequenceId++;
 			config.width=(config.width !== undefined)?config.width : 16;
 			config.height=(config.height !== undefined)?config.height : 100;
-			config.xIndex=100;
-			config.yIndex=0;
+			config.xIndex=(config.xIndex !== undefined)?config.xIndex:100;
+			config.yIndex=(config.yIndex !== undefined)?config.yIndex:2;
 			config.barOrientation = 'Vertical';
 			JenScript.AbstractPlusMinusBarWidget.call(this,config);
 
-			this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		    this.setOutlineFillColor(config.outlineFillColor);
-		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
-		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
 		    this.setOrphanLock(true);
 		},
 		
@@ -33193,6 +33177,7 @@ function stringInputToObject(color) {
 			config = config || {};
 			this.name = (config.name !== undefined)? config.name :'Abstract Path Function';
 			this.themeColor=(config.themeColor !== undefined)? config.themeColor:'red';
+			this.strokeWidth=(config.strokeWidth !== undefined)? config.strokeWidth:1;
 		    /** source function */
 		    this.source=config.source;
 		    this.source.hostFunction = this;
@@ -33646,7 +33631,7 @@ function stringInputToObject(color) {
 		paintPathFunction : function(g2d) {
 			this.createPath();
 			g2d.deleteGraphicsElement(this.Id);
-			var path = new JenScript.SVGElement().attr('id',this.Id).name('path').attr('stroke',this.themeColor).attr('fill','none').attr('d',this.buildPath()).buildHTML();
+			var path = new JenScript.SVGElement().attr('id',this.Id).name('path').attr('stroke',this.themeColor).attr('stroke-width',this.strokeWidth).attr('fill','none').attr('d',this.buildPath()).buildHTML();
 			g2d.insertSVG(path);
 		},
 		
