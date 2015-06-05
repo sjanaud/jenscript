@@ -13,6 +13,7 @@
 			config = config || {};
 			this.name = (config.name !== undefined)? config.name :'Abstract Path Function';
 			this.themeColor=(config.themeColor !== undefined)? config.themeColor:'red';
+			this.strokeWidth=(config.strokeWidth !== undefined)? config.strokeWidth:1;
 		    /** source function */
 		    this.source=config.source;
 		    this.source.hostFunction = this;
@@ -466,7 +467,7 @@
 		paintPathFunction : function(g2d) {
 			this.createPath();
 			g2d.deleteGraphicsElement(this.Id);
-			var path = new JenScript.SVGElement().attr('id',this.Id).name('path').attr('stroke',this.themeColor).attr('fill','none').attr('d',this.buildPath()).buildHTML();
+			var path = new JenScript.SVGElement().attr('id',this.Id).name('path').attr('stroke',this.themeColor).attr('stroke-width',this.strokeWidth).attr('fill','none').attr('d',this.buildPath()).buildHTML();
 			g2d.insertSVG(path);
 		},
 		
