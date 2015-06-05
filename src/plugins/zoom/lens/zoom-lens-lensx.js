@@ -9,15 +9,11 @@
 			config.Id = 'lensX'+JenScript.sequenceId++;
 			config.width=(config.width !== undefined)?config.width : 100;
 			config.height=(config.height !== undefined)?config.height : 16;
-			config.xIndex=2;
-			config.yIndex=100;
+			config.xIndex=(config.xIndex !== undefined)?config.xIndex:3;
+			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
 			config.barOrientation = 'Horizontal';
 			JenScript.AbstractPlusMinusBarWidget.call(this,config);
 			
-		    this.setOutlineStrokeColor((config.outlineStrokeColor !== undefined)?config.outlineStrokeColor : 'black');
-		    this.setOutlineFillColor(config.outlineFillColor);
-		    this.setButtonDrawColor((config.buttonStrokeColor !== undefined)?config.buttonStrokeColor : 'black');
-		    this.setButtonRolloverDrawColor((config.buttonRolloverStrokeColor !== undefined)?config.buttonRolloverStrokeColor : 'green');
 		    this.setOrphanLock(true);
 		},
 		
