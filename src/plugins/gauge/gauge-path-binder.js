@@ -510,8 +510,8 @@
 		 * @param {Number} [config.startAngleDegree] manual start angle degree
 		 * @param {Number} [config.extendsAngleDegree] manual extends angle degree
 		 * @param {Number} [config.radius] arc radius
-		 * @param {Number} [config.polarRadius] polar radius, default 0
-		 * @param {Number} [config.polarAngle] polar angle, default 0
+		 * @param {Number} [config.shiftRadius] polar radius, default 0
+		 * @param {Number} [config.shiftAngleDegree] polar angle, default 0
 		 */
 		_init : function(config){
 			config = config || {};
@@ -522,9 +522,9 @@
 			/** binder extends angle degree */
 			this.extendsAngleDegree = config.extendsAngleDegree;
 			/** shift radius */
-			this.shiftRadius = (config.shiftRadius !== undefined) ? config.polarRadius: 0;
+			this.shiftRadius = (config.shiftRadius !== undefined) ? config.shiftRadius: 0;
 			/** shift angle degree */
-			this.shiftAngleDegree = (config.shiftAngleDegree !== undefined) ? config.polarAngle: 0;
+			this.shiftAngleDegree = (config.shiftAngleDegree !== undefined) ? config.shiftAngleDegree: 0;
 		},
 		
 		/**
