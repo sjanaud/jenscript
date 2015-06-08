@@ -1,12 +1,12 @@
 (function(){
-	
-	
+
 	
 	JenScript.GeneralMetricsPath = function(config){
 		this.init(config);
 	};
 	JenScript.Model.addMethods(JenScript.GeneralMetricsPath,{
 		init : function(config){
+			console.log('create general metrics path');
 			config = config || {};
 			this.Id = 'generalmetricspath'+JenScript.sequenceId++;
 			/** default nature is the user space */
@@ -27,7 +27,7 @@
 			/** user length of path */
 			this.userWidth;
 			/** base unit between user and device */
-			this.unitUserToDevice;
+			//this.unitUserToDevice;
 			
 			/** input metrics registered for this path */
 			this.metrics = [];
@@ -136,8 +136,8 @@
 			
 			this.geometryPath = new JenScript.GeometryPath(this.svgPathElement);
 			this.lengthPathDevice = this.geometryPath.lengthOfPath();
-			this.userWidth = this.max - this.min;
-			this.unitUserToDevice = this.lengthPathDevice / this.userWidth;
+			//this.userWidth = this.max - this.min;
+			//this.unitUserToDevice = this.lengthPathDevice / this.userWidth;
 			if(this.graphicsContext !== undefined){
 				this.graphicsContext.deleteGraphicsElement(this.Id);
 				this.graphicsContext.definesSVG(this.svgPathElement);
@@ -166,6 +166,7 @@
 		 * get metrics on this path
 		 */
 		getMetrics : function(){
+			console.log('general metrics path get Metrics');
 			this.createPath();
 			
 			if(this.svgPathElement === undefined)
@@ -182,7 +183,8 @@
 				}
 				
 				var userVal = m.getValue();
-				var deviceLength = this.unitUserToDevice * userVal;
+				
+				var deviceLength = this.lengthPathDevice * (userVal - this.min)/(this.max - this.min);
 				var percent = deviceLength/this.lengthPathDevice*100;
 				m.setLengthOnPath(deviceLength);
 				m.setPercentOnPath(percent);
@@ -191,8 +193,8 @@
 				
 				
 				
-				//m.setMetricGlyphMarker(new Marker(geometry.pointAtLength((float) deviceLength)));
-				//m.setFont(vm.getFont());
+//				m.setMetricGlyphMarker(new Marker(geometry.pointAtLength((float) deviceLength)));
+//				m.setFont(vm.getFont());
 //				m.setGlyphMetricDraw(vm.getGlyphMetricDraw());
 //				m.setGlyphMetricFill(vm.getGlyphMetricFill());
 //				m.setGlyphMetricEffect(vm.getGlyphMetricEffect());
@@ -240,7 +242,7 @@
 				//alert("::"+svgText.toSVG().outerHTML);
 				var svg = svgText.toSVG();
 				
-				this.graphicsContext.insertSVG(svg);
+				//this.graphicsContext.insertSVG(svg);
 				
 //				if (m.getStylePosition() === 'Tangent') {
 //					if(this.revertMode === 'RevertIfNeed'){
@@ -520,7 +522,8 @@
 			if (metricsValue === this.getMax()) {
 				return geometryPath.pointAtLength(geometry.lengthOfPath());
 			}
-			var deviceLength = this.unitUserToDevice * metricsValue;
+			//var deviceLength = this.unitUserToDevice * metricsValue;
+			var deviceLength = this.lengthPathDevice * (metricsValue - this.min)/(this.max - this.min);
 			return this.geometryPath.pointAtLength(deviceLength);
 		},
 
