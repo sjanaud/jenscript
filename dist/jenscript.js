@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-06-07
+// build: 2015-06-14
 // All Rights reserved
 
 /**
@@ -22806,7 +22806,7 @@ function stringInputToObject(color) {
 		    this.visible = true;
 		    this.opacity =(config.opacity !== undefined)?config.opacity : 1;
 		    /** user object */
-		    this.userObject;
+		    this.userObject = config.userObject;
 		    /**symbol bound*/
 		    this.bound2D;
 		},
@@ -24182,8 +24182,8 @@ function stringInputToObject(color) {
 		   	var elem =  bar.getBarShape().Id(bar.Id).toSVG();
 		   	g2d.insertSVG(elem);
 	        var bbox = elem.getBBox();
-	        var start = new Point2D.Double(bbox.x+bbox.width/2,bbox.y);
-	        var end = new Point2D.Double(bbox.x+bbox.width/2, bbox.y + bbox.height);
+	        var start = new JenScript.Point2D(bbox.x+bbox.width/2,bbox.y);
+	        var end = new JenScript.Point2D(bbox.x+bbox.width/2, bbox.y + bbox.height);
 	        var cBase = bar.getThemeColor();
 	        var brighther1 = JenScript.Color.brighten(cBase, 20);
 
@@ -25234,9 +25234,10 @@ function stringInputToObject(color) {
 	     * @param symbol
 	     *            the symbol to add
 	     */
-	    addSymbol : function(symbol) {
+	    addSymbol : function(symbol,repaint) {
 	        symbol.setLayer(this);
 	        this.symbols[this.symbols.length] = symbol;
+	        if(repaint)
 	        if(this.host !== undefined) this.host.repaintPlugin();
 	    },
 

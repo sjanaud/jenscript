@@ -69,7 +69,7 @@
 		    this.visible = true;
 		    this.opacity =(config.opacity !== undefined)?config.opacity : 1;
 		    /** user object */
-		    this.userObject;
+		    this.userObject = config.userObject;
 		    /**symbol bound*/
 		    this.bound2D;
 		},

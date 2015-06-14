@@ -34,9 +34,10 @@
 	     * @param symbol
 	     *            the symbol to add
 	     */
-	    addSymbol : function(symbol) {
+	    addSymbol : function(symbol,repaint) {
 	        symbol.setLayer(this);
 	        this.symbols[this.symbols.length] = symbol;
+	        if(repaint)
 	        if(this.host !== undefined) this.host.repaintPlugin();
 	    },
 

@@ -90,8 +90,8 @@
 		   	var elem =  bar.getBarShape().Id(bar.Id).toSVG();
 		   	g2d.insertSVG(elem);
 	        var bbox = elem.getBBox();
-	        var start = new Point2D.Double(bbox.x+bbox.width/2,bbox.y);
-	        var end = new Point2D.Double(bbox.x+bbox.width/2, bbox.y + bbox.height);
+	        var start = new JenScript.Point2D(bbox.x+bbox.width/2,bbox.y);
+	        var end = new JenScript.Point2D(bbox.x+bbox.width/2, bbox.y + bbox.height);
 	        var cBase = bar.getThemeColor();
 	        var brighther1 = JenScript.Color.brighten(cBase, 20);
 
