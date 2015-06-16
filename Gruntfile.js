@@ -194,11 +194,6 @@ grunt.initConfig({
 						"src/plugins/stripe/stripe-plugin.js",
 						"src/plugins/stripe/stripe.js",
 						
-						//RAY
-						"src/plugins/ray/ray-plugin.js",
-						"src/plugins/ray/ray.js",
-						
-						
 						
 						//SYMBOL
 						"src/plugins/symbol/symbol/symbol.js",
@@ -222,6 +217,12 @@ grunt.initConfig({
 						"src/plugins/symbol/layer/symbol-layer-point.js",
 						
 						"src/plugins/symbol/symbol-plugin.js",
+						
+						//RAY
+						"src/plugins/ray/ray-painter.js",
+						"src/plugins/ray/ray-painter-fill.js",
+						"src/plugins/ray/ray.js",
+						"src/plugins/ray/ray-plugin.js",
 						
 						
 						//RADAR
