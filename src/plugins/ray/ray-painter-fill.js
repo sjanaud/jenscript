@@ -34,7 +34,6 @@
 	     	g2d.deleteGraphicsElement(this.Id+ray.Id);
 		   	var elem =  ray.getRayShape().Id(this.Id+ray.Id).fill(ray.themeColor).fillOpacity(ray.opacity).toSVG();
 		   	g2d.insertSVG(elem);
-		   	console.log('ray theme color : '+ray.themeColor);
 		   	//set bar bound2D
 		   	var bbox = elem.getBBox();
 		   	ray.setBound2D(new JenScript.Bound2D(bbox.x,bbox.y,bbox.width,bbox.height));
