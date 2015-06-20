@@ -14,6 +14,15 @@
 			this.raysListeners=[];
 			JenScript.Plugin.call(this,{ name : "RayPlugin"});
 		},
+		
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},that.toString());
+		},
+		
+		
 		/**
 		 * register the specified ray
 		 * 
@@ -32,7 +41,6 @@
 		 *            the ray to validate
 		 */
 		checkRay : function(ray) {
-			console.log("check ray : "+ray);
 			if (ray.getRayNature() === undefined) {
 				throw new Error("Ray nature should be supplied");
 			}
@@ -252,9 +260,9 @@
 				// stacks
 				for (var i = 0; i < stackedRay.getStacks().length; i++) {
 					var s = stackedRay.getStacks()[i];
-
+					
 					var rayStack = new JenScript.Ray();
-					rayStack.setName(s.getStackName());
+					rayStack.setName(s.getName());
 					rayStack.setRayNature(stackedRay.getRayNature());
 					rayStack.setThickness(stackedRay.getThickness());
 					rayStack.setThicknessType(stackedRay.getThicknessType());
@@ -295,8 +303,7 @@
 					var stackwidth = deviceRayWidth;
 					var stackheight = Math.abs(yDeviceStackRayFleche - yDeviceStackRayBase);
 
-					//Rectangle2D stackRayShape = new Rectangle2D.Double(stackx, stacky, stackwidth, stackheight);
-					var rayShape = new JenScript.SVGRect().origin(x, y).size(width,height);
+					var stackRayShape = new JenScript.SVGRect().origin(stackx, stacky).size(stackwidth,stackheight);
 					rayStack.setRayShape(stackRayShape);
 
 					s.setRay(rayStack);
@@ -354,7 +361,7 @@
 					var s = stackedRay.getStacks()[i];
 
 					var rayStack = new JenScript.Ray();
-					rayStack.setName(s.getStackName());
+					rayStack.setName(s.getName());
 					rayStack.setRayNature(stackedRay.getRayNature());
 					rayStack.setThickness(stackedRay.getThickness());
 					rayStack.setThicknessType(stackedRay.getThicknessType());
@@ -396,12 +403,10 @@
 					var stackwidth = Math.abs(xDeviceStackRayFleche - xDeviceStackRayBase);
 					var stackheight = deviceRayHeight;
 
-					//Rectangle2D stackRayShape = new Rectangle2D.Double(stackx, stacky, stackwidth, stackheight);
-					var rayShape = new JenScript.SVGRect().origin(x, y).size(width,height);
+					var stackRayShape = new JenScript.SVGRect().origin(stackx, stacky).size(stackwidth,stackheight);
 					rayStack.setRayShape(stackRayShape);
 
 					s.setRay(rayStack);
-
 				}
 
 			}
@@ -421,7 +426,7 @@
 
 			ray.plugin = this;
 
-//			if (paintRequest == PaintRequest.RayLayer) {
+			if (paintRequest === 'RayLayer') {
 				if (ray.getRayFill() !== undefined) {
 					ray.getRayFill().paintRay(g2d, ray, viewPart);
 				}
@@ -433,11 +438,11 @@
 				if (ray.getRayDraw() !== undefined) {
 					ray.getRayDraw().paintRay(g2d, ray, viewPart);
 				}
-//			} else {
-//				if (ray.getRayLabel() != null) {
-//					ray.getRayLabel().paintRay(g2d, ray, viewPart);
-//				}
-//			}
+			} else {
+				if (ray.getRayLabel() != null) {
+					ray.getRayLabel().paintRay(g2d, ray, viewPart);
+				}
+			}
 
 		},
 
@@ -458,7 +463,7 @@
 				var stackRay = s.getRay();
 				this.paintRay(g2d, stackRay, viewPart, paintRequest);
 			}
-			this.paintRay(g2d, stackedRay, viewPart, paintRequest);
+			//this.paintRay(g2d, stackedRay, viewPart, paintRequest);
 		},
 
 		
