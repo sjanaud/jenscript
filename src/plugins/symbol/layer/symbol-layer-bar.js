@@ -36,11 +36,11 @@
 		/**
 		 * fire listener when symbol is entered, exited, pressed, released
 		 */
-		fireSymbolEvent : function(actionEvent,bar){
+		fireSymbolEvent : function(actionEvent,event){
 			for (var i = 0; i < this.symbolListeners.length; i++) {
 				var l = this.symbolListeners[i];
 				if(actionEvent === l.action){
-					l.onEvent(bar);
+					l.onEvent(event);
 				}
 			}
 		},
