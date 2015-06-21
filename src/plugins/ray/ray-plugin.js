@@ -415,8 +415,6 @@
 		/**
 		 * paint the specified ray
 		 * 
-		 * @param v2d
-		 *            the host view
 		 * @param g2d
 		 *            graphics context
 		 * @param ray
@@ -449,8 +447,6 @@
 		/**
 		 * paint the specified stacked ray
 		 * 
-		 * @param v2d
-		 *            the host view
 		 * @param g2d
 		 *            graphics context
 		 * @param stackedRay
