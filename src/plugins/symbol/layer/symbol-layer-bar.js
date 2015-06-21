@@ -706,14 +706,12 @@
 	        	  stackedBar.setBarShape(barRec);
 	        }
 
-	        // stack Fill
 	        var stacks = stackedBar.getStacks();
 
 	        var count = 0;
 	        for (var int = 0; int < stacks.length; int++) {
 				var stack = stacks[i];
 
-	            // data from host bar
 	            stack.setThickness(stackedBar.getThickness());
 	            stack.setBase(stackedBar.getStackBase(stack));
 	            stack.setNature(stackedBar.getNature());
