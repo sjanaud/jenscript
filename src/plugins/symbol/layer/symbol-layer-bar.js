@@ -1,5 +1,10 @@
 (function(){
 	
+	/**
+	 * Defines the symbol bar layer
+	 * @constructor
+	 * @param {Object} config the layer configuration
+	 */
 	JenScript.SymbolBarLayer = function(config) {
 		this._init(config);
 	};
@@ -8,12 +13,20 @@
 		
 		/**
 		 * Initialize symbol bar layer
-		 * @param {Object} config
+		 * @param {Object} config the layer configuration
 		 */
 		_init : function(config){
 			config=config||{};
 			JenScript.SymbolLayer.call(this, config);
 			this.symbolListeners = [];
+		},
+		
+		/**
+		 * String representation of this SymbolBarLayer
+		 * @override
+		 */
+		toString : function(){
+			return "JenScript.SymbolBarLayer";
 		},
 		
 		/**
@@ -126,13 +139,9 @@
 	    paintGroup : function(g2d,barGroup,viewPart,paintRequest) {
 	        barGroup.setHost(this.getHost());
 	        barGroup.setLayer(this);
-
-	        // paint only the label for group
 	        if (paintRequest === 'LabelLayer') {
 	            this.paintBar(g2d,barGroup,viewPart,paintRequest);
 	        }
-
-	        // paint children of this group
 	        var barSymbolComponents = barGroup.getSymbolComponents();
 	        this.paintSymbols(g2d,barSymbolComponents,viewPart,paintRequest);
 	    },
@@ -159,11 +168,10 @@
 	                        barGroup.getAxisLabel().paintSymbol(g2d, barGroup, viewPart);
 	                    }
 	                }
-	                else {// simple symbol or stackedSymbol
+	                else {
 	                    this.paintBarAxisLabel(g2d,barComponent,viewPart);
 	                }
 	            }
-
 	        }
 	    },
 
@@ -291,7 +299,6 @@
 	     * @param {Object}  symbol the vertical symbol bar to solve
 	     */
 	    solveVBarSymbol : function(bar) {
-	    	//console.log('solveVBarSymbol'+bar.Id);
 	        if (this.getHost() === undefined || this.getHost().getProjection() === undefined) {
 	            return;
 	        }
@@ -328,8 +335,7 @@
 
 	        if (bar.getMorpheStyle() === 'Round') {
 	        	var round = bar.getRound();
-	        	
-	           var barPath = new JenScript.SVGPath().Id(bar.Id);
+	        	var barPath = new JenScript.SVGPath().Id(bar.Id);
 	            if (bar.isAscent()) {
 	                barPath.moveTo(x, y + round);
 	                barPath.lineTo(x, y + height);
@@ -372,11 +378,9 @@
 	        var p2dUser = undefined;
 	        if (stackedBar.isAscent()) {
 	            p2dUser = new JenScript.Point2D(0, stackedBar.getBase() + stackedBar.getValue());
-	                    
 	        }
 	        if (stackedBar.isDescent()) {
 	            p2dUser = new new JenScript.Point2D(0, stackedBar.getBase() - stackedBar.getValue());
-	                   
 	        }
 	        if (!stackedBar.isValueSet()) {
 	            throw new Error("stacked bar symbol ascent or descent value should be supplied.");
@@ -384,11 +388,9 @@
 	        if (!stackedBar.isBaseSet()) {
 	            throw new Error("stacked bar symbol base value should be supplied.");
 	        }
-
 	        var p2ddevice = proj.userToPixel(p2dUser);
 	        var p2dUserBase = new JenScript.Point2D(0, stackedBar.getBase());
 	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
-
 	        var x = this.getComponentXLocation(stackedBar);
 	        var y = p2ddevice.y;
 	        if (stackedBar.isAscent()) {
@@ -397,10 +399,8 @@
 	        if (stackedBar.isDescent()) {
 	            y = p2ddeviceBase.y;
 	        }
-
 	        var width = stackedBar.getThickness();
 	        var height = Math.abs(p2ddeviceBase.y - p2ddevice.y);
-
 	        if (stackedBar.getMorpheStyle() === 'Round') {
 	            var round = stackedBar.getRound();
 	            var barPath = new JenScript.SVGPath().Id(stackedBar.Id);
@@ -429,25 +429,20 @@
 	            var barRec = new JenScript.SVGRect().Id(stackedBar.Id).origin(x, y).size(width, height);
 	            stackedBar.setBarShape(barRec);
 	        }
-
 	        var stacks = stackedBar.getStacks();
 	        var count = 0;
 	        for (var i = 0; i < stacks.length; i++) {
 				var stack = stacks[i];
-				
-	            // data from host stacked bar
 	            stack.setThickness(stackedBar.getThickness());
 	            stack.setBase(stackedBar.getStackBase(stack));
 	            stack.setNature(stackedBar.getNature());
 	            stack.setBarFill(stackedBar.getBarFill());
-
 	            if (stackedBar.isAscent()) {
 	                stack.setAscentValue(stack.getNormalizedValue());
 	            }
 	            else if (stackedBar.isDescent()) {
 	                stack.setDescentValue(stack.getNormalizedValue());
 	            }
-
 	            var stackedp2dUser = undefined;
 	            if (stackedBar.isAscent()) {
 	                stackedp2dUser = new JenScript.Point2D(0,stackedBar.getStackBase(stack) + stack.getNormalizedValue());
@@ -455,11 +450,9 @@
 	            else if (stackedBar.isDescent()) {
 	                stackedp2dUser = new JenScript.Point2D(0,stackedBar.getStackBase(stack) - stack.getNormalizedValue());
 	            }
-
 	            var stackedp2ddevice = proj.userToPixel(stackedp2dUser);
 	            var stackedp2dUserBase = new JenScript.Point2D(0, stackedBar.getStackBase(stack));
 	            var stackedp2ddeviceBase = proj.userToPixel(stackedp2dUserBase);
-
 	            var stackedx = this.getComponentXLocation(stackedBar);
 	            var stackedy = stackedp2ddevice.y;
 	            if (stackedBar.isAscent()) {
@@ -470,7 +463,6 @@
 	            }
 	            var stackedwidth = stackedBar.getThickness();
 	            var stackedheight = Math.abs(stackedp2ddeviceBase.y- stackedp2ddevice.y);
-	             
 	            if (stackedBar.getMorpheStyle() === 'Round') {
 	                if (count == stacks.length - 1) {
 	                    var round = stackedBar.getRound();
@@ -591,7 +583,6 @@
 	        var p2ddevice = proj.userToPixel(p2dUser);
 	        var p2dUserBase = new JenScript.Point2D(bar.getBase(), 0);
 	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
-
 	        var y = this.getComponentYLocation(bar);
 	        var x = p2ddeviceBase.x;
 	        if (bar.isAscent()) {
@@ -600,7 +591,6 @@
 	        if (bar.isDescent()) {
 	            x = p2ddevice.x;
 	        }
-
 	        var height = bar.getThickness();
 	        var width = Math.abs(p2ddevice.x - p2ddeviceBase.x);
 	        if (bar.getMorpheStyle() == 'Round') {
@@ -631,7 +621,6 @@
 	            var barRec = new JenScript.SVGRect().Id(this.Id).origin(x,y).size(width,height);
 	            bar.setBarShape(barRec);
 	        }
-
 	    },
 
 	    /**
@@ -661,10 +650,8 @@
 	            throw new Error("stacked bar symbol base value should be supplied.");
 	        }
 	        var p2ddevice = w2d.userToPixel(p2dUser);
-
 	        var p2dUserBase = new JenScript.Point2D(stackedBar.getBase(), 0);
 	        var p2ddeviceBase = w2d.userToPixel(p2dUserBase);
-
 	        var y = this.getComponentYLocation(stackedBar);
 	        var x = p2ddeviceBase.x;
 	        if (stackedBar.isAscent()) {
@@ -673,7 +660,6 @@
 	        if (stackedBar.isDescent()) {
 	            x = p2ddevice.x;
 	        }
-
 	        var height = stackedBar.getThickness();
 	        var width = Math.abs(p2ddevice.x - p2ddeviceBase.x);
 
@@ -705,9 +691,7 @@
 	        	  var barRec = new JenScript.SVGRect().Id(stackedBar.Id).origin(x,y).size(width,height);
 	        	  stackedBar.setBarShape(barRec);
 	        }
-
 	        var stacks = stackedBar.getStacks();
-
 	        var count = 0;
 	        for (var int = 0; int < stacks.length; int++) {
 				var stack = stacks[i];
@@ -732,9 +716,7 @@
 	                stackedp2dUser = new JenScript.Point2D(stackedBar.getStackBase(stack) - stack.getNormalizedValue(), 0);
 	            }
 	            var stackedp2ddevice = w2d.userToPixel(stackedp2dUser);
-
 	            var stackedp2dUserBase = new JenScript.Point2D(stackedBar.getStackBase(stack), 0);
-	                                                            
 	            var stackedp2ddeviceBase = w2d.userToPixel(stackedp2dUserBase);
 
 	            var stackedy = this.getComponentYLocation(stackedBar);
@@ -747,7 +729,6 @@
 	            }
 	            var stackedheight = stackedBar.getThickness();
 	            var stackedwidth = Math.abs(stackedp2ddevice.x - stackedp2ddeviceBase.x);
-	                   
 
 	            if (stackedBar.getMorpheStyle() === 'Round') {
 	                if (count == stacks.length - 1) {
