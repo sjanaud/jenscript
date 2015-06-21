@@ -6,6 +6,10 @@
 	JenScript.Model.inheritPrototype(JenScript.SymbolBarLayer, JenScript.SymbolLayer);
 	JenScript.Model.addMethods(JenScript.SymbolBarLayer,{
 		
+		/**
+		 * Initialize symbol bar layer
+		 * @param {Object} config
+		 */
 		_init : function(config){
 			config=config||{};
 			JenScript.SymbolLayer.call(this, config);
@@ -35,6 +39,8 @@
 		
 		/**
 		 * fire listener when symbol is entered, exited, pressed, released
+		 * @param {actionEvent}   event type name
+		 * @param {Object}   event object
 		 */
 		fireSymbolEvent : function(actionEvent,event){
 			for (var i = 0; i < this.symbolListeners.length; i++) {
@@ -45,6 +51,10 @@
 			}
 		},
 		
+		/**
+		 * get flattened symbols
+		 * @return symbols the flatten array symbols
+		 */
 	    getFlattenSymbolComponents : function() {
 	       var flattenSymbolComponents = [];
 	       for (var i = 0; i < this.getSymbols().length; i++) {
@@ -62,24 +72,29 @@
 	        return flattenSymbolComponents;
 	    },
 
-
+	    /**
+	     * paint layer
+	     * 
+	     * @param {Object}   g2d graphic context
+	     * @param {String}   view part
+	     * @param {String}   paint request, symbol or labels
+	     */
 	    paintLayer : function(g2d,viewPart,paintRequest) {
 	        this.paintSymbols(g2d,this.getSymbols(),viewPart,paintRequest);
 	    },
 
 	    /**
-	     * paint bars symbols
+	     * paint symbols
 	     * 
-	     * @param g2d
-	     *            the graphics context to paint
-	     * @param symbols
-	     *            the symbols components to paint
+	     * @param {Object}  g2d graphic context
+	     * @param {Array} 	symbols
+	     * @param {String}  view part
+	     * @param {String}  paint request, symbol or labels
+	     *            
 	     */
 	    paintSymbols : function(g2d,symbols,viewPart,paintRequest) {
 	        this.solveGeometry();
-	        //console.log('solve geometry ok with s count : '+symbols.length+' part '+viewPart);
 	        if (viewPart === 'Device') {
-	        	
 	        	  for (var i = 0; i < symbols.length; i++) {
 	   	    	   	var symbol = symbols[i];
 		   	    	if (symbol instanceof JenScript.SymbolBar) {
@@ -95,7 +110,6 @@
 		   	    	}
 	            }
 	        }
-
 	        if (viewPart !== 'Device'   && paintRequest === 'LabelLayer') {
 	            this.paintSymbolsAxisLabel(g2d,symbols,viewPart);
 	        }
@@ -104,10 +118,10 @@
 	    /**
 	     * paint group
 	     * 
-	     * @param g2d
-	     *            the graphics to paint
-	     * @param barGroup
-	     *            the bar group to paint
+	     * @param {Object}  g2d graphic context
+	     * @param {Object}  barGroup
+	     * @param {String}  view part
+	     * @param {String}  paint request, symbol or labels
 	     */
 	    paintGroup : function(g2d,barGroup,viewPart,paintRequest) {
 	        barGroup.setHost(this.getHost());
@@ -126,15 +140,11 @@
 	    /**
 	     * paint bars axis symbols
 	     * 
-	     * @param g2d
-	     *            the graphics context to paint
-	     * @param barSymbolComponents
-	     *            the symbols components to paint
-	     * @param viewPart
-	     *            the view zone to paint
+	     * @param {Object}  g2d graphic context
+	     * @param {Array} 	barSymbolComponents    the symbols components to paint
+	     * @param {String}  view part
 	     */
 	    paintSymbolsAxisLabel : function(g2d,barSymbolComponents,viewPart) {
-
 	    	 for (var i = 0; i < barSymbolComponents.length; i++) {
 	   	    	var barComponent = barSymbolComponents[i];
 	            barComponent.setHost(this.getHost());
@@ -160,11 +170,9 @@
 	    /**
 	     * paint bars axis symbols
 	     * 
-	     * @param g2d
-	     *            the graphics context to paint
-	     * @param barSymbol
-	     *            the symbol component
-	     * @param viewPart
+	     * @param {Object}  g2d graphic context
+	     * @param {Object} barSymbol  the symbol component
+	     * @param {String} viewPart
 	     */
 	    paintBarAxisLabel : function(g2d,barSymbol,viewPart) {
 	        if (barSymbol.getAxisLabel() !== undefined) {
@@ -175,20 +183,16 @@
 	    /**
 	     * paint bar
 	     * 
-	     * @param g2d
-	     *            the graphics context to paint
-	     * @param bar
-	     *            the bar to paint
+	     * @param {Object} g2d graphic context
+	     * @param {Object} bar  the bar to paint
+	     * @param {String} viewPart
+	     * @param {String} paint request      
 	     */
 	    paintBar : function(g2d,bar,viewPart,paintRequest) {
-	    	//console.log('paint bar '+bar.Id+' name : '+bar.name);
-	    	//console.log('fill ?: '+bar.getBarFill());
 	        bar.setHost(this.getHost());
 	        bar.setLayer(this);
-	       // console.log('...............PAINT REQUEST:'+paintRequest);
 	        if (paintRequest === 'SymbolLayer') {
 	            if (bar.getBarFill() !== undefined) {
-	            	//console.log('fill bar '+bar.Id+' name : '+bar.name);
 	                bar.getBarFill().paintSymbol(g2d,bar,viewPart);
 	            }
 	            if (bar.getBarEffect() !== undefined) {
@@ -203,25 +207,22 @@
 	                bar.getBarLabel().paintSymbol(g2d,bar,viewPart);
 	            }
 	        }
-
 	    },
 	    
 	    /**
 	     * paint stacked bar
 	     * 
-	     * @param g2d
-	     *            the graphics context to paint
-	     * @param stackedBar
-	     *            the stacked bar to paint
+	     * @param {Object}  g2d graphic context
+	     * @param {Object}  stackedBar the stacked bar symbol to paint
+	     * @param {String}  view part
+	     * @param {String}  paintRequest symbol or label paint request
 	     */
 	    paintBarStacked : function(g2d,stackedBar,viewPart,paintRequest) {
-	    	//console.log('paintBarStacked');
 	        stackedBar.setHost(this.getHost());
 	        stackedBar.setLayer(this);
 	        var stacks = stackedBar.getStacks();
 	        if (paintRequest === 'SymbolLayer') {
 	            for (var i = 0; i < stacks.length; i++) {
-	            	//console.log('stack paintBar : '+stacks[i].name);
 	            	stacks[i].barFill = stackedBar.barFill;
 	                this.paintBar(g2d, stacks[i],viewPart,paintRequest);
 	            }
@@ -245,15 +246,16 @@
 	        }
 	    },
 
-	  
+	    /**
+	     * solve symbol component
+	     * @param {Object}  symbol the symbol to solve
+	     */
 	    solveSymbolComponent : function(symbol) {
-	    	//console.log('solveSymbolComponent : '+symbol.Id);
 	        if (symbol.isFiller) {
 	            return;
 	        }
 	        symbol.setLayer(this);
 	        if (this.getHost().getNature() === 'Vertical') {
-	        	//console.log('solveSymbolComponent :Vertical ');
 	            this.solveVSymbolComponent(symbol);
 	        }
 	        if (this.getHost().getNature() === 'Horizontal') {
@@ -264,8 +266,7 @@
 	    /**
 	     * solve vertical component geometry
 	     * 
-	     * @param symbol
-	     *            the component to solve
+	     * @param {Object}  symbol the vertical symbol to solve
 	     */
 	    solveVSymbolComponent : function(symbol) {
 	        if (symbol.isFiller) {
@@ -274,14 +275,12 @@
 	        symbol.setNature('Vertical');
 	        symbol.setLayer(this);
 	        if (symbol instanceof JenScript.SymbolBarGroup) {
-	        	//console.log('case v bar group symbol');
 	            this.solveVBarGroup(symbol);
 	        }
 	        else if (symbol instanceof JenScript.SymbolBarStacked) {
 	            this.solveVStackedBar(symbol);
 	        }
 	        else {
-	        	//console.log('case v bar symbol');
 	            this.solveVBarSymbol(symbol);
 	        }
 	    },
@@ -289,8 +288,7 @@
 	    /**
 	     * solve vertical bar
 	     * 
-	     * @param bar
-	     *            the bar to solve
+	     * @param {Object}  symbol the vertical symbol bar to solve
 	     */
 	    solveVBarSymbol : function(bar) {
 	    	//console.log('solveVBarSymbol'+bar.Id);
@@ -360,10 +358,9 @@
 	    },
 
 	    /**
-	     * solve the specified vertical stacked bar
+	     * solve the given vertical stacked bar
 	     * 
-	     * @param stackedBar
-	     *            the stacked bar to solve
+	     * @param {Object}  stackedBar the vertical stacked bar symbol to solve
 	     */
 	    solveVStackedBar : function(stackedBar) {
 	        if (this.getHost() === undefined || this.getHost().getProjection() === undefined) {
@@ -437,9 +434,6 @@
 	        var count = 0;
 	        for (var i = 0; i < stacks.length; i++) {
 				var stack = stacks[i];
-				//console.log('prepare stack :'+stack.name); 
-				//console.log('stackbase : '+stackedBar.getStackBase(stack));
-				//console.log('stacktop  : '+(stackedBar.getStackBase(stack) + stack.getNormalizedValue()));
 				
 	            // data from host stacked bar
 	            stack.setThickness(stackedBar.getThickness());
@@ -448,7 +442,6 @@
 	            stack.setBarFill(stackedBar.getBarFill());
 
 	            if (stackedBar.isAscent()) {
-	            	//console.log('set stack value : '+stack.getNormalizedValue());
 	                stack.setAscentValue(stack.getNormalizedValue());
 	            }
 	            else if (stackedBar.isDescent()) {
@@ -478,8 +471,6 @@
 	            var stackedwidth = stackedBar.getThickness();
 	            var stackedheight = Math.abs(stackedp2ddeviceBase.y- stackedp2ddevice.y);
 	             
-	            //console.log('stack height : '+stackedheight);
-
 	            if (stackedBar.getMorpheStyle() === 'Round') {
 	                if (count == stacks.length - 1) {
 	                    var round = stackedBar.getRound();
@@ -521,8 +512,7 @@
 	    /**
 	     * solve horizontal group
 	     * 
-	     * @param barGroup
-	     *            the bar group to solve
+	     * @param {Object}  barGroup the horizontal bar group symbol to solve
 	     */
 	    solveHBarGroup : function(barGroup) {
 	        barGroup.setHost(this.getHost());
@@ -538,15 +528,12 @@
 	    /**
 	     * solve the specified horizontal component
 	     * 
-	     * @param symbol
-	     *            the bar component to solve
+	     * @param {Object}  symbol the horizontal symbol to solve
 	     */
 	    solveHSymbolComponent : function(symbol) {
-
 	        if (symbol.isFiller) {
 	            return;
 	        }
-
 	        symbol.setNature('Horizontal');
 	        if (symbol instanceof JenScript.SymbolBarGroup) {
 	            this.solveHBarGroup(symbol);
@@ -559,13 +546,10 @@
 	        }
 	    },
 
-
-
 	    /**
-	     * solve bar horizontal group
+	     * solve horizontal bar group
 	     * 
-	     * @param barGroup
-	     *            the specified bar group to solve
+	     * @param {Object}  barGroup the vertical bar group symbol to solve
 	     */
 	    solveVBarGroup : function(barGroup) {
 	        barGroup.setHost(this.getHost());
@@ -582,8 +566,7 @@
 	    /**
 	     * solve horizontal bar
 	     * 
-	     * @param bar
-	     *            the bar to solve
+	     * @param {Object}  bar the horizontal bar symbol to solve
 	     */
 	    solveHBarSymbol : function(bar) {
 	        if (this.getHost() === undefined || this.getHost().getProjection() === undefined) {
@@ -654,8 +637,7 @@
 	    /**
 	     * solve the horizontal stacked bar
 	     * 
-	     * @param stackedBar
-	     *            the stacked bar top solve
+	     * @param {Object}  stackedBar the horizontal stacked bar symbol to solve
 	     */
 	    solveHStackedBar : function(stackedBar) {
 	        if (this.getHost() == null || this.getHost().getProjection() == null) {
@@ -804,18 +786,13 @@
 	            	 var barRec = new JenScript.SVGRect().Id(stack.Id).origin(stackedx,stackedy).size(stackedwidth,stackedheight);
 		        	 stackedBar.setBarShape(barRec);
 	            }
-
 	            count++;
 	        }
-
 	    },
-
-	    
 	   
 	    onRelease : function(evt,part,x, y) {
 	    	this.barCheck('release',evt,x,y);
 	    },
-
 	   
 	    onPress : function(evt,part,x, y) {
 	    	this.barCheck('press',evt,x,y);
@@ -825,11 +802,17 @@
 	    	this.barCheck('move',evt,x,y);
 	    },
 	    
+	    /**
+	     * check symbol event
+	     * 
+	     * @param {String}  action the action press, release, move, etc.
+	     * @param {Object}  original event
+	     * @param {Number}  x location
+	     * @param {Number}  y location
+	     */
 	    barCheck: function(action, evt,x,y){
 	    	var that=this;
-	    	//console.log(' barCheck location x,y :'+x+','+y+' for action : '+action);
 	    	var _d = function(bar){
-	    		//console.log('_d : '+bar.name+'action : '+action);
 	    	   if(action === 'press')
 	    		   that.fireSymbolEvent('press',{symbol : bar, x:x,y:y, device :{x:x,y:y}});
                else if(action === 'release')
@@ -840,7 +823,6 @@
 	    	var _c = function(bar){
 	    		if(bar.isFiller) return;
 	    		var contains = (bar.getBound2D() !== undefined  && bar.getBound2D().contains(x,y));
-	    		//console.log('c check :'+bar.name+' for action : '+action+' bounds : '+bar.getBound2D() +' contains : '+contains);
         		if(action !== 'move' && contains && bar.isLockEnter()){
         			_d(bar);
         		}
@@ -855,15 +837,10 @@
 		        	
 		            if (symbolComponent instanceof JenScript.SymbolBarStacked) {
 		                var stackedBar = symbolComponent;
-		               // if (stackedBar.getBound2D() != undefined && stackedBar.getBound2D().contains(x,y) && stackedBar.isLockEnter()) {
-		                	_c(stackedBar);
-		                //}
-		               
+		                _c(stackedBar);
 		               var barStacks = stackedBar.getStacks();
 		               for (var j = 0; j < barStacks.length; j++) {
 		            	   var barStack = barStacks[j];
-		            	   //console.log('check stack:...........'+barStack.name);
-		            		//console.log('check stack : '+barStack.name+' with bounds : '+barStack.getBound2D());
 		            		_c(barStack);
 		                }
 		            }
@@ -893,23 +870,17 @@
 		                }
 		            }
 		            else if (symbolComponent instanceof JenScript.SymbolBar) {
-		               // if (symbolComponent.getBound2D() !== undefined && symbolComponent.getBound2D().contains(x, y)) {
-		                	_c(symbolComponent);
-		                //}
+		                _c(symbolComponent);
 		            }
-
 		        }
 	    },
 
 	    /**
 	     * track bar enter or exit for the specified bar for device location x,y
 	     * 
-	     * @param bar
-	     *            the bar to track
-	     * @param x
-	     *            the x in device coordinate
-	     * @param y
-	     *            the y in device coordinate
+	     * @param {Object}  bar symbol
+	     * @param {Number}  x location in device coordinate
+	     * @param {Number}  y location in device coordinate
 	     */
 	    barEnterExitTracker : function(bar,x,y) {
 	        if (bar.getBound2D() === undefined) {
@@ -927,9 +898,5 @@
 	            this.fireSymbolEvent('exit',{symbol : bar, x:x,y:y, device :{x:x,y:y}});
 	        }
 	    },
-
-		
 	});
-	
-	
 })();
