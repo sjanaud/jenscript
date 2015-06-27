@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-06-20
+// build: 2015-06-27
 // All Rights reserved
 
 /**
@@ -14486,6 +14486,7 @@ function stringInputToObject(color) {
 	/**
 	 * Object Pie()
 	 * Defines Pie
+	 * @constructor
 	 * @param {Object} config the pie configuration
 	 * @param {Object} [config.name] pie name
 	 * @param {Object} [config.radius] pie radius in pixel
@@ -14497,28 +14498,35 @@ function stringInputToObject(color) {
 	 * 
 	 */
 	JenScript.Pie = function(config){
-		config = config||{};
-		this.name = (config.name !== undefined)?config.name:'Pie name undefined';
-		this.Id = (config.Id !== undefined)?config.Id:'pie'+JenScript.sequenceId++;
-		this.x =  (config.x !== undefined)?config.x:0;
-		this.y =  (config.y !== undefined)?config.y:0;
-		this.radius =  (config.radius !== undefined)?config.radius:80;
-		this.opacity =  (config.opacity !== undefined)?config.opacity:1;
-		this.startAngleDegree =  (config.startAngleDegree !== undefined)?config.startAngleDegree:0;
-		this.nature =  (config.nature !== undefined)?config.nature:'User';
-		this.effects= [];
-		this.slices = [];
-		this.svg= {};
-		
-		//TODO paint strategy : stream or final render?
-		//check is this paint strategy pattern is good enough ?
-		//really need paint strategy? paint is fast enough? wait for user feedback...
-		
-		this.paint = true;
+		this.init(config);
 	};
+	
 	JenScript.Model.addMethods(JenScript.Pie,{
 		
+		init : function(config){
+			config = config||{};
+			this.name = (config.name !== undefined)?config.name:'Pie name undefined';
+			this.Id = (config.Id !== undefined)?config.Id:'pie'+JenScript.sequenceId++;
+			this.x =  (config.x !== undefined)?config.x:0;
+			this.y =  (config.y !== undefined)?config.y:0;
+			this.radius =  (config.radius !== undefined)?config.radius:80;
+			this.opacity =  (config.opacity !== undefined)?config.opacity:1;
+			this.startAngleDegree =  (config.startAngleDegree !== undefined)?config.startAngleDegree:0;
+			this.nature =  (config.nature !== undefined)?config.nature:'User';
+			this.effects= [];
+			this.slices = [];
+			this.svg= {};
+			
+			//TODO paint strategy : stream or final render?
+			//check is this paint strategy pattern is good enough ?
+			//really need paint strategy? paint is fast enough? wait for user feedback...
+			
+			this.paint = true;
+		},
 		
+		/**
+		 * repaint pie
+		 */
 		repaint : function(){
 			if(this.plugin !== undefined && this.paint)
 			this.plugin.repaintPlugin();
@@ -14639,6 +14647,7 @@ function stringInputToObject(color) {
 		/**
 		 * add slice in this pie
 		 * @param {Object} slice
+		 *  @returns this pie
 		 */
 		addSlice : function(slice) {
 			slice.pie = this;
@@ -14650,6 +14659,8 @@ function stringInputToObject(color) {
 		
 		/**
 		 * generate a slice with given config, add in pie and return pie.
+		 * @param {Object} config slice configuration
+		 * @returns this pie
 		 */
 		slice : function(config){
 			var s = new JenScript.PieSlice(config);
@@ -14660,6 +14671,7 @@ function stringInputToObject(color) {
 		 /**
 		  * add slices array in this pie
 		  * @param {Object} slice
+		  * @returns this pie
 		  */
 		 addSlices : function (slices) {
 	       for (var s = 0; s < slices.length; s++) {
@@ -14669,9 +14681,8 @@ function stringInputToObject(color) {
 		 },
 
 		/**
-		 * build slice
+		 * build the given slice
 		 * @param {Object} slice The slice to build
-		 *            
 		 */
 		buildSlice : function(slice) {
 		
@@ -25499,16 +25510,33 @@ function stringInputToObject(color) {
 })();
 (function(){
 	
+	/**
+	 * Defines the symbol bar layer
+	 * @constructor
+	 * @param {Object} config the layer configuration
+	 */
 	JenScript.SymbolBarLayer = function(config) {
 		this._init(config);
 	};
 	JenScript.Model.inheritPrototype(JenScript.SymbolBarLayer, JenScript.SymbolLayer);
 	JenScript.Model.addMethods(JenScript.SymbolBarLayer,{
 		
+		/**
+		 * Initialize symbol bar layer
+		 * @param {Object} config the layer configuration
+		 */
 		_init : function(config){
 			config=config||{};
 			JenScript.SymbolLayer.call(this, config);
 			this.symbolListeners = [];
+		},
+		
+		/**
+		 * String representation of this SymbolBarLayer
+		 * @override
+		 */
+		toString : function(){
+			return "JenScript.SymbolBarLayer";
 		},
 		
 		/**
@@ -25534,16 +25562,22 @@ function stringInputToObject(color) {
 		
 		/**
 		 * fire listener when symbol is entered, exited, pressed, released
+		 * @param {actionEvent}   event type name
+		 * @param {Object}   event object
 		 */
-		fireSymbolEvent : function(actionEvent,bar){
+		fireSymbolEvent : function(actionEvent,event){
 			for (var i = 0; i < this.symbolListeners.length; i++) {
 				var l = this.symbolListeners[i];
 				if(actionEvent === l.action){
-					l.onEvent(bar);
+					l.onEvent(event);
 				}
 			}
 		},
 		
+		/**
+		 * get flattened symbols
+		 * @return symbols the flatten array symbols
+		 */
 	    getFlattenSymbolComponents : function() {
 	       var flattenSymbolComponents = [];
 	       for (var i = 0; i < this.getSymbols().length; i++) {
@@ -25561,24 +25595,29 @@ function stringInputToObject(color) {
 	        return flattenSymbolComponents;
 	    },
 
-
+	    /**
+	     * paint layer
+	     * 
+	     * @param {Object}   g2d graphic context
+	     * @param {String}   view part
+	     * @param {String}   paint request, symbol or labels
+	     */
 	    paintLayer : function(g2d,viewPart,paintRequest) {
 	        this.paintSymbols(g2d,this.getSymbols(),viewPart,paintRequest);
 	    },
 
 	    /**
-	     * paint bars symbols
+	     * paint symbols
 	     * 
-	     * @param g2d
-	     *            the graphics context to paint
-	     * @param symbols
-	     *            the symbols components to paint
+	     * @param {Object}  g2d graphic context
+	     * @param {Array} 	symbols
+	     * @param {String}  view part
+	     * @param {String}  paint request, symbol or labels
+	     *            
 	     */
 	    paintSymbols : function(g2d,symbols,viewPart,paintRequest) {
 	        this.solveGeometry();
-	        //console.log('solve geometry ok with s count : '+symbols.length+' part '+viewPart);
 	        if (viewPart === 'Device') {
-	        	
 	        	  for (var i = 0; i < symbols.length; i++) {
 	   	    	   	var symbol = symbols[i];
 		   	    	if (symbol instanceof JenScript.SymbolBar) {
@@ -25594,7 +25633,6 @@ function stringInputToObject(color) {
 		   	    	}
 	            }
 	        }
-
 	        if (viewPart !== 'Device'   && paintRequest === 'LabelLayer') {
 	            this.paintSymbolsAxisLabel(g2d,symbols,viewPart);
 	        }
@@ -25603,21 +25641,17 @@ function stringInputToObject(color) {
 	    /**
 	     * paint group
 	     * 
-	     * @param g2d
-	     *            the graphics to paint
-	     * @param barGroup
-	     *            the bar group to paint
+	     * @param {Object}  g2d graphic context
+	     * @param {Object}  barGroup
+	     * @param {String}  view part
+	     * @param {String}  paint request, symbol or labels
 	     */
 	    paintGroup : function(g2d,barGroup,viewPart,paintRequest) {
 	        barGroup.setHost(this.getHost());
 	        barGroup.setLayer(this);
-
-	        // paint only the label for group
 	        if (paintRequest === 'LabelLayer') {
 	            this.paintBar(g2d,barGroup,viewPart,paintRequest);
 	        }
-
-	        // paint children of this group
 	        var barSymbolComponents = barGroup.getSymbolComponents();
 	        this.paintSymbols(g2d,barSymbolComponents,viewPart,paintRequest);
 	    },
@@ -25625,15 +25659,11 @@ function stringInputToObject(color) {
 	    /**
 	     * paint bars axis symbols
 	     * 
-	     * @param g2d
-	     *            the graphics context to paint
-	     * @param barSymbolComponents
-	     *            the symbols components to paint
-	     * @param viewPart
-	     *            the view zone to paint
+	     * @param {Object}  g2d graphic context
+	     * @param {Array} 	barSymbolComponents    the symbols components to paint
+	     * @param {String}  view part
 	     */
 	    paintSymbolsAxisLabel : function(g2d,barSymbolComponents,viewPart) {
-
 	    	 for (var i = 0; i < barSymbolComponents.length; i++) {
 	   	    	var barComponent = barSymbolComponents[i];
 	            barComponent.setHost(this.getHost());
@@ -25648,22 +25678,19 @@ function stringInputToObject(color) {
 	                        barGroup.getAxisLabel().paintSymbol(g2d, barGroup, viewPart);
 	                    }
 	                }
-	                else {// simple symbol or stackedSymbol
+	                else {
 	                    this.paintBarAxisLabel(g2d,barComponent,viewPart);
 	                }
 	            }
-
 	        }
 	    },
 
 	    /**
 	     * paint bars axis symbols
 	     * 
-	     * @param g2d
-	     *            the graphics context to paint
-	     * @param barSymbol
-	     *            the symbol component
-	     * @param viewPart
+	     * @param {Object}  g2d graphic context
+	     * @param {Object} barSymbol  the symbol component
+	     * @param {String} viewPart
 	     */
 	    paintBarAxisLabel : function(g2d,barSymbol,viewPart) {
 	        if (barSymbol.getAxisLabel() !== undefined) {
@@ -25674,20 +25701,16 @@ function stringInputToObject(color) {
 	    /**
 	     * paint bar
 	     * 
-	     * @param g2d
-	     *            the graphics context to paint
-	     * @param bar
-	     *            the bar to paint
+	     * @param {Object} g2d graphic context
+	     * @param {Object} bar  the bar to paint
+	     * @param {String} viewPart
+	     * @param {String} paint request      
 	     */
 	    paintBar : function(g2d,bar,viewPart,paintRequest) {
-	    	//console.log('paint bar '+bar.Id+' name : '+bar.name);
-	    	//console.log('fill ?: '+bar.getBarFill());
 	        bar.setHost(this.getHost());
 	        bar.setLayer(this);
-	       // console.log('...............PAINT REQUEST:'+paintRequest);
 	        if (paintRequest === 'SymbolLayer') {
 	            if (bar.getBarFill() !== undefined) {
-	            	//console.log('fill bar '+bar.Id+' name : '+bar.name);
 	                bar.getBarFill().paintSymbol(g2d,bar,viewPart);
 	            }
 	            if (bar.getBarEffect() !== undefined) {
@@ -25702,25 +25725,22 @@ function stringInputToObject(color) {
 	                bar.getBarLabel().paintSymbol(g2d,bar,viewPart);
 	            }
 	        }
-
 	    },
 	    
 	    /**
 	     * paint stacked bar
 	     * 
-	     * @param g2d
-	     *            the graphics context to paint
-	     * @param stackedBar
-	     *            the stacked bar to paint
+	     * @param {Object}  g2d graphic context
+	     * @param {Object}  stackedBar the stacked bar symbol to paint
+	     * @param {String}  view part
+	     * @param {String}  paintRequest symbol or label paint request
 	     */
 	    paintBarStacked : function(g2d,stackedBar,viewPart,paintRequest) {
-	    	//console.log('paintBarStacked');
 	        stackedBar.setHost(this.getHost());
 	        stackedBar.setLayer(this);
 	        var stacks = stackedBar.getStacks();
 	        if (paintRequest === 'SymbolLayer') {
 	            for (var i = 0; i < stacks.length; i++) {
-	            	//console.log('stack paintBar : '+stacks[i].name);
 	            	stacks[i].barFill = stackedBar.barFill;
 	                this.paintBar(g2d, stacks[i],viewPart,paintRequest);
 	            }
@@ -25744,15 +25764,16 @@ function stringInputToObject(color) {
 	        }
 	    },
 
-	  
+	    /**
+	     * solve symbol component
+	     * @param {Object}  symbol the symbol to solve
+	     */
 	    solveSymbolComponent : function(symbol) {
-	    	//console.log('solveSymbolComponent : '+symbol.Id);
 	        if (symbol.isFiller) {
 	            return;
 	        }
 	        symbol.setLayer(this);
 	        if (this.getHost().getNature() === 'Vertical') {
-	        	//console.log('solveSymbolComponent :Vertical ');
 	            this.solveVSymbolComponent(symbol);
 	        }
 	        if (this.getHost().getNature() === 'Horizontal') {
@@ -25763,8 +25784,7 @@ function stringInputToObject(color) {
 	    /**
 	     * solve vertical component geometry
 	     * 
-	     * @param symbol
-	     *            the component to solve
+	     * @param {Object}  symbol the vertical symbol to solve
 	     */
 	    solveVSymbolComponent : function(symbol) {
 	        if (symbol.isFiller) {
@@ -25773,14 +25793,12 @@ function stringInputToObject(color) {
 	        symbol.setNature('Vertical');
 	        symbol.setLayer(this);
 	        if (symbol instanceof JenScript.SymbolBarGroup) {
-	        	//console.log('case v bar group symbol');
 	            this.solveVBarGroup(symbol);
 	        }
 	        else if (symbol instanceof JenScript.SymbolBarStacked) {
 	            this.solveVStackedBar(symbol);
 	        }
 	        else {
-	        	//console.log('case v bar symbol');
 	            this.solveVBarSymbol(symbol);
 	        }
 	    },
@@ -25788,11 +25806,9 @@ function stringInputToObject(color) {
 	    /**
 	     * solve vertical bar
 	     * 
-	     * @param bar
-	     *            the bar to solve
+	     * @param {Object}  symbol the vertical symbol bar to solve
 	     */
 	    solveVBarSymbol : function(bar) {
-	    	//console.log('solveVBarSymbol'+bar.Id);
 	        if (this.getHost() === undefined || this.getHost().getProjection() === undefined) {
 	            return;
 	        }
@@ -25829,8 +25845,7 @@ function stringInputToObject(color) {
 
 	        if (bar.getMorpheStyle() === 'Round') {
 	        	var round = bar.getRound();
-	        	
-	           var barPath = new JenScript.SVGPath().Id(bar.Id);
+	        	var barPath = new JenScript.SVGPath().Id(bar.Id);
 	            if (bar.isAscent()) {
 	                barPath.moveTo(x, y + round);
 	                barPath.lineTo(x, y + height);
@@ -25859,10 +25874,9 @@ function stringInputToObject(color) {
 	    },
 
 	    /**
-	     * solve the specified vertical stacked bar
+	     * solve the given vertical stacked bar
 	     * 
-	     * @param stackedBar
-	     *            the stacked bar to solve
+	     * @param {Object}  stackedBar the vertical stacked bar symbol to solve
 	     */
 	    solveVStackedBar : function(stackedBar) {
 	        if (this.getHost() === undefined || this.getHost().getProjection() === undefined) {
@@ -25874,11 +25888,9 @@ function stringInputToObject(color) {
 	        var p2dUser = undefined;
 	        if (stackedBar.isAscent()) {
 	            p2dUser = new JenScript.Point2D(0, stackedBar.getBase() + stackedBar.getValue());
-	                    
 	        }
 	        if (stackedBar.isDescent()) {
 	            p2dUser = new new JenScript.Point2D(0, stackedBar.getBase() - stackedBar.getValue());
-	                   
 	        }
 	        if (!stackedBar.isValueSet()) {
 	            throw new Error("stacked bar symbol ascent or descent value should be supplied.");
@@ -25886,11 +25898,9 @@ function stringInputToObject(color) {
 	        if (!stackedBar.isBaseSet()) {
 	            throw new Error("stacked bar symbol base value should be supplied.");
 	        }
-
 	        var p2ddevice = proj.userToPixel(p2dUser);
 	        var p2dUserBase = new JenScript.Point2D(0, stackedBar.getBase());
 	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
-
 	        var x = this.getComponentXLocation(stackedBar);
 	        var y = p2ddevice.y;
 	        if (stackedBar.isAscent()) {
@@ -25899,10 +25909,8 @@ function stringInputToObject(color) {
 	        if (stackedBar.isDescent()) {
 	            y = p2ddeviceBase.y;
 	        }
-
 	        var width = stackedBar.getThickness();
 	        var height = Math.abs(p2ddeviceBase.y - p2ddevice.y);
-
 	        if (stackedBar.getMorpheStyle() === 'Round') {
 	            var round = stackedBar.getRound();
 	            var barPath = new JenScript.SVGPath().Id(stackedBar.Id);
@@ -25931,29 +25939,20 @@ function stringInputToObject(color) {
 	            var barRec = new JenScript.SVGRect().Id(stackedBar.Id).origin(x, y).size(width, height);
 	            stackedBar.setBarShape(barRec);
 	        }
-
 	        var stacks = stackedBar.getStacks();
 	        var count = 0;
 	        for (var i = 0; i < stacks.length; i++) {
 				var stack = stacks[i];
-				//console.log('prepare stack :'+stack.name); 
-				//console.log('stackbase : '+stackedBar.getStackBase(stack));
-				//console.log('stacktop  : '+(stackedBar.getStackBase(stack) + stack.getNormalizedValue()));
-				
-	            // data from host stacked bar
 	            stack.setThickness(stackedBar.getThickness());
 	            stack.setBase(stackedBar.getStackBase(stack));
 	            stack.setNature(stackedBar.getNature());
 	            stack.setBarFill(stackedBar.getBarFill());
-
 	            if (stackedBar.isAscent()) {
-	            	//console.log('set stack value : '+stack.getNormalizedValue());
 	                stack.setAscentValue(stack.getNormalizedValue());
 	            }
 	            else if (stackedBar.isDescent()) {
 	                stack.setDescentValue(stack.getNormalizedValue());
 	            }
-
 	            var stackedp2dUser = undefined;
 	            if (stackedBar.isAscent()) {
 	                stackedp2dUser = new JenScript.Point2D(0,stackedBar.getStackBase(stack) + stack.getNormalizedValue());
@@ -25961,11 +25960,9 @@ function stringInputToObject(color) {
 	            else if (stackedBar.isDescent()) {
 	                stackedp2dUser = new JenScript.Point2D(0,stackedBar.getStackBase(stack) - stack.getNormalizedValue());
 	            }
-
 	            var stackedp2ddevice = proj.userToPixel(stackedp2dUser);
 	            var stackedp2dUserBase = new JenScript.Point2D(0, stackedBar.getStackBase(stack));
 	            var stackedp2ddeviceBase = proj.userToPixel(stackedp2dUserBase);
-
 	            var stackedx = this.getComponentXLocation(stackedBar);
 	            var stackedy = stackedp2ddevice.y;
 	            if (stackedBar.isAscent()) {
@@ -25976,9 +25973,6 @@ function stringInputToObject(color) {
 	            }
 	            var stackedwidth = stackedBar.getThickness();
 	            var stackedheight = Math.abs(stackedp2ddeviceBase.y- stackedp2ddevice.y);
-	             
-	            //console.log('stack height : '+stackedheight);
-
 	            if (stackedBar.getMorpheStyle() === 'Round') {
 	                if (count == stacks.length - 1) {
 	                    var round = stackedBar.getRound();
@@ -26020,8 +26014,7 @@ function stringInputToObject(color) {
 	    /**
 	     * solve horizontal group
 	     * 
-	     * @param barGroup
-	     *            the bar group to solve
+	     * @param {Object}  barGroup the horizontal bar group symbol to solve
 	     */
 	    solveHBarGroup : function(barGroup) {
 	        barGroup.setHost(this.getHost());
@@ -26037,15 +26030,12 @@ function stringInputToObject(color) {
 	    /**
 	     * solve the specified horizontal component
 	     * 
-	     * @param symbol
-	     *            the bar component to solve
+	     * @param {Object}  symbol the horizontal symbol to solve
 	     */
 	    solveHSymbolComponent : function(symbol) {
-
 	        if (symbol.isFiller) {
 	            return;
 	        }
-
 	        symbol.setNature('Horizontal');
 	        if (symbol instanceof JenScript.SymbolBarGroup) {
 	            this.solveHBarGroup(symbol);
@@ -26058,13 +26048,10 @@ function stringInputToObject(color) {
 	        }
 	    },
 
-
-
 	    /**
-	     * solve bar horizontal group
+	     * solve horizontal bar group
 	     * 
-	     * @param barGroup
-	     *            the specified bar group to solve
+	     * @param {Object}  barGroup the vertical bar group symbol to solve
 	     */
 	    solveVBarGroup : function(barGroup) {
 	        barGroup.setHost(this.getHost());
@@ -26081,8 +26068,7 @@ function stringInputToObject(color) {
 	    /**
 	     * solve horizontal bar
 	     * 
-	     * @param bar
-	     *            the bar to solve
+	     * @param {Object}  bar the horizontal bar symbol to solve
 	     */
 	    solveHBarSymbol : function(bar) {
 	        if (this.getHost() === undefined || this.getHost().getProjection() === undefined) {
@@ -26107,7 +26093,6 @@ function stringInputToObject(color) {
 	        var p2ddevice = proj.userToPixel(p2dUser);
 	        var p2dUserBase = new JenScript.Point2D(bar.getBase(), 0);
 	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
-
 	        var y = this.getComponentYLocation(bar);
 	        var x = p2ddeviceBase.x;
 	        if (bar.isAscent()) {
@@ -26116,7 +26101,6 @@ function stringInputToObject(color) {
 	        if (bar.isDescent()) {
 	            x = p2ddevice.x;
 	        }
-
 	        var height = bar.getThickness();
 	        var width = Math.abs(p2ddevice.x - p2ddeviceBase.x);
 	        if (bar.getMorpheStyle() == 'Round') {
@@ -26147,14 +26131,12 @@ function stringInputToObject(color) {
 	            var barRec = new JenScript.SVGRect().Id(this.Id).origin(x,y).size(width,height);
 	            bar.setBarShape(barRec);
 	        }
-
 	    },
 
 	    /**
 	     * solve the horizontal stacked bar
 	     * 
-	     * @param stackedBar
-	     *            the stacked bar top solve
+	     * @param {Object}  stackedBar the horizontal stacked bar symbol to solve
 	     */
 	    solveHStackedBar : function(stackedBar) {
 	        if (this.getHost() == null || this.getHost().getProjection() == null) {
@@ -26178,10 +26160,8 @@ function stringInputToObject(color) {
 	            throw new Error("stacked bar symbol base value should be supplied.");
 	        }
 	        var p2ddevice = w2d.userToPixel(p2dUser);
-
 	        var p2dUserBase = new JenScript.Point2D(stackedBar.getBase(), 0);
 	        var p2ddeviceBase = w2d.userToPixel(p2dUserBase);
-
 	        var y = this.getComponentYLocation(stackedBar);
 	        var x = p2ddeviceBase.x;
 	        if (stackedBar.isAscent()) {
@@ -26190,7 +26170,6 @@ function stringInputToObject(color) {
 	        if (stackedBar.isDescent()) {
 	            x = p2ddevice.x;
 	        }
-
 	        var height = stackedBar.getThickness();
 	        var width = Math.abs(p2ddevice.x - p2ddeviceBase.x);
 
@@ -26222,15 +26201,11 @@ function stringInputToObject(color) {
 	        	  var barRec = new JenScript.SVGRect().Id(stackedBar.Id).origin(x,y).size(width,height);
 	        	  stackedBar.setBarShape(barRec);
 	        }
-
-	        // stack Fill
 	        var stacks = stackedBar.getStacks();
-
 	        var count = 0;
 	        for (var int = 0; int < stacks.length; int++) {
 				var stack = stacks[i];
 
-	            // data from host bar
 	            stack.setThickness(stackedBar.getThickness());
 	            stack.setBase(stackedBar.getStackBase(stack));
 	            stack.setNature(stackedBar.getNature());
@@ -26251,9 +26226,7 @@ function stringInputToObject(color) {
 	                stackedp2dUser = new JenScript.Point2D(stackedBar.getStackBase(stack) - stack.getNormalizedValue(), 0);
 	            }
 	            var stackedp2ddevice = w2d.userToPixel(stackedp2dUser);
-
 	            var stackedp2dUserBase = new JenScript.Point2D(stackedBar.getStackBase(stack), 0);
-	                                                            
 	            var stackedp2ddeviceBase = w2d.userToPixel(stackedp2dUserBase);
 
 	            var stackedy = this.getComponentYLocation(stackedBar);
@@ -26266,7 +26239,6 @@ function stringInputToObject(color) {
 	            }
 	            var stackedheight = stackedBar.getThickness();
 	            var stackedwidth = Math.abs(stackedp2ddevice.x - stackedp2ddeviceBase.x);
-	                   
 
 	            if (stackedBar.getMorpheStyle() === 'Round') {
 	                if (count == stacks.length - 1) {
@@ -26303,18 +26275,13 @@ function stringInputToObject(color) {
 	            	 var barRec = new JenScript.SVGRect().Id(stack.Id).origin(stackedx,stackedy).size(stackedwidth,stackedheight);
 		        	 stackedBar.setBarShape(barRec);
 	            }
-
 	            count++;
 	        }
-
 	    },
-
-	    
 	   
 	    onRelease : function(evt,part,x, y) {
 	    	this.barCheck('release',evt,x,y);
 	    },
-
 	   
 	    onPress : function(evt,part,x, y) {
 	    	this.barCheck('press',evt,x,y);
@@ -26324,11 +26291,17 @@ function stringInputToObject(color) {
 	    	this.barCheck('move',evt,x,y);
 	    },
 	    
+	    /**
+	     * check symbol event
+	     * 
+	     * @param {String}  action the action press, release, move, etc.
+	     * @param {Object}  original event
+	     * @param {Number}  x location
+	     * @param {Number}  y location
+	     */
 	    barCheck: function(action, evt,x,y){
 	    	var that=this;
-	    	//console.log(' barCheck location x,y :'+x+','+y+' for action : '+action);
 	    	var _d = function(bar){
-	    		//console.log('_d : '+bar.name+'action : '+action);
 	    	   if(action === 'press')
 	    		   that.fireSymbolEvent('press',{symbol : bar, x:x,y:y, device :{x:x,y:y}});
                else if(action === 'release')
@@ -26339,7 +26312,6 @@ function stringInputToObject(color) {
 	    	var _c = function(bar){
 	    		if(bar.isFiller) return;
 	    		var contains = (bar.getBound2D() !== undefined  && bar.getBound2D().contains(x,y));
-	    		//console.log('c check :'+bar.name+' for action : '+action+' bounds : '+bar.getBound2D() +' contains : '+contains);
         		if(action !== 'move' && contains && bar.isLockEnter()){
         			_d(bar);
         		}
@@ -26354,15 +26326,10 @@ function stringInputToObject(color) {
 		        	
 		            if (symbolComponent instanceof JenScript.SymbolBarStacked) {
 		                var stackedBar = symbolComponent;
-		               // if (stackedBar.getBound2D() != undefined && stackedBar.getBound2D().contains(x,y) && stackedBar.isLockEnter()) {
-		                	_c(stackedBar);
-		                //}
-		               
+		                _c(stackedBar);
 		               var barStacks = stackedBar.getStacks();
 		               for (var j = 0; j < barStacks.length; j++) {
 		            	   var barStack = barStacks[j];
-		            	   //console.log('check stack:...........'+barStack.name);
-		            		//console.log('check stack : '+barStack.name+' with bounds : '+barStack.getBound2D());
 		            		_c(barStack);
 		                }
 		            }
@@ -26392,23 +26359,17 @@ function stringInputToObject(color) {
 		                }
 		            }
 		            else if (symbolComponent instanceof JenScript.SymbolBar) {
-		               // if (symbolComponent.getBound2D() !== undefined && symbolComponent.getBound2D().contains(x, y)) {
-		                	_c(symbolComponent);
-		                //}
+		                _c(symbolComponent);
 		            }
-
 		        }
 	    },
 
 	    /**
 	     * track bar enter or exit for the specified bar for device location x,y
 	     * 
-	     * @param bar
-	     *            the bar to track
-	     * @param x
-	     *            the x in device coordinate
-	     * @param y
-	     *            the y in device coordinate
+	     * @param {Object}  bar symbol
+	     * @param {Number}  x location in device coordinate
+	     * @param {Number}  y location in device coordinate
 	     */
 	    barEnterExitTracker : function(bar,x,y) {
 	        if (bar.getBound2D() === undefined) {
@@ -26426,11 +26387,7 @@ function stringInputToObject(color) {
 	            this.fireSymbolEvent('exit',{symbol : bar, x:x,y:y, device :{x:x,y:y}});
 	        }
 	    },
-
-		
 	});
-	
-	
 })();
 (function(){
 	
@@ -26672,140 +26629,141 @@ function stringInputToObject(color) {
 })();
 (function(){
 		
-		JenScript.SymbolPlugin = function(config) {
-			this._init(config);
-		};
-		JenScript.Model.inheritPrototype(JenScript.SymbolPlugin, JenScript.Plugin);
-		JenScript.Model.addMethods(JenScript.SymbolPlugin,{
-			
-			_init : function(config){
-				config=config||{};
-				config.name='SymbolPlugin';
-				config.priority = 500;
-				JenScript.Plugin.call(this,config);
-				/** symbol nature */
-			    this.nature = (config.nature !== undefined)?config.nature : 'Vertical';
-			    /** symbol layers */
-			    this.layers = [];
-			},
-			
-		    
-			
-			/**
-			 * on projection register add 'bound changed' projection listener that invoke repaint plugin
-			 * when projection bound changed event occurs.
-			 */
-			onProjectionRegister : function(){
-				var that = this;
-				this.getProjection().addProjectionListener('boundChanged', function(){
-					that.repaintPlugin();
-				},'SymbolPlugin projection bound changed');
-			},
-			
-			 /**
-		     * get the plug in symbol nature
-		     * 
-		     * @return the plug in symbol nature
-		     */
-		    getNature : function() {
-		        return this.nature;
-		    },
+	/**
+	 * Defines Symbol plugin
+	 * @constructor
+	 * @param {Object} config the plugin configuration
+	 */
+	JenScript.SymbolPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.SymbolPlugin,{
+		
+		/**
+		 * Initialize symbol plugin with given configuration
+		 * @param {Object} config the plugin configuration
+		 */
+		_init : function(config){
+			config=config||{};
+			config.name='SymbolPlugin';
+			config.priority = 500;
+			JenScript.Plugin.call(this,config);
+			/** symbol nature */
+		    this.nature = (config.nature !== undefined)?config.nature : 'Vertical';
+		    /** symbol layers */
+		    this.layers = [];
+		},
+		
+		/**
+		 * String of representation of this symbol plugin
+		 * @override
+		 */
+		toString : function(){
+			return 'JenScript.SymbolPlugin';
+		},
+		
+		/**
+		 * on projection register add 'bound changed' projection listener that invoke repaint plugin
+		 * when projection bound changed event occurs.
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'SymbolPlugin projection bound changed');
+		},
+		
+		 /**
+	     * get the plug in symbol nature
+	     * 
+	     * @return the plug in symbol nature
+	     */
+	    getNature : function() {
+	        return this.nature;
+	    },
 
-		    /**
-		     * set the plug in symbol nature
-		     * 
-		     * @param symbolNature
-		     */
-		    setNature : function(nature) {
-		        this.nature = nature;
-		    },
+	    /**
+	     * set the plug in symbol nature
+	     * 
+	     * @param {String} nature the symbol nature, vertical or horizontal
+	     */
+	    setNature : function(nature) {
+	        this.nature = nature;
+	    },
 
-		    /**
-		     * add the specified symbol layer to this symbol plug in
-		     * 
-		     * @param layer
-		     *            the layer to add
-		     */
-		    addLayer : function(layer) {
-		        layer.setHost(this);
-		        this.layers[this.layers.length]=layer;
-		        this.repaintPlugin();
-		    },
+	    /**
+	     * add the specified symbol layer to this symbol plug in
+	     * 
+	     * @param {Object} layer the layer to add
+	     */
+	    addLayer : function(layer) {
+	        layer.setHost(this);
+	        this.layers[this.layers.length]=layer;
+	        this.repaintPlugin();
+	    },
 
-		    /**
-		     * remove the specified symbol layer from this symbol plug in
-		     * 
-		     * @param layer
-		     *            the layer to remove
-		     */
-		   removeLayer : function(layer) {
-		        //layer.setHost(null);
-		        //layers.remove(layer);
-		    },
 
-		    /**
-		     * count the number of layer registered in this symbol plug in
-		     */
-		    countLayers : function() {
-		        return this.layers.length;
-		    },
+	    /**
+	     * count the number of layer registered in this symbol plug in
+	     * @return the numbers of layers in this symbol plugin
+	     */
+	    countLayers : function() {
+	        return this.layers.length;
+	    },
 
-		    /**
-		     * get the layer at the specified index
-		     * 
-		     * @param index
-		     *            the layer index
-		     * @return layer
-		     */
-		    getLayer : function(index) {
-		        return this.layers[index];
-		    },
+	    /**
+	     * get the layer at the specified index
+	     * 
+	     * @param {Number} index  the layer index
+	     * @return layer at the given index
+	     */
+	    getLayer : function(index) {
+	        return this.layers[index];
+	    },
 
-		   /**
-		    * paint symbols
-		    */
-		    paintPlugin : function(g2d,viewPart) {
-		    	if(viewPart !== 'Device') return;
-		        // solve layer
-		        this.solveLayers();
-		        // paint layer
-		        for (var i = 0; i < this.countLayers(); i++) {
-		        	var layer = this.getLayer(i);
-		            layer.paintLayer(g2d,viewPart,'SymbolLayer');
-		            //layer.paintLayer(g2d,viewPart,'LabelLayer');
-		        }
-		    },
-		    
-		    //TODO remove similar copy block
+	   /**
+	    * paint symbols
+	    * @param {Object} g2d the graphic context
+	    * @param {String} viewPart the view part
+	    */
+	    paintPlugin : function(g2d,viewPart) {
+	    	if(viewPart !== 'Device') return;
+	        this.solveLayers();
+	        for (var i = 0; i < this.countLayers(); i++) {
+	        	var layer = this.getLayer(i);
+	            layer.paintLayer(g2d,viewPart,'SymbolLayer');
+	            //layer.paintLayer(g2d,viewPart,'LabelLayer');
+	        }
+	    },
+	    
+	    /**
+	     * solve layer
+	     */
+	    solveLayers : function() {
+	        for (var i = 0; i < this.countLayers(); i++) {
+	            this.getLayer(i).solveGeometry();
+	        }
+	    },
 
-		    /**
-		     * solve layer
-		     */
-		    solveLayers : function() {
-		        for (var i = 0; i < this.countLayers(); i++) {
-		            this.getLayer(i).solveGeometry();
-		        }
-		    },
+	    onRelease : function(evt,part,x, y) {
+	        for (var i = 0; i < this.countLayers(); i++) {
+	           this.getLayer(i).onRelease(evt,part,x, y);
+	        }
+	    },
 
-		   onRelease : function(evt,part,x, y) {
-		        for (var i = 0; i < this.countLayers(); i++) {
-		           this.getLayer(i).onRelease(evt,part,x, y);
-		        }
-		    },
-
-		   onPress : function(evt,part,x, y) {
-		        for (var i = 0; i < this.countLayers(); i++) {
-		            this.getLayer(i).onPress(evt,part,x, y);
-		        }
-		    },
-		   
-		   onMove : function(evt,part,x, y) {
-		        for (var i = 0; i < this.countLayers(); i++) {
-		            this.getLayer(i).onMove(evt,part,x, y);
-		        }
-		    },
-			
-		});
+	   onPress : function(evt,part,x, y) {
+	        for (var i = 0; i < this.countLayers(); i++) {
+	            this.getLayer(i).onPress(evt,part,x, y);
+	        }
+	    },
+	   
+	   onMove : function(evt,part,x, y) {
+	        for (var i = 0; i < this.countLayers(); i++) {
+	            this.getLayer(i).onMove(evt,part,x, y);
+	        }
+	    },
+	});
 })();
 (function(){
 	JenScript.RayPainter = function(config) {
@@ -26854,7 +26812,6 @@ function stringInputToObject(color) {
 	     	g2d.deleteGraphicsElement(this.Id+ray.Id);
 		   	var elem =  ray.getRayShape().Id(this.Id+ray.Id).fill(ray.themeColor).fillOpacity(ray.opacity).toSVG();
 		   	g2d.insertSVG(elem);
-		   	console.log('ray theme color : '+ray.themeColor);
 		   	//set bar bound2D
 		   	var bbox = elem.getBBox();
 		   	ray.setBound2D(new JenScript.Bound2D(bbox.x,bbox.y,bbox.width,bbox.height));
@@ -27694,19 +27651,6 @@ function stringInputToObject(color) {
 	    },
 	});
 	
-	
-	JenScript.RayGroup = function(config){
-		this._init(config);
-	};
-	JenScript.Model.inheritPrototype(JenScript.RayGroup, JenScript.Ray);
-	JenScript.Model.addMethods(JenScript.RayGroup, {
-		_init : function(config){
-			
-		},
-		
-	});
-	
-	
 
 })();
 (function(){
@@ -27723,7 +27667,8 @@ function stringInputToObject(color) {
 			config = config || {};
 			this.rays = [];
 			this.raysListeners=[];
-			JenScript.Plugin.call(this,{ name : "RayPlugin"});
+			config.name = "RayPlugin"
+			JenScript.Plugin.call(this,config);
 		},
 		
 		onProjectionRegister : function(){
@@ -27743,6 +27688,50 @@ function stringInputToObject(color) {
 		addRay : function(ray) {
 			ray.plugin = this;
 			this.rays.push(ray);
+		},
+		
+		
+		/**
+		 * String representation of this RayPlugin
+		 * @override
+		 */
+		toString : function(){
+			return "JenScript.RayPlugin";
+		},
+		
+		/**
+	     * add ray listener with given action
+	     * 
+	     * enter : when ray is entered
+	     * exit : when ray is exited
+	     * move : when move in ray
+	     * press : when ray is pressed
+	     * release : when ray is released
+	     * 
+	     * 
+	     * @param {String}   ray action event type like enter, exit, press, release
+	     * @param {Function} listener
+	     * @param {String}   listener owner name
+	     */
+		addRayListener  : function(actionEvent,listener,name){
+			if(name === undefined)
+				throw new Error('Ray listener, listener name should be supplied.');
+			var l = {action:actionEvent , onEvent : listener, name:name};
+			this.raysListeners[this.raysListeners.length] =l;
+		},
+		
+		/**
+		 * fire listener when ray is entered, exited, pressed, released
+		 * @param {actionEvent}   event type name
+		 * @param {Object}   event object
+		 */
+		fireRayEvent : function(actionEvent,event){
+			for (var i = 0; i < this.raysListeners.length; i++) {
+				var l = this.raysListeners[i];
+				if(actionEvent === l.action){
+					l.onEvent(event);
+				}
+			}
 		},
 
 		/**
@@ -27769,9 +27758,6 @@ function stringInputToObject(color) {
 				if (ray instanceof JenScript.StackedRay) {
 					that.resolveStackedRayGeometry(ray);
 				}
-				else if (ray instanceof JenScript.RayGroup) {
-					that.resolveRayGroupGeometry(ray);
-				} 
 				else {
 					that.resolveRayGeometry(ray);
 				}
@@ -27786,28 +27772,11 @@ function stringInputToObject(color) {
 			if (ray instanceof JenScript.StackedRay) {
 				this.resolveStackedRayGeometry(ray);
 			}
-			else if (ray instanceof JenScript.RayGroup) {
-				this.resolveRayGroupGeometry(ray);
-			}
 			else {
 				this.resolveRayGeometry(ray);
 			}
 		},
 
-		/**
-		 * resolve the specified rayGroup geometry
-		 * 
-		 * @param rayGroup
-		 *            the ray group geometry to resolve
-		 */
-		resolveRayGroupGeometry : function(rayGroup) {
-			rayGroup.copyToRays();
-			var rays = rayGroup.getRays();
-			var solve = function(ray, index, array) {
-				this.resolveRayGeometry(ray);
-			};	
-			rays.forEach(solve);
-		},
 
 		/**
 		 * resolve the specified ray geometry
@@ -27971,7 +27940,6 @@ function stringInputToObject(color) {
 				// stacks
 				for (var i = 0; i < stackedRay.getStacks().length; i++) {
 					var s = stackedRay.getStacks()[i];
-					console.log("make ray for stack : "+s);
 					
 					var rayStack = new JenScript.Ray();
 					rayStack.setName(s.getName());
@@ -27980,7 +27948,6 @@ function stringInputToObject(color) {
 					rayStack.setThicknessType(stackedRay.getThicknessType());
 					rayStack.setRay(stackedRay.getRay());
 					rayStack.setRayBase(stackedRay.getStackBase(s));
-					console.log("base : "+stackedRay.getStackBase(s));
 					rayStack.setThemeColor(s.getThemeColor());
 					rayStack.setRayFill(s.getRayFill());
 					rayStack.setRayDraw(s.getRayDraw());
@@ -27990,7 +27957,6 @@ function stringInputToObject(color) {
 					} else if (stackedRay.isDescent()) {
 						rayStack.setDescentValue(s.getNormalizedValue());
 					}
-					console.log('and ray value : '+rayStack.getRayValue());
 
 					var yUserStackRayBase = 0;
 					if (stackedRay.isAscent()) {
@@ -28017,7 +27983,6 @@ function stringInputToObject(color) {
 					var stackwidth = deviceRayWidth;
 					var stackheight = Math.abs(yDeviceStackRayFleche - yDeviceStackRayBase);
 
-					//Rectangle2D stackRayShape = new Rectangle2D.Double(stackx, stacky, stackwidth, stackwidth);
 					var stackRayShape = new JenScript.SVGRect().origin(stackx, stacky).size(stackwidth,stackheight);
 					rayStack.setRayShape(stackRayShape);
 
@@ -28118,7 +28083,6 @@ function stringInputToObject(color) {
 					var stackwidth = Math.abs(xDeviceStackRayFleche - xDeviceStackRayBase);
 					var stackheight = deviceRayHeight;
 
-					//Rectangle2D stackRayShape = new Rectangle2D.Double(stackx, stacky, stackwidth, stackheight);
 					var stackRayShape = new JenScript.SVGRect().origin(stackx, stacky).size(stackwidth,stackheight);
 					rayStack.setRayShape(stackRayShape);
 
@@ -28131,8 +28095,6 @@ function stringInputToObject(color) {
 		/**
 		 * paint the specified ray
 		 * 
-		 * @param v2d
-		 *            the host view
 		 * @param g2d
 		 *            graphics context
 		 * @param ray
@@ -28165,8 +28127,6 @@ function stringInputToObject(color) {
 		/**
 		 * paint the specified stacked ray
 		 * 
-		 * @param v2d
-		 *            the host view
 		 * @param g2d
 		 *            graphics context
 		 * @param stackedRay
@@ -28195,19 +28155,7 @@ function stringInputToObject(color) {
 
 				for (var i = 0; i < this.rays.length; i++) {
 					var ray = this.rays[i]
-					if (ray instanceof JenScript.RayGroup) {
-						var group =  ray;
-						var rays = group.getRays();
-						for (var j = 0; j < rays.length; j++) {
-							var r = rays[j];
-							if (r instanceof JenScript.StackedRay && !(r instanceof JenScript.RayGroup)) {
-								this.paintStackedRay(g2d, r, viewPart, 'RayLayer');
-							} else if (r instanceof JenScript.Ray && !(r instanceof JenScript.RayGroup)) {
-								this.paintRay(g2d, r, viewPart, 'RayLayer');
-							}
-						}
-					} 
-					else if (ray instanceof JenScript.StackedRay) {
+					if (ray instanceof JenScript.StackedRay) {
 						this.paintStackedRay(g2d, ray, viewPart, 'RayLayer');
 					}
 					else {
@@ -28217,20 +28165,7 @@ function stringInputToObject(color) {
 
 				for (var i = 0; i < this.rays.length; i++) {
 					var ray = this.rays[i]
-					if (ray instanceof JenScript.RayGroup) {
-						var group = ray;
-						var rays = group.getRays();
-						for (var j = 0; j < rays.length; j++) {
-							var r = rays[j];
-							if (r instanceof JenScript.StackedRay && !(r instanceof JenScript.RayGroup)) {
-								this.paintStackedRay(g2d, r, viewPart, 'LabelLayer');
-							} else if (r instanceof JenScript.Ray && !(r instanceof JenScript.RayGroup)) {
-								this.paintRay(g2d, r, viewPart, 'LabelLayer');
-							}
-						}
-						
-					} 
-					else if (ray instanceof JenScript.StackedRay) {
+					if (ray instanceof JenScript.StackedRay) {
 						this.paintStackedRay(g2d, ray, viewPart, 'LabelLayer');
 					}
 					else {
@@ -28279,6 +28214,89 @@ function stringInputToObject(color) {
 //			}
 
 		},
+		
+	    onRelease : function(evt,part,x, y) {
+	    	this.rayCheck('release',evt,x,y);
+	    },
+	   
+	    onPress : function(evt,part,x, y) {
+	    	this.rayCheck('press',evt,x,y);
+	    },
+	   
+	    onMove : function(evt,part,x, y) {
+	    	this.rayCheck('move',evt,x,y);
+	    },
+	    
+	    /**
+	     * check ray event
+	     * 
+	     * @param {String}  action the action press, release, move, etc.
+	     * @param {Object}  original event
+	     * @param {Number}  x location
+	     * @param {Number}  y location
+	     */
+	    rayCheck: function(action, evt,x,y){
+	    	var that=this;
+	    	var _d = function(ray){
+	    	   if(action === 'press')
+	    		   that.fireRayEvent('press',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+               else if(action === 'release')
+            	   that.fireRayEvent('release',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+               else 
+            	   that.rayEnterExitTracker(ray,x,y);
+	    	};
+	    	var _c = function(ray){
+	    		var contains = (ray.getBound2D() !== undefined  && ray.getBound2D().contains(x,y));
+        		if(action !== 'move' && contains && ray.isLockEnter()){
+        			_d(ray);
+        		}
+        		else if (action === 'move') {
+                	_d(ray);
+                }
+	    	};
+		        for (var i = 0; i < this.rays.length; i++) {
+		        	
+		        	var ray = this.rays[i];
+		        	
+		            if (ray instanceof JenScript.StackedRay) {
+		               var stackedRay = ray;
+		               _c(stackedRay);
+		               var rayStacks = stackedRay.getStacks();
+		               for (var j = 0; j < rayStacks.length; j++) {
+		            	   var rayStack = rayStacks[j];
+		            		_c(rayStack);
+		                }
+		            }
+		            else if (ray instanceof JenScript.Ray) {
+		                _c(ray);
+		            }
+		        }
+	    },
+
+	    /**
+	     * track ray enter or exit for the specified ray for device location x,y
+	     * 
+	     * @param {Object}  ray symbol
+	     * @param {Number}  x location in device coordinate
+	     * @param {Number}  y location in device coordinate
+	     */
+	    rayEnterExitTracker : function(ray,x,y) {
+	        if (ray.getBound2D() === undefined) {
+	            return;
+	        }
+	        if (ray.getBound2D().contains(x, y) && !ray.isLockEnter()) {
+	        	ray.setLockEnter(true);
+	            this.fireRayEvent('enter',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+	        }
+	        if (ray.getBound2D().contains(x, y) && ray.isLockEnter()) {
+	            this.fireRayEvent('move',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+	        }
+	        else if (!ray.getBound2D().contains(x, y) && ray.isLockEnter()) {
+	        	ray.setLockEnter(false);
+	            this.fireRayEvent('exit',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+	        }
+	    },
+		
 	});
 
 	
