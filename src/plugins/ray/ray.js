@@ -764,18 +764,5 @@
 	    },
 	});
 	
-	
-	JenScript.RayGroup = function(config){
-		this._init(config);
-	};
-	JenScript.Model.inheritPrototype(JenScript.RayGroup, JenScript.Ray);
-	JenScript.Model.addMethods(JenScript.RayGroup, {
-		_init : function(config){
-			
-		},
-		
-	});
-	
-	
 
 })();

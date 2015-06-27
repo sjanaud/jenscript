@@ -12,7 +12,8 @@
 			config = config || {};
 			this.rays = [];
 			this.raysListeners=[];
-			JenScript.Plugin.call(this,{ name : "RayPlugin"});
+			config.name = "RayPlugin"
+			JenScript.Plugin.call(this,config);
 		},
 		
 		onProjectionRegister : function(){
@@ -32,6 +33,50 @@
 		addRay : function(ray) {
 			ray.plugin = this;
 			this.rays.push(ray);
+		},
+		
+		
+		/**
+		 * String representation of this RayPlugin
+		 * @override
+		 */
+		toString : function(){
+			return "JenScript.RayPlugin";
+		},
+		
+		/**
+	     * add ray listener with given action
+	     * 
+	     * enter : when ray is entered
+	     * exit : when ray is exited
+	     * move : when move in ray
+	     * press : when ray is pressed
+	     * release : when ray is released
+	     * 
+	     * 
+	     * @param {String}   ray action event type like enter, exit, press, release
+	     * @param {Function} listener
+	     * @param {String}   listener owner name
+	     */
+		addRayListener  : function(actionEvent,listener,name){
+			if(name === undefined)
+				throw new Error('Ray listener, listener name should be supplied.');
+			var l = {action:actionEvent , onEvent : listener, name:name};
+			this.raysListeners[this.raysListeners.length] =l;
+		},
+		
+		/**
+		 * fire listener when ray is entered, exited, pressed, released
+		 * @param {actionEvent}   event type name
+		 * @param {Object}   event object
+		 */
+		fireRayEvent : function(actionEvent,event){
+			for (var i = 0; i < this.raysListeners.length; i++) {
+				var l = this.raysListeners[i];
+				if(actionEvent === l.action){
+					l.onEvent(event);
+				}
+			}
 		},
 
 		/**
@@ -58,9 +103,6 @@
 				if (ray instanceof JenScript.StackedRay) {
 					that.resolveStackedRayGeometry(ray);
 				}
-				else if (ray instanceof JenScript.RayGroup) {
-					that.resolveRayGroupGeometry(ray);
-				} 
 				else {
 					that.resolveRayGeometry(ray);
 				}
@@ -75,28 +117,11 @@
 			if (ray instanceof JenScript.StackedRay) {
 				this.resolveStackedRayGeometry(ray);
 			}
-			else if (ray instanceof JenScript.RayGroup) {
-				this.resolveRayGroupGeometry(ray);
-			}
 			else {
 				this.resolveRayGeometry(ray);
 			}
 		},
 
-		/**
-		 * resolve the specified rayGroup geometry
-		 * 
-		 * @param rayGroup
-		 *            the ray group geometry to resolve
-		 */
-		resolveRayGroupGeometry : function(rayGroup) {
-			rayGroup.copyToRays();
-			var rays = rayGroup.getRays();
-			var solve = function(ray, index, array) {
-				this.resolveRayGeometry(ray);
-			};	
-			rays.forEach(solve);
-		},
 
 		/**
 		 * resolve the specified ray geometry
@@ -475,19 +500,7 @@
 
 				for (var i = 0; i < this.rays.length; i++) {
 					var ray = this.rays[i]
-					if (ray instanceof JenScript.RayGroup) {
-						var group =  ray;
-						var rays = group.getRays();
-						for (var j = 0; j < rays.length; j++) {
-							var r = rays[j];
-							if (r instanceof JenScript.StackedRay && !(r instanceof JenScript.RayGroup)) {
-								this.paintStackedRay(g2d, r, viewPart, 'RayLayer');
-							} else if (r instanceof JenScript.Ray && !(r instanceof JenScript.RayGroup)) {
-								this.paintRay(g2d, r, viewPart, 'RayLayer');
-							}
-						}
-					} 
-					else if (ray instanceof JenScript.StackedRay) {
+					if (ray instanceof JenScript.StackedRay) {
 						this.paintStackedRay(g2d, ray, viewPart, 'RayLayer');
 					}
 					else {
@@ -497,20 +510,7 @@
 
 				for (var i = 0; i < this.rays.length; i++) {
 					var ray = this.rays[i]
-					if (ray instanceof JenScript.RayGroup) {
-						var group = ray;
-						var rays = group.getRays();
-						for (var j = 0; j < rays.length; j++) {
-							var r = rays[j];
-							if (r instanceof JenScript.StackedRay && !(r instanceof JenScript.RayGroup)) {
-								this.paintStackedRay(g2d, r, viewPart, 'LabelLayer');
-							} else if (r instanceof JenScript.Ray && !(r instanceof JenScript.RayGroup)) {
-								this.paintRay(g2d, r, viewPart, 'LabelLayer');
-							}
-						}
-						
-					} 
-					else if (ray instanceof JenScript.StackedRay) {
+					if (ray instanceof JenScript.StackedRay) {
 						this.paintStackedRay(g2d, ray, viewPart, 'LabelLayer');
 					}
 					else {
@@ -559,6 +559,89 @@
 //			}
 
 		},
+		
+	    onRelease : function(evt,part,x, y) {
+	    	this.rayCheck('release',evt,x,y);
+	    },
+	   
+	    onPress : function(evt,part,x, y) {
+	    	this.rayCheck('press',evt,x,y);
+	    },
+	   
+	    onMove : function(evt,part,x, y) {
+	    	this.rayCheck('move',evt,x,y);
+	    },
+	    
+	    /**
+	     * check ray event
+	     * 
+	     * @param {String}  action the action press, release, move, etc.
+	     * @param {Object}  original event
+	     * @param {Number}  x location
+	     * @param {Number}  y location
+	     */
+	    rayCheck: function(action, evt,x,y){
+	    	var that=this;
+	    	var _d = function(ray){
+	    	   if(action === 'press')
+	    		   that.fireRayEvent('press',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+               else if(action === 'release')
+            	   that.fireRayEvent('release',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+               else 
+            	   that.rayEnterExitTracker(ray,x,y);
+	    	};
+	    	var _c = function(ray){
+	    		var contains = (ray.getBound2D() !== undefined  && ray.getBound2D().contains(x,y));
+        		if(action !== 'move' && contains && ray.isLockEnter()){
+        			_d(ray);
+        		}
+        		else if (action === 'move') {
+                	_d(ray);
+                }
+	    	};
+		        for (var i = 0; i < this.rays.length; i++) {
+		        	
+		        	var ray = this.rays[i];
+		        	
+		            if (ray instanceof JenScript.StackedRay) {
+		               var stackedRay = ray;
+		               _c(stackedRay);
+		               var rayStacks = stackedRay.getStacks();
+		               for (var j = 0; j < rayStacks.length; j++) {
+		            	   var rayStack = rayStacks[j];
+		            		_c(rayStack);
+		                }
+		            }
+		            else if (ray instanceof JenScript.Ray) {
+		                _c(ray);
+		            }
+		        }
+	    },
+
+	    /**
+	     * track ray enter or exit for the specified ray for device location x,y
+	     * 
+	     * @param {Object}  ray symbol
+	     * @param {Number}  x location in device coordinate
+	     * @param {Number}  y location in device coordinate
+	     */
+	    rayEnterExitTracker : function(ray,x,y) {
+	        if (ray.getBound2D() === undefined) {
+	            return;
+	        }
+	        if (ray.getBound2D().contains(x, y) && !ray.isLockEnter()) {
+	        	ray.setLockEnter(true);
+	            this.fireRayEvent('enter',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+	        }
+	        if (ray.getBound2D().contains(x, y) && ray.isLockEnter()) {
+	            this.fireRayEvent('move',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+	        }
+	        else if (!ray.getBound2D().contains(x, y) && ray.isLockEnter()) {
+	        	ray.setLockEnter(false);
+	            this.fireRayEvent('exit',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+	        }
+	    },
+		
 	});
 
 	
