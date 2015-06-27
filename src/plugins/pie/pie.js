@@ -2,6 +2,7 @@
 	/**
 	 * Object Pie()
 	 * Defines Pie
+	 * @constructor
 	 * @param {Object} config the pie configuration
 	 * @param {Object} [config.name] pie name
 	 * @param {Object} [config.radius] pie radius in pixel
@@ -13,28 +14,35 @@
 	 * 
 	 */
 	JenScript.Pie = function(config){
-		config = config||{};
-		this.name = (config.name !== undefined)?config.name:'Pie name undefined';
-		this.Id = (config.Id !== undefined)?config.Id:'pie'+JenScript.sequenceId++;
-		this.x =  (config.x !== undefined)?config.x:0;
-		this.y =  (config.y !== undefined)?config.y:0;
-		this.radius =  (config.radius !== undefined)?config.radius:80;
-		this.opacity =  (config.opacity !== undefined)?config.opacity:1;
-		this.startAngleDegree =  (config.startAngleDegree !== undefined)?config.startAngleDegree:0;
-		this.nature =  (config.nature !== undefined)?config.nature:'User';
-		this.effects= [];
-		this.slices = [];
-		this.svg= {};
-		
-		//TODO paint strategy : stream or final render?
-		//check is this paint strategy pattern is good enough ?
-		//really need paint strategy? paint is fast enough? wait for user feedback...
-		
-		this.paint = true;
+		this.init(config);
 	};
+	
 	JenScript.Model.addMethods(JenScript.Pie,{
 		
+		init : function(config){
+			config = config||{};
+			this.name = (config.name !== undefined)?config.name:'Pie name undefined';
+			this.Id = (config.Id !== undefined)?config.Id:'pie'+JenScript.sequenceId++;
+			this.x =  (config.x !== undefined)?config.x:0;
+			this.y =  (config.y !== undefined)?config.y:0;
+			this.radius =  (config.radius !== undefined)?config.radius:80;
+			this.opacity =  (config.opacity !== undefined)?config.opacity:1;
+			this.startAngleDegree =  (config.startAngleDegree !== undefined)?config.startAngleDegree:0;
+			this.nature =  (config.nature !== undefined)?config.nature:'User';
+			this.effects= [];
+			this.slices = [];
+			this.svg= {};
+			
+			//TODO paint strategy : stream or final render?
+			//check is this paint strategy pattern is good enough ?
+			//really need paint strategy? paint is fast enough? wait for user feedback...
+			
+			this.paint = true;
+		},
 		
+		/**
+		 * repaint pie
+		 */
 		repaint : function(){
 			if(this.plugin !== undefined && this.paint)
 			this.plugin.repaintPlugin();
@@ -155,6 +163,7 @@
 		/**
 		 * add slice in this pie
 		 * @param {Object} slice
+		 *  @returns this pie
 		 */
 		addSlice : function(slice) {
 			slice.pie = this;
@@ -166,6 +175,8 @@
 		
 		/**
 		 * generate a slice with given config, add in pie and return pie.
+		 * @param {Object} config slice configuration
+		 * @returns this pie
 		 */
 		slice : function(config){
 			var s = new JenScript.PieSlice(config);
@@ -176,6 +187,7 @@
 		 /**
 		  * add slices array in this pie
 		  * @param {Object} slice
+		  * @returns this pie
 		  */
 		 addSlices : function (slices) {
 	       for (var s = 0; s < slices.length; s++) {
@@ -185,9 +197,8 @@
 		 },
 
 		/**
-		 * build slice
+		 * build the given slice
 		 * @param {Object} slice The slice to build
-		 *            
 		 */
 		buildSlice : function(slice) {
 		
