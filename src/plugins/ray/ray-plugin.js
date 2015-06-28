@@ -286,7 +286,7 @@
 				for (var i = 0; i < stackedRay.getStacks().length; i++) {
 					var s = stackedRay.getStacks()[i];
 					
-					var rayStack = new JenScript.Ray();
+					var rayStack = new JenScript.Ray({Id : s.Id});
 					rayStack.setName(s.getName());
 					rayStack.setRayNature(stackedRay.getRayNature());
 					rayStack.setThickness(stackedRay.getThickness());
@@ -385,7 +385,7 @@
 				for (var i = 0; i < stackedRay.getStacks().length; i++) {
 					var s = stackedRay.getStacks()[i];
 
-					var rayStack = new JenScript.Ray();
+					var rayStack = new JenScript.Ray({Id : s.Id});
 					rayStack.setName(s.getName());
 					rayStack.setRayNature(stackedRay.getRayNature());
 					rayStack.setThickness(stackedRay.getThickness());
@@ -396,7 +396,6 @@
 					rayStack.setRayFill(s.getRayFill());
 					rayStack.setRayDraw(s.getRayDraw());
 					rayStack.setRayEffect(s.getRayEffect());
-
 					if (stackedRay.isAscent()) {
 						rayStack.setAscentValue(s.getNormalizedValue());
 					} else if (stackedRay.isDescent()) {
@@ -591,6 +590,9 @@
             	   that.rayEnterExitTracker(ray,x,y);
 	    	};
 	    	var _c = function(ray){
+	    		if (ray.getBound2D() === undefined) {
+	 	            return;
+	 	        }
 	    		var contains = (ray.getBound2D() !== undefined  && ray.getBound2D().contains(x,y));
         		if(action !== 'move' && contains && ray.isLockEnter()){
         			_d(ray);
@@ -608,7 +610,7 @@
 		               _c(stackedRay);
 		               var rayStacks = stackedRay.getStacks();
 		               for (var j = 0; j < rayStacks.length; j++) {
-		            	   var rayStack = rayStacks[j];
+		            	   var rayStack = rayStacks[j].ray;
 		            		_c(rayStack);
 		                }
 		            }

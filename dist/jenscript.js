@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-06-27
+// build: 2015-06-28
 // All Rights reserved
 
 /**
@@ -26939,14 +26939,15 @@ function stringInputToObject(color) {
 	    /** deflating operation flag */
 	    this.deflating = false;
 	    this.bound2D;
+	    
+	    this.parent;
 	};
 	
 	JenScript.Model.addMethods(JenScript.Ray,{
 		
 		 /**
 	     * get the bound2D
-	     * 
-	     * @return bound2D
+	     * @return {Object} bound2D
 	     */
 	    getBound2D : function() {
 	        return this.bound2D;
@@ -26954,18 +26955,14 @@ function stringInputToObject(color) {
 
 	    /**
 	     * set bound2D
-	     * 
-	     * @param bound2D
-	     *            the bound2D to set
+	     * @param {Object} bound2D
 	     */
 	    setBound2D : function(bound2D) {
 	        this.bound2D = bound2D;
 	    },
-
 	    
 		 /**
 	     * get the ray draw painter
-	     * 
 	     * @return ray draw painter
 	     */
 	    getRayDraw : function() {
@@ -27362,33 +27359,20 @@ function stringInputToObject(color) {
 	     * @return the stack base
 	     */
 	    getStackBase : function(stack) {
-	        //var base = super.getRayBase();
-	    	//console.log(".................getStackBase ");
 			var base = this.getRayBase();
-			//console.log("ray base : "+base);
-			//console.log("check stack base : "+stack);
 			for (var i = 0; i < this.stacks.length; i++) {
 				var s = this.stacks[i];
-				//console.log("compare to stack "+s);
 	            if (stack.equals(s)) {
-	            	//console.log("return base "+base);
 	                return base;
 	            }
 
 	            if (this.isAscent()) {
-	            	 //console.log("increment ascent base : "+base);
 	                base = base + s.getNormalizedValue();
 	            }
 	            else if (this.isDescent()) {
-	            	 //console.log("increment descent base : "+base);
 	                base = base - s.getNormalizedValue();
 	            }
-	            else{
-	            	// console.log("not ascent/descent");
-	            }
-	            //console.log("increment base : "+base);
 	        }
-			//console.log('ray stack'+stack+' base : '+base);
 	        return base;
 	    },
 
@@ -27399,10 +27383,10 @@ function stringInputToObject(color) {
 	     *            the stack to add
 	     */
 	    addStack : function(stack) {
-	        if (stack.getValue() < 0) {
+	        if (stack.getStackValue() < 0) {
 	            throw new Error( "stack value value should be greater than 0");
 	        }
-	        stack.setHost(this);
+	        stack.parent = this;
 	        this.stacks.push(stack);
 	    },
 
@@ -27413,10 +27397,10 @@ function stringInputToObject(color) {
 	        var deltaValue = Math.abs(this.getRayValue());
 	        var stacksValue = 0;
 	        for (var i = 0; i < this.stacks.length; i++) {
-	        	 stacksValue = stacksValue + this.stacks[i].getValue();
+	        	 stacksValue = stacksValue + this.stacks[i].getStackValue();
 			}
 	        for (var i = 0; i < this.stacks.length; i++) {
-	        	this.stacks[i].setNormalizedValue(this.stacks[i].getValue() * deltaValue / stacksValue);
+	        	this.stacks[i].setNormalizedValue(this.stacks[i].getStackValue() * deltaValue / stacksValue);
 	        }
 	    },
 
@@ -27441,30 +27425,34 @@ function stringInputToObject(color) {
 	});
 	
 	JenScript.RayStack = function(config){
-		this.init(config);
+		this._init(config);
 	};
+	JenScript.Model.inheritPrototype(JenScript.RayStack, JenScript.Ray);
 	JenScript.Model.addMethods(JenScript.RayStack, {
 		
-		init : function(config){
+		_init : function(config){
 			config = config||{};
-			this.name = (config.name !== undefined)?config.name:'raystack name undefined';
-			this.Id = (config.Id !== undefined)?config.Id:'raystack'+JenScript.sequenceId++;
-			 /** the host of this stack */
-		    this.host;
+			//this.name = (config.name !== undefined)?config.name:'raystack name undefined';
+			//this.Id = (config.Id !== undefined)?config.Id:'raystack'+JenScript.sequenceId++;
+			 /** the stacked ray host of this stack */
+		    //this.host;
 		    /** stack theme color */
-		    this.themeColor = (config.themeColor !== undefined)?config.themeColor:JenScript.createColor();
+		    //this.themeColor = (config.themeColor !== undefined)?config.themeColor:JenScript.createColor();
 		    /** stack value */
-		    this.value = (config.value !== undefined)?config.value:1;
+		    this.stackValue = (config.stackValue !== undefined)?config.stackValue:1;
 		    /** stack normalized value */
 		    this.normalizedValue;
 		    /** the generated ray of this stack */
 		    this.ray;
 		    /** ray draw */
-		    this.rayDraw;
+		    //this.rayDraw;
 		    /** ray fill */
-		    this.rayFill = new JenScript.RayFill0();
+		    //this.rayFill = new JenScript.RayFill0();
 		    /** ray effect */
-		    this.rayEffect;
+		    //this.rayEffect;
+		    //this.bound2D;
+		    
+		    JenScript.Ray.call(this,config);
 		},
 	
 		equals : function(stack){
@@ -27472,58 +27460,74 @@ function stringInputToObject(color) {
 		},
 		
 	    toString : function() {
-	        return "Ray Stack [name=" +  this.name + ", Id=" + this.Id + ", value=" + this.value
+	        return "Ray Stack [name=" +  this.name + ", Id=" + this.Id + ", stackValue=" + this.stackValue
 	                + ", normalizedValue=" + this.normalizedValue + "]";
 	    },
-
-	    /**
-	     * get the stack name
-	     * 
-	     * @return the stack name
-	     */
-	    getName : function() {
-	        return this.name;
-	    },
-
-	    /**
-	     * set the stack name
-	     * 
-	     * @param stackName
-	     *            the stack name to set
-	     */
-	    setName : function(name) {
-	        this.name = name;
-	    },
-
-	    /**
-	     * get stack theme color
-	     * 
-	     * @return stack theme color
-	     */
-	    getThemeColor : function() {
-	        if (this.themeColor === undefined) {
-	            this.themeColor = JenScript.createColor();
-	        }
-	        return this.themeColor;
-	    },
-
-	    /**
-	     * set stack theme color
-	     * 
-	     * @param themeColor
-	     *            stack theme color to set
-	     */
-	    setThemeColor : function(themeColor) {
-	        this.themeColor = themeColor;
-	    },
+	    
+//	    /**
+//	     * get the bound2D
+//	     * @return {Object} bound2D
+//	     */
+//	    getBound2D : function() {
+//	        return this.bound2D;
+//	    },
+//
+//	    /**
+//	     * set bound2D
+//	     * @param {Object} bound2D
+//	     */
+//	    setBound2D : function(bound2D) {
+//	        this.bound2D = bound2D;
+//	    },
+//
+//	    /**
+//	     * get the stack name
+//	     * 
+//	     * @return the stack name
+//	     */
+//	    getName : function() {
+//	        return this.name;
+//	    },
+//
+//	    /**
+//	     * set the stack name
+//	     * 
+//	     * @param stackName
+//	     *            the stack name to set
+//	     */
+//	    setName : function(name) {
+//	        this.name = name;
+//	    },
+//
+//	    /**
+//	     * get stack theme color
+//	     * 
+//	     * @return stack theme color
+//	     */
+//	    getThemeColor : function() {
+//	        if (this.themeColor === undefined) {
+//	            this.themeColor = JenScript.createColor();
+//	        }
+//	        return this.themeColor;
+//	    },
+//
+//	    /**
+//	     * set stack theme color
+//	     * 
+//	     * @param themeColor
+//	     *            stack theme color to set
+//	     */
+//	    setThemeColor : function(themeColor) {
+//	        this.themeColor = themeColor;
+//	    },
 
 	    /**
 	     * get stack value
 	     * 
 	     * @return stack value
 	     */
-	    getValue : function() {
-	        return this.value;
+	    getStackValue : function() {
+	        return this.stackValue;
 	    },
 
 	    /**
@@ -27532,8 +27536,8 @@ function stringInputToObject(color) {
 	     * @param value
 	     *            the stack value to set
 	     */
-	    setValue : function(value) {
-	        this.value = value;
+	    setStackValue : function(stackValue) {
+	        this.stackValue = stackValue;
 	    },
 
 	    /**
@@ -27574,81 +27578,81 @@ function stringInputToObject(color) {
 	        this.ray = ray;
 	    },
 
-	    /**
-	     * get stacked ray host of this stack
-	     * 
-	     * @return stacked ray host
-	     */
-	    getHost : function() {
-	        return this.host;
-	    },
-
-	    /**
-	     * set stacked ray host
-	     * 
-	     * @param host
-	     *            the stacked ray host to set
-	     */
-	    setHost : function(host) {
-	        this.host = host;
-	    },
-
-	    /**
-	     * get the ray draw
-	     * 
-	     * @return the ray draw
-	     */
-	    getRayDraw : function() {
-	        return this.rayDraw;
-	    },
-
-	    /**
-	     * set the ray draw
-	     * 
-	     * @param rayDraw
-	     *            the ray draw to set
-	     */
-	    setRayDraw : function(rayDraw) {
-	        this.rayDraw = rayDraw;
-	    },
-
-	    /**
-	     * get the ray fill
-	     * 
-	     * @return the ray fill
-	     */
-	    getRayFill : function() {
-	        return this.rayFill;
-	    },
-
-	    /**
-	     * set the ray fill
-	     * 
-	     * @param rayFill
-	     *            the ray fill to set
-	     */
-	    setRayFill : function(rayFill) {
-	        this.rayFill = rayFill;
-	    },
-
-	    /**
-	     * get the ray effect
-	     * 
-	     * @return the ray effect
-	     */
-	    getRayEffect : function() {
-	        return this.rayEffect;
-	    },
-
-	    /**
-	     * set the ray effect
-	     * 
-	     * @param rayEffect
-	     *            the ray effect to set
-	     */
-	    setRayEffect : function(rayEffect) {
-	        this.rayEffect = rayEffect;
-	    },
+//	    /**
+//	     * get stacked ray host of this stack
+//	     * 
+//	     * @return stacked ray host
+//	     */
+//	    getHost : function() {
+//	        return this.host;
+//	    },
+//
+//	    /**
+//	     * set stacked ray host
+//	     * 
+//	     * @param host
+//	     *            the stacked ray host to set
+//	     */
+//	    setHost : function(host) {
+//	        this.host = host;
+//	    },
+//
+//	    /**
+//	     * get the ray draw
+//	     * 
+//	     * @return the ray draw
+//	     */
+//	    getRayDraw : function() {
+//	        return this.rayDraw;
+//	    },
+//
+//	    /**
+//	     * set the ray draw
+//	     * 
+//	     * @param rayDraw
+//	     *            the ray draw to set
+//	     */
+//	    setRayDraw : function(rayDraw) {
+//	        this.rayDraw = rayDraw;
+//	    },
+//
+//	    /**
+//	     * get the ray fill
+//	     * 
+//	     * @return the ray fill
+//	     */
+//	    getRayFill : function() {
+//	        return this.rayFill;
+//	    },
+//
+//	    /**
+//	     * set the ray fill
+//	     * 
+//	     * @param rayFill
+//	     *            the ray fill to set
+//	     */
+//	    setRayFill : function(rayFill) {
+//	        this.rayFill = rayFill;
+//	    },
+//
+//	    /**
+//	     * get the ray effect
+//	     * 
+//	     * @return the ray effect
+//	     */
+//	    getRayEffect : function() {
+//	        return this.rayEffect;
+//	    },
+//
+//	    /**
+//	     * set the ray effect
+//	     * 
+//	     * @param rayEffect
+//	     *            the ray effect to set
+//	     */
+//	    setRayEffect : function(rayEffect) {
+//	        this.rayEffect = rayEffect;
+//	    },
 	});
 	
 
@@ -27941,7 +27945,7 @@ function stringInputToObject(color) {
 				for (var i = 0; i < stackedRay.getStacks().length; i++) {
 					var s = stackedRay.getStacks()[i];
 					
-					var rayStack = new JenScript.Ray();
+					var rayStack = new JenScript.Ray({Id : s.Id});
 					rayStack.setName(s.getName());
 					rayStack.setRayNature(stackedRay.getRayNature());
 					rayStack.setThickness(stackedRay.getThickness());
@@ -28040,7 +28044,7 @@ function stringInputToObject(color) {
 				for (var i = 0; i < stackedRay.getStacks().length; i++) {
 					var s = stackedRay.getStacks()[i];
 
-					var rayStack = new JenScript.Ray();
+					var rayStack = new JenScript.Ray({Id : s.Id});
 					rayStack.setName(s.getName());
 					rayStack.setRayNature(stackedRay.getRayNature());
 					rayStack.setThickness(stackedRay.getThickness());
@@ -28051,7 +28055,6 @@ function stringInputToObject(color) {
 					rayStack.setRayFill(s.getRayFill());
 					rayStack.setRayDraw(s.getRayDraw());
 					rayStack.setRayEffect(s.getRayEffect());
-
 					if (stackedRay.isAscent()) {
 						rayStack.setAscentValue(s.getNormalizedValue());
 					} else if (stackedRay.isDescent()) {
@@ -28246,6 +28249,9 @@ function stringInputToObject(color) {
             	   that.rayEnterExitTracker(ray,x,y);
 	    	};
 	    	var _c = function(ray){
+	    		if (ray.getBound2D() === undefined) {
+	 	            return;
+	 	        }
 	    		var contains = (ray.getBound2D() !== undefined  && ray.getBound2D().contains(x,y));
         		if(action !== 'move' && contains && ray.isLockEnter()){
         			_d(ray);
@@ -28263,7 +28269,7 @@ function stringInputToObject(color) {
 		               _c(stackedRay);
 		               var rayStacks = stackedRay.getStacks();
 		               for (var j = 0; j < rayStacks.length; j++) {
-		            	   var rayStack = rayStacks[j];
+		            	   var rayStack = rayStacks[j].ray;
 		            		_c(rayStack);
 		                }
 		            }
