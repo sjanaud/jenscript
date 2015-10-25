@@ -73,7 +73,7 @@
 		    this.donut3DPaint = new JenScript.Donut3DDefaultPaint();
 
 		    /** host plugin */
-		    this.host;
+		    this.plugin;
 
 		    /** slices of this donut 3D */
 		    this.slices = [];
@@ -128,7 +128,7 @@
 		 */
 		addEffect : function(effect){
 			this.effects[this.effects.length]  = effect;
-			this.host.repaintPlugin();
+			this.plugin.repaintPlugin();
 		},
 		 
 		 /**
@@ -142,7 +142,7 @@
 				function shiftAngle(i){
 					setTimeout(function(){
 						that.startAngleDegree=that.startAngleDegree+36;
-						that.host.repaint();
+						that.plugin.repaint();
 					},i*100);
 				}
 			},
@@ -166,7 +166,7 @@
 					else
 						that.startAngleDegree=that.startAngleDegree+angleStep;
 					
-					that.host.repaintDonuts();
+					that.plugin.repaintDonuts();
 				},i*timeStep);
 			}
 		},
@@ -178,7 +178,7 @@
 		 addSlice : function (slice) {
 	        slice.donut=this;
 	        this.slices[this.slices.length] = slice;
-	        this.host.repaintDonuts();
+	        this.plugin.repaintDonuts();
 	        return this;
 		 },
 		 
@@ -359,7 +359,7 @@
 	     */
 	    getDonutCenter : function(){
 	    	if (this.nature === 'User') {
-	            return this.host.getProjection().userToPixel({x:this.centerX,y: this.centerY});
+	            return this.plugin.getProjection().userToPixel({x:this.centerX,y: this.centerY});
 	        }
 	        if (this.nature == 'Device') {
 	            return {x:this.centerX,y: this.centerY};

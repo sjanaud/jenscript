@@ -110,7 +110,11 @@
 		 */
 		setMargin : function(margin){
 			this.margin = margin;
-			this.slice.donut.plugin.repaintPlugin();
+			//this.slice.donut.plugin.repaintPlugin(); // think to lighter repaint mechanism
+			
+			//cool alternative
+			var g2d = this.slice.donut.plugin.getGraphicsContext(JenScript.ViewPart.Device);
+			this.paintDonut3DSliceLabel(g2d,this.slice);
 		},
 		
 		/**
@@ -119,7 +123,10 @@
 		 */
 		setLinkExtends : function(linkExtends){
 			this.linkExtends = linkExtends;
-			this.slice.donut.plugin.repaintPlugin();
+			//this.slice.donut.plugin.repaintPlugin();
+			
+			var g2d = this.slice.donut.plugin.getGraphicsContext(JenScript.ViewPart.Device);
+			this.paintDonut3DSliceLabel(g2d,this.slice);
 		},
 		
 		/**

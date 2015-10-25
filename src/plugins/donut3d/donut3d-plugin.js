@@ -18,7 +18,7 @@
 		 * @param {Object} donut
 		 */
 		addDonut : function(donut) {
-			donut.host = this;
+			donut.plugin = this;
 			this.donuts[this.donuts.length] = donut;
 			this.repaintPlugin();
 		},

@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-06-28
+// build: 2015-10-25
 // All Rights reserved
 
 /**
@@ -12196,7 +12196,7 @@ function stringInputToObject(color) {
 		 * @param {Object} donut
 		 */
 		addDonut : function(donut) {
-			donut.host = this;
+			donut.plugin = this;
 			this.donuts[this.donuts.length] = donut;
 			this.repaintPlugin();
 		},
@@ -12327,7 +12327,7 @@ function stringInputToObject(color) {
 		    this.donut3DPaint = new JenScript.Donut3DDefaultPaint();
 
 		    /** host plugin */
-		    this.host;
+		    this.plugin;
 
 		    /** slices of this donut 3D */
 		    this.slices = [];
@@ -12382,7 +12382,7 @@ function stringInputToObject(color) {
 		 */
 		addEffect : function(effect){
 			this.effects[this.effects.length]  = effect;
-			this.host.repaintPlugin();
+			this.plugin.repaintPlugin();
 		},
 		 
 		 /**
@@ -12396,7 +12396,7 @@ function stringInputToObject(color) {
 				function shiftAngle(i){
 					setTimeout(function(){
 						that.startAngleDegree=that.startAngleDegree+36;
-						that.host.repaint();
+						that.plugin.repaint();
 					},i*100);
 				}
 			},
@@ -12420,7 +12420,7 @@ function stringInputToObject(color) {
 					else
 						that.startAngleDegree=that.startAngleDegree+angleStep;
 					
-					that.host.repaintDonuts();
+					that.plugin.repaintDonuts();
 				},i*timeStep);
 			}
 		},
@@ -12432,7 +12432,7 @@ function stringInputToObject(color) {
 		 addSlice : function (slice) {
 	        slice.donut=this;
 	        this.slices[this.slices.length] = slice;
-	        this.host.repaintDonuts();
+	        this.plugin.repaintDonuts();
 	        return this;
 		 },
 		 
@@ -12613,7 +12613,7 @@ function stringInputToObject(color) {
 	     */
 	    getDonutCenter : function(){
 	    	if (this.nature === 'User') {
-	            return this.host.getProjection().userToPixel({x:this.centerX,y: this.centerY});
+	            return this.plugin.getProjection().userToPixel({x:this.centerX,y: this.centerY});
 	        }
 	        if (this.nature == 'Device') {
 	            return {x:this.centerX,y: this.centerY};
@@ -13243,8 +13243,9 @@ function stringInputToObject(color) {
 	     */
 	    addSliceLabel : function(sliceLabel) {
 	        this.sliceLabels[this.sliceLabels.length] = sliceLabel;
-	        if(this.donut !== undefined && this.donut.host !== undefined){
-	        	this.donut.host.repaintDonuts();	
+	        sliceLabel.slice = this;
+	        if(this.donut !== undefined && this.donut.plugin !== undefined){
+	        	this.donut.plugin.repaintDonuts();	
 	        }
 	    },
 		
@@ -13255,8 +13256,8 @@ function stringInputToObject(color) {
 		    this.name = name;
 		    this.value = value;
 		    this.themeColor = themeColor;
-		    if(this.donut !== undefined && this.donut.host !== undefined){
-	        	this.donut.host.repaintDonuts();	
+		    if(this.donut !== undefined && this.donut.plugin !== undefined){
+	        	this.donut.plugin.repaintDonuts();	
 	        }
 		},
 		
@@ -13940,7 +13941,11 @@ function stringInputToObject(color) {
 		 */
 		setMargin : function(margin){
 			this.margin = margin;
-			this.slice.donut.plugin.repaintPlugin();
+			//this.slice.donut.plugin.repaintPlugin(); // think to lighter repaint mechanism
+			
+			//cool alternative
+			var g2d = this.slice.donut.plugin.getGraphicsContext(JenScript.ViewPart.Device);
+			this.paintDonut3DSliceLabel(g2d,this.slice);
 		},
 		
 		/**
@@ -13949,7 +13954,10 @@ function stringInputToObject(color) {
 		 */
 		setLinkExtends : function(linkExtends){
 			this.linkExtends = linkExtends;
-			this.slice.donut.plugin.repaintPlugin();
+			//this.slice.donut.plugin.repaintPlugin();
+			
+			var g2d = this.slice.donut.plugin.getGraphicsContext(JenScript.ViewPart.Device);
+			this.paintDonut3DSliceLabel(g2d,this.slice);
 		},
 		
 		/**

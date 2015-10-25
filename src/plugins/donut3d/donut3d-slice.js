@@ -134,8 +134,9 @@
 	     */
 	    addSliceLabel : function(sliceLabel) {
 	        this.sliceLabels[this.sliceLabels.length] = sliceLabel;
-	        if(this.donut !== undefined && this.donut.host !== undefined){
-	        	this.donut.host.repaintDonuts();	
+	        sliceLabel.slice = this;
+	        if(this.donut !== undefined && this.donut.plugin !== undefined){
+	        	this.donut.plugin.repaintDonuts();	
 	        }
 	    },
 		
@@ -146,8 +147,8 @@
 		    this.name = name;
 		    this.value = value;
 		    this.themeColor = themeColor;
-		    if(this.donut !== undefined && this.donut.host !== undefined){
-	        	this.donut.host.repaintDonuts();	
+		    if(this.donut !== undefined && this.donut.plugin !== undefined){
+	        	this.donut.plugin.repaintDonuts();	
 	        }
 		},
 		

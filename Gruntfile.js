@@ -1,17 +1,12 @@
 module.exports = function(grunt) {
 	var pkg = grunt.file.readJSON("package.json");
 
-	// Project configuration.
 grunt.initConfig({
-		// Metadata.
 		pkg : pkg,
 		banner : grunt.file.read("./src/header.js").replace(/@VERSION/,
 				pkg.version).replace(/@DATE/,
 				grunt.template.today("yyyy-mm-dd"))+ "\n",
 		
-		
-						
-		// Task configuration.
 		uglify : {
 			options : {
 				banner : "<%= banner %>",
@@ -19,12 +14,12 @@ grunt.initConfig({
 			},
 			dist : {
 				src : "<%= concat.target.dest %>",
-				dest : "dist/jenscript-min.js"
+				dest : "jenscript.min.js"
 			}
 		},
 		replace: {
 			  version: {
-			    src: ['dist/jenscript.js'],
+			    src: ['jenscript.js'],
 			    overwrite: true,                 // overwrite matched source files
 			    replacements: [{
 			      from: '@VERSION',
@@ -37,7 +32,7 @@ grunt.initConfig({
 				banner : "<%= banner %>"
 			},
 			target: {
-				dest : "dist/jenscript.js",
+				dest : "jenscript.js",
 				src : [ 
 
 				        "src/envns.js",
@@ -339,7 +334,7 @@ grunt.initConfig({
 		
 		jsdoc : {
 	        dist : {
-	            src: ['dist/jenscript.js'], 
+	            src: ['jenscript.js'], 
 	            options: {
 	                destination: 'doc'
 	            }
