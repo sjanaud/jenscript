@@ -19,12 +19,7 @@
     "url": "https://github.com/sjanaud/jenscript.git"
   },
   "author": "sebastien janaud",
-  "licenses": [
-    {
-      "type": "BSD",
-      "url": "https://github.com/sjanaud/jenscript/blob/master/LICENSE"
-    }
-  ],
+  "license" : "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/sjanaud/jenscript/issues"
   },
