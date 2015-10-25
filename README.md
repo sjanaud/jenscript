@@ -1,13 +1,13 @@
 # jenscript
 JavaScript HTML5/SVG library to create charts components in modern browser.
 
-Want to learn more ? [See JenSoft website.](https://www.jensoftapi.com/site/framework/jenscript)
-
+Want to learn more ? [See JenSoft website.](http://www.jensoftapi.com/site/framework/jenscript)
+JenScript Article [See JenScript Blog.](http://jenscript.io)
 
 <div style="float:left">
-<img width="180" height="140" src="https://www.jensoftapi.com/site/WebViewRequest?group=overview&amp;view=pie&amp;width=800&amp;height=600" >
-<img width="180" height="140" src="https://www.jensoftapi.com/site/WebViewRequest?group=overview&amp;view=donut3d&amp;width=800&amp;height=600" >
-<img width="180" height="140" src="https://www.jensoftapi.com/site/WebViewRequest?group=overview&amp;view=donut2d&amp;width=800&amp;height=600" >
+<img width="180" height="140" src="http://www.jensoftapi.com/site/WebViewRequest?group=overview&amp;view=pie&amp;width=800&amp;height=600" >
+<img width="180" height="140" src="http://www.jensoftapi.com/site/WebViewRequest?group=overview&amp;view=donut3d&amp;width=800&amp;height=600" >
+<img width="180" height="140" src="http://www.jensoftapi.com/site/WebViewRequest?group=overview&amp;view=donut2d&amp;width=800&amp;height=600" >
 
 </div>
 
