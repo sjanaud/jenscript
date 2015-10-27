@@ -1,6 +1,6 @@
 {
   "name": "jenscript",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "keywords": [
     "javascript",
     "w3c",
@@ -8,7 +8,7 @@
     "visualization",
     "charts"
   ],
-  "description": "JavaScript SVG library to create charts components.",
+  "description": "JenScript is a JavaScript HTML5/SVG library for Visualization and Charting in web modern browsers.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

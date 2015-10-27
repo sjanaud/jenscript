@@ -8,14 +8,10 @@ JenScript Articles [See JavaScript Chart Library Resources.](http://jenscript.io
 Want to learn more ? [See the website.](http://www.jensoftapi.com/site/framework/jenscript)
 
 
-
-
-
 <div style="float:left">
 <img  src="http://jenscript.io/svg/donut3d.svg">
 <img  src="http://jenscript.io/svg/pie.svg">
 <img  src="http://jenscript.io/svg/macd.svg">
-
 </div>
 
 
