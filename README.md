@@ -6,6 +6,8 @@ JenScript Article [See JenScript Blog.](http://jenscript.io)
 
 <div style="float:left">
 <img  src="http://jenscript.io/svg/donut3d.svg">
+<img  src="http://jenscript.io/svg/pie.svg">
+<img  src="http://jenscript.io/svg/macd.svg">
 
 </div>
 
