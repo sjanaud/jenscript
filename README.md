@@ -1,8 +1,11 @@
 # jenscript
-JavaScript HTML5/SVG library to create charts components in modern browser.
+JavaScript HTML5/SVG library for Visualization and Charts.
 
-Want to learn more ? [See JenSoft website.](http://www.jensoftapi.com/site/framework/jenscript)
-JenScript Article [See JenScript Blog.](http://jenscript.io)
+Want to learn more ? [See the website.](http://www.jensoftapi.com/site/framework/jenscript)
+
+JenScript Article [See JavaScript Library JenScript Blog.](http://jenscript.io)
+
+
 
 <div style="float:left">
 <img  src="http://jenscript.io/svg/donut3d.svg">
