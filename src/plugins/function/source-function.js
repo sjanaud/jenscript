@@ -408,22 +408,22 @@
 			if(this.getNature().isXFunction()){
 				for (var x = pd2Min.x; x <= pd2Max.x; x = x + this.delta) {
 					try {
-						if (x > pd2Min.x && x < pd2Max.x) {
+						if (x >= pd2Min.x && x <= pd2Max.x) {
 							interpolateSource[interpolateSource.length] = new JenScript.Point2D(x, this.evaluateFunction.value(x));
 						}
 					} catch (err) {
-						console.log(err);
+						//console.log(err);
 						return this.getSource();
 					}
 				}
 			} else 	if(this.getNature().isYFunction()){
 				for (var y = pd2Min.y; y <= pd2Max.y; y = y + this.delta) {
 					try {
-						if (y > pd2Min.y && y < pd2Max.y) {
+						if (y >= pd2Min.y && y <= pd2Max.y) {
 							interpolateSource[interpolateSource.length] = new JenScript.Point2D(this.evaluateFunction.value(y), y);
 						}
 					} catch (err) {
-						console.log(err);
+						//console.log(err);
 						return this.getSource();
 					}
 				}
