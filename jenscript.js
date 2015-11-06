@@ -1,6 +1,6 @@
 // JenScript -  JavaScript HTML5/SVG Library
 // Product of JenSoftAPI - Visualization Java & JS Libraries
-// version : 1.1.1
+// version : 1.1.2
 // Author : Sebastien Janaud 
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
@@ -18,7 +18,7 @@ var JenScript = {};
 	
 		JenScript = {
 				
-				version : '1.1.1',
+				version : '1.1.2',
 				views : [],
 				sequenceId: 0,
 				SVG_NS : 'http://www.w3.org/2000/svg',
@@ -34010,7 +34010,7 @@ function stringInputToObject(color) {
 			} else 	if(this.getNature().isYFunction()){
 				for (var y = pd2Min.y; y <= pd2Max.y; y = y + this.delta) {
 					try {
-						if (y > pd2Min.y && y < pd2Max.y) {
+						if (y >= pd2Min.y && y <= pd2Max.y) {
 							interpolateSource[interpolateSource.length] = new JenScript.Point2D(this.evaluateFunction.value(y), y);
 						}
 					} catch (err) {
