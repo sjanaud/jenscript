@@ -8,6 +8,9 @@
 		_init : function(config){
 			config = config ||{};
 			
+			/** the metrics manager */
+			this.metricsManager = config.manager;
+			
 			/**metrics formater*/
 			this.metricsFormat = config.metricsFormat;
 			
@@ -48,6 +51,14 @@
 		
 		getGravity  : function(){
 			return this.gravity;
+		},
+		
+		setMetricsManager  : function(metricsManager){
+			this.metricsManager = metricsManager;
+		},
+		
+		getMetricsManager  : function(){
+			return this.metricsManager;
 		},
 		
 		setTickMarkerSize  : function(type,size){

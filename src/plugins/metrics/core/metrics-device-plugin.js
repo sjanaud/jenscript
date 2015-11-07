@@ -8,9 +8,6 @@
 		__init : function(config){
 			config = config ||{};
 			
-			/** the metrics manager */
-			this.metricsManager = config.manager;
-
 			/** the metrics painter */
 			this.metricsPainter = new JenScript.MetricsPainter();
 			
