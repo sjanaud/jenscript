@@ -164,7 +164,7 @@
 			if(this.isTranslateAuthorized(evt,part)){
 				this.startTranslate(new JenScript.Point2D(x,y));
 			}else{
-				console.log('not authorize to start : '+this.Id);
+				//console.log('not authorize to start : '+this.Id);
 			}
 				
 		},
@@ -176,12 +176,12 @@
 	     */
 	    startTranslate  :function(translateStart) {
 	    	if(this.lockTranslate){
-	    		console.log("already start");
+	    		//console.log("already start");
 	    		return; //already started
 	    	}
 	    	
 	    	if(this.smoothing){
-	    		console.log("can not start, smooting");
+	    		//console.log("can not start, smooting");
 	    		return;
 //	    		console.log("is smooting...");
 //			    for (var i = 0; i < this.animRef.length; i++) {
@@ -192,7 +192,7 @@
 //			    this.cinematiques = [];
 	    	}
 	    		
-	    	console.log('start translate : '+this.Id);
+	    	//console.log('start translate : '+this.Id);
 	    	this.lockTranslate = true;
 			this.translateStartX = translateStart.x;
 			this.translateStartY = translateStart.y;
@@ -354,11 +354,11 @@
 		
 		stopTranslate : function(endDevice) {
 			if(this.smoothing){
-				console.log("can not stop, smooting");
+				//console.log("can not stop, smooting");
 	    		return;
 			}
 			
-			console.log('stop translate : '+this.Id);
+			//console.log('stop translate : '+this.Id);
 		    this.translateCurentX = endDevice.x;
 		    this.translateCurentY = endDevice.y;
 		    var tc = {x : endDevice.x,y:endDevice.y, parent:"RELEASED",timemillis: Date.now()};
@@ -410,7 +410,7 @@
 				tx(i, function callback(rank) {
 					if (rank === (partNumber-1)) {				
 						setTimeout(function() {
-							console.log(that.Id+' finish smoothing');
+							//console.log(that.Id+' finish smoothing');
 							that.lockTranslate = false;
 							that.passiveTranslate = false;
 							that.smoothing = false;
@@ -468,8 +468,5 @@
 		onProjectionRegister : function(){
 		},
 	});
-	
-	
-	
 	
 })();

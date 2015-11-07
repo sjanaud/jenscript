@@ -97,7 +97,7 @@
 			if(this.isTranslateAuthorized(evt,part,x,y)){
 				this.startTranslate(new JenScript.Point2D(x,y));
 			}else{
-				console.log('press translate not authorize to start : '+this.Id);
+				//console.log('press translate not authorize to start : '+this.Id);
 			}
 		},
 		
@@ -112,7 +112,7 @@
 			if(this.isTranslateAuthorized(evt,part,x,y)){
 				this.stopTranslate(new JenScript.Point2D(x,y));
 			}else{
-				console.log('release translate not authorize to stop : '+this.Id);
+				//console.log('release translate not authorize to stop : '+this.Id);
 			}
 		},
 		
@@ -138,7 +138,7 @@
 			if (this.isTranslateAuthorized(evt,part,x,y) && this.lockTranslate) {
 				this.boundTranslate(new JenScript.Point2D(x,y));
 			}else{
-				//console.log('move translate not authorize to bound : '+this.Id);
+				////console.log('move translate not authorize to bound : '+this.Id);
 			}
 		},
 		
