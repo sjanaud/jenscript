@@ -5,19 +5,8 @@ JenScript is a JavaScript HTML5/SVG library for Visualization and Charting in we
 
 JenScript Articles [See JavaScript Chart Library Resources.](http://jenscript.io)
 
-<table style="border : none;">
-    <tr valign="top">
-        <td width="25%">Donut<br><a href="http://"><img width="133" src="http://jenscript.io/svg/pie.svg"></a></td>
-        <td width="25%">Donut<br><a href="http://"><img width="133" src="http://jenscript.io/svg/donut2d.svg"></a></td>
-        <td width="25%">Donut<br><a href="http://"><img width="133" src="http://jenscript.io/svg/donut3d.svg"></a></td>
-        <td width="25%">Donut<br><a href="http://"><img width="133" src="http://jenscript.io/svg/macd.svg"></a></td>
-    </tr>
-        <tr valign="top">
-        <td width="25%">Donut<br><a href="http://"><img width="133" src="http://jenscript.io/svg/stock.svg"></a></td>
-        <td width="25%">Donut<br><a href="http://"><img width="133" src="http://jenscript.io/svg/donut2d.svg"></a></td>
-        <td width="25%">Donut<br><a href="http://"><img width="133" src="http://jenscript.io/svg/donut2d.svg"></a></td>
-        <td width="25%">Donut<br><a href="http://"><img width="133" src="http://jenscript.io/svg/donut2d.svg"></a></td>
-    </tr>
-</table>
+<img width="180" height="180" src="http://jenscript.io/svg/donut2d.svg" align="left">
+<img width="180" height="180" src="http://jenscript.io/svg/pie.svg" align="left">
+<img width="180" height="180" src="http://jenscript.io/svg/donut3d.svg" align="left">
 
 
