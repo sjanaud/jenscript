@@ -1,6 +1,6 @@
 // JenScript -  JavaScript HTML5/SVG Library
 // Product of JenSoftAPI - Visualization Java & JS Libraries
-// version : 1.1.5
+// version : 1.1.6
 // Author : Sebastien Janaud 
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
@@ -18,7 +18,7 @@ var JenScript = {};
 	
 		JenScript = {
 				
-				version : '1.1.5',
+				version : '1.1.6',
 				views : [],
 				sequenceId: 0,
 				SVG_NS : 'http://www.w3.org/2000/svg',
@@ -20374,6 +20374,9 @@ function stringInputToObject(color) {
 		_init : function(config){
 			config = config ||{};
 			
+			/** the metrics manager */
+			this.metricsManager = config.manager;
+			
 			/**metrics formater*/
 			this.metricsFormat = config.metricsFormat;
 			
@@ -20414,6 +20417,14 @@ function stringInputToObject(color) {
 		
 		getGravity  : function(){
 			return this.gravity;
+		},
+		
+		setMetricsManager  : function(metricsManager){
+			this.metricsManager = metricsManager;
+		},
+		
+		getMetricsManager  : function(){
+			return this.metricsManager;
 		},
 		
 		setTickMarkerSize  : function(type,size){
@@ -20457,9 +20468,6 @@ function stringInputToObject(color) {
 		__init : function(config){
 			config = config ||{};
 			
-			/** the metrics manager */
-			this.metricsManager = config.manager;
-
 			/** the metrics painter */
 			this.metricsPainter = new JenScript.MetricsPainter();
 			
@@ -20626,9 +20634,6 @@ function stringInputToObject(color) {
 		__init : function(config){
 			config = config ||{};
 			
-			/** the metrics manager */
-			this.metricsManager = config.manager;
-
 			/** the metrics painter */
 			this.metricsPainter = new JenScript.MetricsPainter();
 			
@@ -22214,6 +22219,86 @@ function stringInputToObject(color) {
 
 })();
 (function(){
+
+	JenScript.MetricsManagerFree = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MetricsManagerFree, JenScript.MetricsManager);
+	JenScript.Model.addMethods(JenScript.MetricsManagerFree, {
+		_init : function(config){
+			config = config ||{};
+			this.inputMetrics = [];
+			JenScript.MetricsManager.call(this,config);
+		},
+		
+		/**
+		 * add metrics with specified parameter
+		 * 
+		 * @param {Number} value
+		 *          metric value
+		 * @param {String} label
+		 * 			metric label
+		 */
+		addMetrics : function(value,label) {
+		    this.inputMetrics.push({value : value, label : label});
+		},
+		
+		getDeviceMetrics : function(){
+			var metrics = [];
+	        var proj = this.getProjection();
+	        var userWidth = proj.getUserWidth();
+	        var userHeight = proj.getUserHeight();
+	        
+	        if (this.getMetricsType() === JenScript.MetricsType.XMetrics) {
+	        	for (var i = 0; i < this.inputMetrics.length; i++) {
+	                var t = this.inputMetrics[i];
+	                var userMetricsX = t.value;
+	                if (userMetricsX >= proj.getMinX() && userMetricsX <= proj.getMaxX()) {
+	                    var pd = proj.userToPixelX(userMetricsX);
+	                    var m = new JenScript.Metrics({metricsType:JenScript.MetricsType.XMetrics});
+	                    m.setDeviceValue(pd);
+	                    m.setUserValue(userMetricsX);
+	                    m.label = t.label;
+	                    if(t.label === undefined)
+		                    m.format = function(){
+			                	return this.userValue;
+			                };
+		                else
+		                	m.format = function(){
+		                		return this.label;
+		                	};
+		                metrics[metrics.length]=m; 
+	                }
+	            }
+	        }
+	        else if (this.getMetricsType()  === JenScript.MetricsType.YMetrics) {
+	        	  for (var i = 0; i < this.inputMetrics.length; i++) {
+	                  var t = this.inputMetrics[i];
+	                  var userMetricsY = t.value;
+	                  if (userMetricsY > proj.getMinY() && userMetricsY < proj.getMaxY()) {
+	                      var pd = proj.userToPixelY(userMetricsY);
+	                      var m = new JenScript.Metrics({metricsType:JenScript.MetricsType.YMetrics});
+	                      m.setDeviceValue(pd);
+	                      m.setUserValue(userMetricsY);
+	                      m.label = t.label;
+	                      if(t.label === undefined)
+			                    m.format = function(){
+				                	return this.userValue;
+				                };
+			                else
+			                	m.format = function(){
+			                		return this.label;
+			                	};
+			              metrics[metrics.length]=m; 
+	                  }
+	        }
+			return metrics;
+		}
+	}
+});
+
+})();
+(function(){
 	//Modeled metrics based on exponent model
 	JenScript.AxisMetricsModeled = function(config) {
 		this.___init(config);
@@ -22262,6 +22347,28 @@ function stringInputToObject(color) {
 			config.name='AxisMetricsTiming';
 			JenScript.AxisMetricsPlugin.call(this,config);
 		},
+	});
+})();
+(function(){
+	//Modeled metrics based on exponent model
+	JenScript.AxisMetricsFree = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.AxisMetricsFree, JenScript.AxisMetricsPlugin);
+
+	JenScript.Model.addMethods(JenScript.AxisMetricsFree, {
+		___init : function(config){
+			config = config ||{};
+			var manager = new JenScript.MetricsManagerFree(config);
+			config.manager = manager;
+			config.name='AxisMetricsFree';
+			JenScript.AxisMetricsPlugin.call(this,config);
+		},
+		
+		addMetrics : function(value,label){
+			this.getMetricsManager().addMetrics(value,label);
+		},
+		
 	});
 })();
 (function(){
@@ -34678,7 +34785,7 @@ function stringInputToObject(color) {
 				gradient.from(this.max,0).to(this.base, 0);
 			}
 			g2d.definesSVG(gradient.toSVG());
-			var path = new JenScript.SVGElement().attr('id',this.Id).name('path').attr('stroke',this.themeColor).attr('fill','url(#'+gradientId+')').attr('d',pd).buildHTML();
+			var path = new JenScript.SVGElement().attr('id',this.Id).name('path').attr('stroke',this.strokeWidth).attr('fill','url(#'+gradientId+')').attr('d',pd).buildHTML();
 			g2d.insertSVG(path);
 		}
 	});
