@@ -1,6 +1,6 @@
 // JenScript -  JavaScript HTML5/SVG Library
 // Product of JenSoftAPI - Visualization Java & JS Libraries
-// version : 1.1.4
+// version : 1.1.5
 // Author : Sebastien Janaud 
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
@@ -18,7 +18,7 @@ var JenScript = {};
 	
 		JenScript = {
 				
-				version : '1.1.4',
+				version : '1.1.5',
 				views : [],
 				sequenceId: 0,
 				SVG_NS : 'http://www.w3.org/2000/svg',
@@ -34619,40 +34619,16 @@ function stringInputToObject(color) {
 		 * Initialize Area Function
 		 * Defines a area function
 		 * @param {Object} config
+		 * @param {Number} config.areaBase
+		 * @param {Object} config.shader
 		 */
 		_init : function(config){
 			config = config || {};
 			config.name = 'AreaPathFunction';
-			
-			/** area base */
 			this.areaBase = config.areaBase;
-
-			/** area base flag set */
-			//private boolean areaBaseSet = false;
+			this.shader = config.shader;
 		    JenScript.AbstractPathFunction.call(this,config);
 		},
-		
-//		buildSegment : function(){
-//			
-//			if(this.areaBase === undefined)
-//				this.areaBase = this.minFunction().y; //assume XFunction
-//				
-//			this.segments=[];
-//			this.pathSegments=[];
-//			this.source.clearCurrentFunction();
-//			var userPointsFunction = this.source.getCurrentFunction();
-//			
-//			var first = userPointsFunction[0];
-//			var last = userPointsFunction[userPointsFunction.length-1];
-//			
-//			this.moveTo(first.x,this.areaBase);
-//			for (var i = 0; i < userPointsFunction.length; i++) {
-//				var p = userPointsFunction[i];
-//				this.lineTo(p.x,p.y);
-//			}
-//			this.lineTo(last.x,this.areaBase);
-//			this.close();
-//		},
 		
 		
 		createAreaPath : function (){
@@ -34661,34 +34637,24 @@ function stringInputToObject(color) {
 			if (this.source.getNature().isXFunction()) {
 				if(this.areaBase === undefined)
 				this.areaBase = this.minFunction().y; //assume XFunction
-				
-				
 				this.base = p.userToPixelY(this.areaBase);
-				
 				var areaMax = this.maxFunction().y; //assume XFunction
 				this.max = p.userToPixelY(areaMax);
-			
 				var userPointsFunction = this.source.getCurrentFunction();			
 				var first = userPointsFunction[0];
 				var last  = userPointsFunction[userPointsFunction.length-1];
-				
 				pathData = pathData+'L'+p.userToPixelX(last.x)+','+this.base+'L'+p.userToPixelX(first.x)+','+this.base+'Z';
 				
 			}else if(this.source.getNature().isYFunction()){
 				if(this.areaBase === undefined)
 				this.areaBase = this.minFunction().x; //assume YFunction
-				
 				var base = p.userToPixelX(this.areaBase);
-				
 				var areaMax = this.maxFunction().x; //assume YFunction
 				this.max = p.userToPixelX(areaMax);
-			
 				var userPointsFunction = this.source.getCurrentFunction();			
 				var first = userPointsFunction[0];
 				var last  = userPointsFunction[userPointsFunction.length-1];
-				
 				pathData = pathData+'L'+this.base+','+p.userToPixelY(last.y)+'L'+this.base+','+p.userToPixelY(first.y)+'Z';
-				
 			}
 			return pathData;
 		},
@@ -34702,7 +34668,8 @@ function stringInputToObject(color) {
 			var gradientId = this.Id+'_areagradient';
 			g2d.deleteGraphicsElement(gradientId);
 			 /** default shader fractions */
-		    this.shader = {percents : [ '0%', '100%' ],opacity:[1,0.2], colors : [this.themeColor,this.themeColor]};
+			if(this.shader === undefined)
+				this.shader = {percents : [ '0%', '100%' ],opacity:[1,0.2], colors : [this.themeColor,this.themeColor]};
 		    var gradient   = new JenScript.SVGLinearGradient().Id(gradientId).from(0,this.max).to(0, this.base).shade(this.shader.percents,this.shader.colors,this.shader.opacity);
 		    if(this.source.getNature().isXFunction()){
 		    	 gradient.from(0,this.max).to(0, this.base);
