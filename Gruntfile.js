@@ -167,10 +167,13 @@ grunt.initConfig({
 						"src/plugins/metrics/manager/metrics-timing-models.js",
 						"src/plugins/metrics/manager/metrics-time-manager.js",
 						"src/plugins/metrics/manager/metrics-static-manager.js",
+						"src/plugins/metrics/manager/metrics-free-manager.js",
 						
 						"src/plugins/metrics/modeled-axis-plugin.js",
 						"src/plugins/metrics/static-axis-plugin.js",
 						"src/plugins/metrics/timing-axis-plugin.js",
+						"src/plugins/metrics/free-axis-plugin.js",
+						
 						
 						"src/plugins/metrics/modeled-device-plugin.js",
 						
