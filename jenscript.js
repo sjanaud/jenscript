@@ -22256,6 +22256,7 @@ function stringInputToObject(color) {
 	                if (userMetricsX >= proj.getMinX() && userMetricsX <= proj.getMaxX()) {
 	                    var pd = proj.userToPixelX(userMetricsX);
 	                    var m = new JenScript.Metrics({metricsType:JenScript.MetricsType.XMetrics});
+	                   
 	                    m.setDeviceValue(pd);
 	                    m.setUserValue(userMetricsX);
 	                    m.label = t.label;
@@ -22291,9 +22292,9 @@ function stringInputToObject(color) {
 			                	};
 			              metrics[metrics.length]=m; 
 	                  }
+	        	  }
 	        }
-			return metrics;
-		}
+	        return metrics;
 	}
 });
 
