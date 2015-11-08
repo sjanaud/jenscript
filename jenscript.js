@@ -1,6 +1,6 @@
 // JenScript -  JavaScript HTML5/SVG Library
 // Product of JenSoftAPI - Visualization Java & JS Libraries
-// version : 1.1.6
+// version : 1.1.7
 // Author : Sebastien Janaud 
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
@@ -18,7 +18,7 @@ var JenScript = {};
 	
 		JenScript = {
 				
-				version : '1.1.6',
+				version : '1.1.7',
 				views : [],
 				sequenceId: 0,
 				SVG_NS : 'http://www.w3.org/2000/svg',
@@ -10132,13 +10132,12 @@ function stringInputToObject(color) {
 		
 		
 		/**
-		 * paint text and envelope if all parameter are setted.
+		 * paint text and envelope if all parameter are set.
 		 * helper method that can be call in inherits objects.
 		 * @param {Object} graphics context
 		 */
 		paintLabel : function(g2d){
 			var label = new JenScript.SVGGroup().Id(this.Id).opacity(this.opacity);
-			//console.log('location initial x,y:'+this.getLocation().x+','+this.getLocation().y);
 			var lx,ly;
 			if(this.proj !== undefined && this.nature === 'User'){
 				lx = this.proj.userToPixelX(this.getLocation().x);
@@ -10149,7 +10148,6 @@ function stringInputToObject(color) {
 				ly = this.getLocation().y;
 			}
 			var c = (this.getTextColor() !== undefined)?this.getTextColor():'black';
-			//console.log('paint location x,y : '+lx+','+ly);
 			var sl = new JenScript.SVGElement().name('text')
 												.attr('x',lx)
 												.attr('y',ly)
