@@ -46,8 +46,6 @@ grunt.initConfig({
 						"src/glyph/glyph.js",
 						"src/glyph/general-metrics-path.js",
 						
-						
-						
 						//VIEW
 						"src/view/proj-selector.js",
 						"src/view/view-background.js",
@@ -56,8 +54,6 @@ grunt.initConfig({
 						"src/view/svg-graphics.js",
 						"src/view/view.js",
 						"src/view/view-builder.js",
-						
-					
 						
 						//PROJECTION
 						"src/projections/projection.js",
@@ -70,7 +66,6 @@ grunt.initConfig({
 						"src/projections/projection-timex.js",
 						"src/projections/projection-timey.js",
 						"src/projections/projection-map.js",
-						
 						
 						//PLUGINGS
 						"src/plugins/plugin.js",
@@ -92,10 +87,8 @@ grunt.initConfig({
 						"src/plugins/label/text-label.js",
 						"src/plugins/label/text-label-plugin.js",
 						
-						
 						//MISC
 						"src/plugins/misc/dump-coordinate-plugin.js",
-						
 						
 						//METRICS PATH PLUGIN
 						"src/glyph/general-metrics-path-plugin.js",
@@ -179,8 +172,6 @@ grunt.initConfig({
 						
 						"src/plugins/metrics/modeled-device-plugin.js",
 						
-						
-						
 						//GRID
 						"src/plugins/grid/core/grid.js",
 						"src/plugins/grid/core/grid-plugin.js",
@@ -257,9 +248,7 @@ grunt.initConfig({
 						//IMAGE
 						"src/plugins/image/image-plugin.js",
 						
-						
 						//GAUGE
-						
 						"src/plugins/gauge/gauge-plugin.js",
 						"src/plugins/gauge/gauge-part.js",
 						"src/plugins/gauge/gauge-envelop.js",
@@ -273,9 +262,6 @@ grunt.initConfig({
 						
 						"src/plugins/gauge/gauge-compass.js",
 						
-						
-						
-						
 						//FUNCTION
 						"src/plugins/function/analysis.js",
 						"src/plugins/function/function-nature.js",
@@ -286,7 +272,6 @@ grunt.initConfig({
 						"src/plugins/function/area-path-function.js",
 						"src/plugins/function/scatter-path-function.js",
 						"src/plugins/function/function-plugin.js",
-						
 						
 						//LEGEND
 						"src/plugins/legend/title-legend-plugin.js",
@@ -302,7 +287,6 @@ grunt.initConfig({
 						"src/plugins/plot/naturalcubic-closed-plot.js",
 						"src/plugins/plot/catmullrom-plot.js",
 						
-						
 						//MAP
 						"src/plugins/map/map-geojson.js",
 						"src/plugins/map/map-background-plugin.js",
@@ -316,10 +300,6 @@ grunt.initConfig({
 						
 						//TRANSFORM
 						"src/plugins/transforms/semantic-transform-plugin.js",
-						
-						
-						
-						
 						
 						]
 			}
