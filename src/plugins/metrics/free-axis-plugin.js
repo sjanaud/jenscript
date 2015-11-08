@@ -1,5 +1,5 @@
 (function(){
-	//Modeled metrics based on exponent model
+	//Modeled metrics based on manual free model
 	JenScript.AxisMetricsFree = function(config) {
 		this.___init(config);
 	};
