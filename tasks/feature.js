@@ -1,40 +1,41 @@
 var fs = require('fs');
-var core = [
-			"src/envns.js",
-			"src/model.js",
-			"src/math.js",
-			"src/palette/color.js",
-			"src/palette/texture.js",
-			"src/geom.js",
-			
-			//GLYPH
-			"src/glyph/glyph.js",
-			"src/glyph/general-metrics-path.js",
-			
-			//VIEW
-			"src/view/proj-selector.js",
-			"src/view/view-background.js",
-			"src/view/view-foreground.js",
-			"src/view/view-part.js",
-			"src/view/svg-graphics.js",
-			"src/view/view.js",
-			"src/view/view-builder.js",
-			
-			//PROJECTION
-			"src/projections/projection.js",
-			"src/projections/projection-linear.js",
-			"src/projections/projection-identity.js",
-			"src/projections/projection-logx.js",
-			"src/projections/projection-logy.js",
-			"src/projections/projection-loglog.js",
-			"src/projections/projection-time.js",
-			"src/projections/projection-timex.js",
-			"src/projections/projection-timey.js",
-			"src/projections/projection-map.js",
-			
-			//PLUGINGS
-			"src/plugins/plugin.js",
-			
+
+var core 	= [	"src/envns.js",
+				"src/model.js",
+				"src/math.js",
+				"src/palette/color.js",
+				"src/palette/texture.js",
+				"src/geom.js",
+				
+				//GLYPH
+				"src/glyph/glyph.js",
+				"src/glyph/general-metrics-path.js",
+				
+				//VIEW
+				"src/view/proj-selector.js",
+				"src/view/view-background.js",
+				"src/view/view-foreground.js",
+				"src/view/view-part.js",
+				"src/view/svg-graphics.js",
+				"src/view/view.js",
+				"src/view/view-builder.js",
+				
+				//PROJECTION
+				"src/projections/projection.js",
+				"src/projections/projection-linear.js",
+				"src/projections/projection-identity.js",
+				"src/projections/projection-logx.js",
+				"src/projections/projection-logy.js",
+				"src/projections/projection-loglog.js",
+				"src/projections/projection-time.js",
+				"src/projections/projection-timex.js",
+				"src/projections/projection-timey.js",
+				"src/projections/projection-map.js",
+				
+				//PLUGINGS
+				"src/plugins/plugin.js",
+				
+				//WIDGET
 				"src/widget/widget-plugin.js",
 				"src/widget/widget.js",
 				"src/widget/widget-folder.js",
@@ -60,17 +61,18 @@ module.exports = function(grunt) {
 			  var featureItems = fs.split(",");
 			  for (var i = 0; i < featureItems.length; i++) {
 				var f = featureItems[i];
-				//grunt.log.writeln(this.name+" add feature : ", f);
+				grunt.log.writeln(this.name+" add feature : ", f);
 			  }
+		  }else{
+			  
 		  }
 		  grunt.config('feature',core.concat(outline));
-		 // grunt.config.feature = core.concat(outline);
-		 // grunt.log.writeln("features:", grunt.config.feature);
+//		grunt.config.feature = core.concat(outline);
+// 		grunt.log.writeln("features:", grunt.config.feature);
 //		  for (var i = 0; i < features.length; i++) {
 //				var f = features[i];
 //				grunt.log.writeln(this.name+" register feature : ", f);
 //		  }
 		  
-		  //grunt.task.run(["concat","replace", "uglify"]);
 	});
 };
