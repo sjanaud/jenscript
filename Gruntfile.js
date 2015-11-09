@@ -20,7 +20,7 @@ grunt.initConfig({
 		replace: {
 			  version: {
 			    src: ['jenscript.js'],
-			    overwrite: true,                 // overwrite matched source files
+			    overwrite: true,
 			    replacements: [{
 			      from: '@VERSION',
 			      to: pkg.version
@@ -33,7 +33,8 @@ grunt.initConfig({
 			},
 			target: {
 				dest : "jenscript.js",
-				src : [ 
+				src : "<%= features %>",
+				srcOLD : [ 
 
 				        "src/envns.js",
 						"src/model.js",
@@ -304,37 +305,13 @@ grunt.initConfig({
 						]
 			}
 		},
-		copy: {
-			main: {
-				nonull: true,
-			    expand: true,
-			    cwd: 'dist/',
-			    src: '**',
-			    dest: '../webapp/jenscript/',
-			    flatten: true,
-			    filter: 'isFile',
-			  },
-			  
-		},
-		
-		jsdoc : {
-	        dist : {
-	            src: ['jenscript.js'], 
-	            options: {
-	                destination: 'doc'
-	            }
-	        }
-	    }
 		
 	});
 	grunt.loadNpmTasks("grunt-contrib-concat");
 	grunt.loadNpmTasks("grunt-contrib-uglify");
-	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-text-replace');
-	grunt.loadNpmTasks('grunt-jsdoc');
-
+	grunt.loadTasks('tasks');
 	
-	//grunt.registerTask("default", [ "concat","replace", "uglify","copy"]);
-	grunt.registerTask("default", [ "concat","replace", "uglify"]);
-	grunt.registerTask("dev", [ "replace","concat","copy"]);
+	grunt.registerTask("default", "jenscript");
+	
 };
