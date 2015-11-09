@@ -52,8 +52,6 @@ var label   = [ "src/plugins/label/abstract-label.js",
 
 
 
-
-
 module.exports = function(grunt) {
 	grunt.registerTask('feature', 'package jenscript feature', function(fs) {
 		  //grunt.log.writeln(this.name, fs);
