@@ -235,7 +235,7 @@ var map  		 = ["src/plugins/map/map-geojson.js",
 var transform  	 = ["src/plugins/transforms/semantic-transform-plugin.js"];
 
 var _features = [
-	                {name : "core", parts :core},
+                 	{name : "core",  parts :core},
 	                {name : "pie",  parts :pie},
 	                {name : "donut2d", parts :donut2d},
 	                {name : "donut3d", parts :donut3d},
@@ -259,27 +259,31 @@ var _features = [
 
 module.exports = function(grunt) {
 	grunt.registerTask('jenscript', 'package jenscript features', function(featuresArgs) {
-		  //grunt.log.writeln(this.name, fs);
-		  var features = [];
+		
+		  grunt.log.writeln('jenscript@'+grunt.config('pkg').version);
+		  grunt.log.writeln('jenscript@'+_features[0].name);
+		  for (var j = 0; j < _features[0].parts.length; j++) {
+			  grunt.log.writeln('├──'+_features[0].name+"@"+_features[0].parts[j].substring(_features[0].parts[j].lastIndexOf('/')+1));
+		  }
+		  var features = [].concat(core);
 		  if(featuresArgs !== undefined){
 			  var ignored = [];
 			  var featureItems = featuresArgs.split(",");
 			  for (var i = 0; i < featureItems.length; i++) {
 				var f = featureItems[i];
-				//grunt.log.writeln("lookup for feature : ", f);
 				var found = false;
-				for (var k = 0; k < _features.length; k++) {
+				for (var k = 1; k < _features.length; k++) {
 					  var _feature = _features[k];
 					  if(_feature.name === f || f === 'all'){
 						  found = true;
-						  grunt.log.writeln("Feature : ", _feature.name);
+						  grunt.log.writeln("jenscript@"+_feature.name);
 						  for (var j = 0; j < _feature.parts.length; j++) {
-							  grunt.log.writeln("-part : ", _feature.parts[j]);
+							  grunt.log.writeln('├──'+_feature.name+"@"+_feature.parts[j].substring(_feature.parts[j].lastIndexOf('/')+1));
 						  }
 						  features = features.concat(_feature.parts);
 					  }
 				 }
-				if(!found){
+				if(!found && f !== 'core'){
 					ignored.push(f);
 				}
 			  }
@@ -288,11 +292,11 @@ module.exports = function(grunt) {
 			  }
 		  }else{
 			  
-			  for (var i = 0; i < _features.length; i++) {
+			  for (var i = 1; i < _features.length; i++) {
 				  var _feature = _features[i];
-				  grunt.log.writeln("Feature : ", _feature.name);
+				  grunt.log.writeln("jenscript@"+_feature.name);
 				  for (var j = 0; j < _feature.parts.length; j++) {
-					  grunt.log.writeln("-part : ", _feature.parts[j]);
+					  grunt.log.writeln('├──'+_feature.name+"@"+_feature.parts[j].substring(_feature.parts[j].lastIndexOf('/')+1));
 				  }
 				  features = features.concat(_feature.parts);
 			  }
