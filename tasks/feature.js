@@ -1,5 +1,3 @@
-var fs = require('fs');
-
 var core 		 = ["src/envns.js",
 					"src/model.js",
 					"src/math.js",
