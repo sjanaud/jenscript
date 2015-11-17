@@ -9,7 +9,7 @@
     "charts"
   ],
   "description": "JenScript is a JavaScript HTML5/SVG library for Visualization and Charting in web modern browsers.",
-  "main": "index.js",
+  "main": "jenscript.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
