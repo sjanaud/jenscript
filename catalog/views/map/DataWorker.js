@@ -11,7 +11,7 @@ this.onmessage = function(event) {
 	oReq.addEventListener("load", transferComplete, false);
 	oReq.addEventListener("error", transferFailed, false);
 	oReq.addEventListener("abort", transferCanceled, false);
-	oReq.open("get", "/site/module/javascript/catalog/map/assets/"+asset, true);
+	oReq.open("get", "/catalog/views/map/assets/"+asset, true);
 	oReq.send();
 };
 

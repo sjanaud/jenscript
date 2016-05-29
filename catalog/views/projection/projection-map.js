@@ -59,7 +59,7 @@ function createMapProjection(container, width, height) {
 	
 	var MapLoader = function(assets,callback){
 		 this.loadMap = function(){
-			var dataWorker = new Worker(JenSoft.Context.path+ '/module/javascript/catalog/map/DataWorker.js');
+			var dataWorker = new Worker('/catalog/views/map/DataWorker.js');
 			dataWorker.addEventListener("message", function(event) {
 				
 				//console.log('data receive : '+event.data);

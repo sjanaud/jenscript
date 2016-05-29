@@ -55,7 +55,7 @@ var DataLoader = function(proj,bundle,callback){
 	};
 
 	var load = function(){
-		var dataWorker = new Worker(JenSoft.Context.path+'/module/javascript/catalog/realtime/DataWorker.js');
+		var dataWorker = new Worker('/catalog/views/realtime/DataWorker.js');
 		dataWorker.addEventListener("message", function(event) {
 			if (event.data === 'start') {
 				dataPaths = [];

@@ -1,5 +1,3 @@
-
-
 (function(){
 	
 	JenScript.TimeXProjection = function(config) {
@@ -39,7 +37,6 @@
 		getMaxXAsDate : function() {
 			return new Date(this.getMaxX());
 		},
-
 		
 		pixelToTime : function(pixel) {
 			var dateMillis = this.pixelToUserX(pixel);
@@ -68,6 +65,5 @@
 		boundTimeX : function(minXDate, maxXDate, miny, maxy) {
 			boundLinear(minXDate.getTime(), maxXDate.getTime(), miny, maxy);
 		}
-		
 	});
 })();

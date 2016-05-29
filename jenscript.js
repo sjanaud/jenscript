@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2015-11-10
+// build: 2016-05-28
 // All Rights reserved
 
 /**
@@ -5873,8 +5873,6 @@ function stringInputToObject(color) {
 		
 	});
 })();
-
-
 (function(){
 	
 	JenScript.TimeXProjection = function(config) {
@@ -5914,7 +5912,6 @@ function stringInputToObject(color) {
 		getMaxXAsDate : function() {
 			return new Date(this.getMaxX());
 		},
-
 		
 		pixelToTime : function(pixel) {
 			var dateMillis = this.pixelToUserX(pixel);
@@ -5943,10 +5940,8 @@ function stringInputToObject(color) {
 		boundTimeX : function(minXDate, maxXDate, miny, maxy) {
 			boundLinear(minXDate.getTime(), maxXDate.getTime(), miny, maxy);
 		}
-		
 	});
 })();
-
 
 
 (function(){
