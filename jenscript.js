@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2016-05-28
+// build: 2016-06-03
 // All Rights reserved
 
 /**
@@ -3365,6 +3365,10 @@ function stringInputToObject(color) {
 	});
 })();
 (function() {
+	
+	SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(elem) {
+	    return elem.getScreenCTM().inverse().multiply(this.getScreenCTM());
+	};
 	
 	/**
      * @constructor
