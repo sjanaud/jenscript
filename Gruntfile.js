@@ -1,12 +1,9 @@
-
-
-
 module.exports = function(grunt) {
 	var pkg = grunt.file.readJSON("package.json");
 
-grunt.initConfig({
+	grunt.initConfig({
 		jenscript : {
-			 core 		 : ["src/envns.js",
+			 core 		 : [	"src/envns.js",
 								"src/model.js",
 								"src/math.js",
 								"src/palette/color.js",
@@ -70,7 +67,7 @@ grunt.initConfig({
 								"src/plugins/pie/pie-label.js",
 								"src/plugins/pie/pie-builder.js"],
 
-			 donut2d  	 : ["src/plugins/donut2d/donut2d-plugin.js",
+			 donut2d  	 : [	"src/plugins/donut2d/donut2d-plugin.js",
 				              	"src/plugins/donut2d/donut2d.js",
 								"src/plugins/donut2d/donut2d-slice.js",
 								"src/plugins/donut2d/donut2d-fill.js",
@@ -79,7 +76,7 @@ grunt.initConfig({
 								"src/plugins/donut2d/donut2d-label.js",
 								"src/plugins/donut2d/donut2d-builder.js"],
 
-			 donut3d  	 : ["src/plugins/donut3d/donut3d-plugin.js",
+			 donut3d  	 : [	"src/plugins/donut3d/donut3d-plugin.js",
 			             	   	"src/plugins/donut3d/donut3d.js",
 			             	   	"src/plugins/donut3d/donut3d-slice.js",
 								"src/plugins/donut3d/donut3d-paint.js",
@@ -87,16 +84,14 @@ grunt.initConfig({
 								"src/plugins/donut3d/donut3d-builder.js",
 								"src/plugins/donut3d/donut3d-effect.js"],
 
-
-
-			 translate 	 : ["src/plugins/translate/translate-plugin.js",
+			 translate 	 : [	"src/plugins/translate/translate-plugin.js",
 								"src/plugins/translate/translate-pad.js",
 								"src/plugins/translate/translate-tx.js",
 								"src/plugins/translate/translate-ty.js",
 								"src/plugins/translate/translate-compass.js",
 								"src/plugins/translate/translate-sync.js"],
 
-			 zoom	  	 : ["src/plugins/zoom/box/zoom-box-plugin.js",
+			 zoom	  	 : [	"src/plugins/zoom/box/zoom-box-plugin.js",
 			             	    "src/plugins/zoom/box/zoom-box-sync.js",
 								"src/plugins/zoom/lens/zoom-lens-plugin.js",
 								"src/plugins/zoom/lens/zoom-lens-sync.js",
@@ -106,7 +101,7 @@ grunt.initConfig({
 								"src/plugins/zoom/wheel/zoom-wheel-plugin.js",
 			             	    "src/plugins/zoom/wheel/zoom-wheel-sync.js"],
 
-			 metrics  	 : ["src/plugins/metrics/core/bignumber.js",
+			 metrics  	 : [	"src/plugins/metrics/core/bignumber.js",
 								"src/plugins/metrics/core/metric.js",
 								"src/plugins/metrics/core/metrics-painter.js",
 								"src/plugins/metrics/core/metrics-plugin.js",
@@ -128,19 +123,16 @@ grunt.initConfig({
 								"src/plugins/metrics/flow-axis-plugin.js",
 								"src/plugins/metrics/modeled-device-plugin.js"],
 
-
-			 grid	  	 : ["src/plugins/grid/core/grid.js",
+			 grid	  	 : [	"src/plugins/grid/core/grid.js",
 			        	  	    "src/plugins/grid/core/grid-plugin.js",
 			        	  	    "src/plugins/grid/manager/grid-manager.js",
 			        	  	    "src/plugins/grid/manager/grid-modeled-manager.js",
 			        	  	    "src/plugins/grid/grid-modeled-plugin.js"],
 
-			 stripe  	 : ["src/plugins/stripe/stripe-plugin.js",
+			 stripe  	 : [	"src/plugins/stripe/stripe-plugin.js",
 			         	 	    "src/plugins/stripe/stripe.js"],
 
-
-
-			 symbol  	 : ["src/plugins/symbol/symbol/symbol.js",
+			 symbol  	 : [	"src/plugins/symbol/symbol/symbol.js",
 								"src/plugins/symbol/symbol/symbol-bar.js",
 								"src/plugins/symbol/symbol/symbol-bar-stacked.js",
 								"src/plugins/symbol/symbol/symbol-bar-group.js",
@@ -159,16 +151,16 @@ grunt.initConfig({
 								"src/plugins/symbol/layer/symbol-layer-point.js",
 								"src/plugins/symbol/symbol-plugin.js"],
 
-			 ray  		 : ["src/plugins/ray/ray-painter.js",
+			 ray  		 : [	"src/plugins/ray/ray-painter.js",
 								"src/plugins/ray/ray-painter-fill.js",
 								"src/plugins/ray/ray.js",
 								"src/plugins/ray/ray-plugin.js"],
 
 
-			 progress  	 : ["src/plugins/progress/progress-plugin.js",
+			 progress  	 : [	"src/plugins/progress/progress-plugin.js",
 			         	 	    "src/plugins/progress/progress-monitor.js"],
 
-			 stock	  	 : ["src/plugins/stock/stock-plugin.js",
+			 stock	  	 : [	"src/plugins/stock/stock-plugin.js",
 								"src/plugins/stock/stock.js",
 								"src/plugins/stock/stock-geometry.js",
 								"src/plugins/stock/stock-layer.js",
@@ -184,13 +176,13 @@ grunt.initConfig({
 								"src/plugins/stock/macd.js"],
 
 
-			 bubble  	 : ["src/plugins/bubble/bubble-plugin.js",
+			 bubble  	 : [	"src/plugins/bubble/bubble-plugin.js",
 			            	    "src/plugins/bubble/bubble.js"],
 
 
 
 
-			 gauge  	 	 : ["src/plugins/gauge/gauge-plugin.js",
+			 gauge  	 : [	"src/plugins/gauge/gauge-plugin.js",
 								"src/plugins/gauge/gauge-part.js",
 								"src/plugins/gauge/gauge-envelop.js",
 								"src/plugins/gauge/gauge-background.js",
@@ -202,7 +194,7 @@ grunt.initConfig({
 								"src/plugins/gauge/gauge.js",
 								"src/plugins/gauge/gauge-compass.js"],
 
-			 functions  	 : ["src/plugins/function/analysis.js",
+			 functions   : [	"src/plugins/function/analysis.js",
 								"src/plugins/function/function-nature.js",
 								"src/plugins/function/path-segment.js",
 								"src/plugins/function/source-function.js",
@@ -213,7 +205,7 @@ grunt.initConfig({
 								"src/plugins/function/function-plugin.js"],
 
 
-			 plot  	 	 : ["src/plugins/plot/plot-plugin.js",
+			 plot  	 	 : [	"src/plugins/plot/plot-plugin.js",
 								"src/plugins/plot/plot.js",
 								"src/plugins/plot/line-plot.js",
 								"src/plugins/plot/bezier-plot.js",
@@ -223,7 +215,7 @@ grunt.initConfig({
 								"src/plugins/plot/naturalcubic-closed-plot.js",
 								"src/plugins/plot/catmullrom-plot.js"],
 
-			 map  		 : ["src/plugins/map/map-geojson.js",
+			 map  		 : [	"src/plugins/map/map-geojson.js",
 								"src/plugins/map/map-background-plugin.js",
 								"src/plugins/map/map-tile-plugin.js",
 								//"src/plugins/map/map-semantic-translate-plugin.js",
@@ -233,8 +225,9 @@ grunt.initConfig({
 								"src/plugins/map/map-geometric-zoom-plugin.js",
 								"src/plugins/map/map-geojson-plugin.js"],
 
-			 transform  	 : ["src/plugins/transforms/semantic-transform-plugin.js"],
-			features : [
+			 transform    : [	"src/plugins/transforms/semantic-transform-plugin.js"],
+			
+			 features 	  : [
 			                 	{name : "core",  parts : "<%= jenscript.core %>"},
 				                {name : "pie",  parts :"<%= jenscript.pie %>"},
 				                {name : "donut2d", parts :"<%= jenscript.donut2d %>"},
@@ -292,14 +285,11 @@ grunt.initConfig({
 				dest : "<%= minName %>"
 			}
 		},
-		
-		
 	});
 	grunt.loadNpmTasks("grunt-contrib-concat");
 	grunt.loadNpmTasks("grunt-contrib-uglify");
 	grunt.loadNpmTasks('grunt-text-replace');
 	grunt.loadTasks('tasks');
-	
-	grunt.registerTask("default", "package");
+	grunt.registerTask("default", "release");
 	
 };
