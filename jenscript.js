@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2016-06-15
+// build: 2016-06-16
 // All Rights reserved
 
 /**
@@ -10197,8 +10197,8 @@ function stringInputToObject(color) {
 })();
 (function(){
 	/**
-	 * Object Donut2DAbstractLabel()
-	 * Defines Donut2D Abstract Label
+	 * Object TextLabel()
+	 * Defines TextLabel Abstract Label
 	 * @param {Object} config
 	 * @param {String} [config.name] the label type name
 	 * @param {String} [config.text] the label text
@@ -12073,3 +12073,24833 @@ function stringInputToObject(color) {
 	};
 })();
 
+
+(function(){
+	/**
+	 * Object Donut2DPlugin()
+	 * Defines a plugin that takes the responsibility to manage Donut 2D
+	 * @param {Object} config
+	 */
+	JenScript.Donut2DPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut2DPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.Donut2DPlugin, {
+		/**
+		 * Initialize Donut2D Plugin
+		 * Defines a plugin that takes the responsibility to manage Donut 2D
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			config.name = 'Donut2DPlugin';
+			this.donuts = [];
+			this.donutListeners=[];
+			JenScript.Plugin.call(this,config);
+		},
+		
+		/**
+		 * add Donut 2D object
+		 * @param {Object} donut
+		 * 
+		 */
+		addDonut : function(donut) {
+			donut.plugin = this;
+			this.donuts[this.donuts.length] = donut;
+			this.repaintPlugin();
+		},
+		
+		/**
+		 * select the donut by the given name
+		 */
+		select : function(name){
+			for (var i = 0; i < this.donuts.length; i++) {
+				if(this.donuts[i].name === name)
+					return this.donuts[i];
+			}
+		},
+		
+		/**
+		 * add Donut listener such as press, release, move, enter, exit and click
+		 */
+		addDonutListener : function(actionEvent,listener) {
+			var l={action:actionEvent,onEvent : listener};
+			this.donutListeners[this.donutListeners.length] = l;
+		},
+		
+		/**
+		 * fire donut event
+		 * @param {String} the donut action
+		 * @param {Slice} the donut slice
+		 * @param {Number} the device x coordinate
+		 * @param {Number} the device y coordinate
+		 */
+		fireDonutEvent : function(action,event){
+			for (var l = 0; l < this.donutListeners.length; l++) {
+				if(this.donutListeners[l].action === action){
+					this.donutListeners[l].onEvent(event);
+				}
+			}
+		},
+		
+		dispatchDonutAction : function(evt,action,deviceX,deviceY){
+			var that = this;
+			var fire1 = function(slice){
+				if(action === 'move'){
+					if(!slice.lockRollover){
+						
+						slice.lockRollover = true;
+						that.fireDonutEvent('enter',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
+						that.fireDonutEvent('move',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
+					}else{
+						that.fireDonutEvent('move',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
+					}
+				}
+				else if(action === 'press'){
+					//slice.lockPress = true;
+					that.fireDonutEvent('press',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
+				}
+				else if(action === 'release' ){
+					//slice.lockPress = false;
+					that.fireDonutEvent('release',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
+				}
+				else{
+					
+				}
+			};
+			var fire2 = function(slice){
+				//console.log('fire 2 for slice : '+slice.name);
+				if(action === 'move' && slice.lockRollover){
+					slice.lockRollover = false;
+					that.fireDonutEvent('exit',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
+					return true;	
+				}else{
+					
+				}
+			};
+			
+			for (var i = 0; i < this.donuts.length; i++) {
+				var donut = this.donuts[i];
+				for (var s = 0; s < donut.slices.length; s++) {
+					var slice = donut.slices[s];
+					var distance = Math.sqrt((slice.sc.y - deviceY)*(slice.sc.y - deviceY) + (slice.sc.x - deviceX)*(slice.sc.x - deviceX));
+					var theta =0;
+					if(distance <= donut.outerRadius && distance >= donut.innerRadius){
+						
+						if(deviceX>slice.sc.x && deviceY<slice.sc.y){
+							theta = Math.atan((slice.sc.y-deviceY)/(deviceX-slice.sc.x));
+						}
+						else if(deviceX>slice.sc.x && deviceY>=slice.sc.y){
+							theta = Math.atan((slice.sc.y-deviceY)/(deviceX-slice.sc.x)) + 2*Math.PI;
+						}
+						else if(deviceX<slice.sc.x){
+							theta = Math.atan((slice.sc.y-deviceY)/(deviceX-slice.sc.x)) + Math.PI;
+						}
+						else if(deviceX === slice.sc.x &&  deviceY<slice.sc.y){
+							theta=Math.PI/2;
+						}
+						else if(deviceX === slice.sc.x &&  deviceY>slice.sc.y){
+							theta=3*Math.PI/2;
+						}
+						var td = JenScript.Math.toDegrees(theta);
+						if(td > slice.startAngleDegree && td<(slice.startAngleDegree+slice.extendsDegree)){
+							//evt.stopPropagation();
+							fire1(slice);
+						}
+						else if(td < slice.startAngle && (slice.startAngleDegree+slice.extendsDegree) > 360 && ((slice.startAngleDegree+slice.extendsDegree)-360) >= td){
+							//evt.stopPropagation();
+							fire1(slice);
+						}else{
+							fire2(slice);
+						}
+					}else{ //radius is out of range
+						fire2(slice);
+					}
+				}
+			}
+			return false;
+		},
+		
+		onPress : function(evt,part,x,y){
+			return this.dispatchDonutAction(evt,'press',x,y);
+		},
+
+		onRelease : function(evt,part,x,y){
+			return this.dispatchDonutAction(evt,'release',x,y);
+		},
+
+		onMove : function(evt,part,x,y){
+			return this.dispatchDonutAction(evt,'move',x,y);
+		},
+
+		onClick : function(evt,part,x,y){
+			return this.dispatchDonutAction(evt,'click',x,y);
+		},
+
+		onEnter : function(evt,part,x,y){
+			return this.dispatchDonutAction(evt,'enter',x,y);
+		},
+		
+		onExit : function(evt,part,x,y){
+			return this.dispatchDonutAction(evt,'exit',x,y);
+		},
+		
+		
+		/**
+		 * on projection register add 'bound changed' projection listener that invoke repaint plugin
+		 * when projection bound changed event occurs.
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'donut2D projection bound changed');
+		},
+		
+		/**
+		 * convenience method that repaint donut by repainting whole plugin
+		 */
+		repaintDonuts : function(){
+			 this.repaintPlugin();
+		},
+		
+		/**
+		 * paint donut 2D plugin
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} the part being paint
+		 */
+		paintPlugin : function(g2d, part) {
+			if (part !== JenScript.ViewPart.Device) {
+				return;
+			}
+			for (var i = 0; i < this.donuts.length; i++) {
+				var donut = this.donuts[i];
+				if(donut.isSolvable()){
+					donut.solveDonut2D();
+					
+					g2d.deleteGraphicsElement(donut.Id);
+					donut.svg.donutRoot = new JenScript.SVGGroup().Id(donut.Id).toSVG();
+					g2d.insertSVG(donut.svg.donutRoot);
+					//global donut
+					if(donut.fill !== undefined){
+						donut.fill.fillDonut2D(g2d,donut);
+					}
+					if(donut.stroke !== undefined){
+						donut.stroke.strokeDonut2D(g2d,donut);
+					}
+					for (var i = 0; i < donut.effects.length; i++) {
+						var effect = donut.effects[i];
+						effect.effectDonut2D(g2d,donut);
+					}
+					
+					//slice
+					for (var i = 0; i < donut.slices.length; i++) {
+						var s = donut.slices[i];
+						
+						if(s.fill !== undefined){
+							s.fill.fillDonut2DSlice(g2d,s);
+						}
+						
+						if(s.stroke !== undefined){
+							s.stroke.strokeDonut2DSlice(g2d,s);
+						}
+					}
+					
+					//effects
+					
+					for (var j = 0; j < donut.slices.length; j++) {
+						var slice = donut.slices[j];
+						var labels = slice.getSliceLabels();
+						for (var l = 0; l < labels.length; l++) {
+							labels[l].paintDonut2DSliceLabel(g2d,slice);
+						}
+					}
+				}
+			}
+		}
+	});
+})();
+(function(){
+	/**
+	 * Object Donut2D()
+	 * Defines Donut2D
+	 * @param {Object} config
+	 * @param {Object} [config.name] donut name
+	 * @param {Object} [config.innerRadius] donut inner radius in pixel
+	 * @param {Object} [config.outerRadius] donut outer radius in pixel
+	 * @param {Object} [config.nature] donut projection nature, User or Device
+	 * @param {Object} [config.centerX] donut center x, depends on projection nature
+	 * @param {Object} [config.centerY] donut center y, depends on projection nature
+	 * @param {Object} [config.startAngleDegree] donut start angle degree
+	 * 
+	 */
+	JenScript.Donut2D = function(config){
+		this.init(config);
+	};
+	
+	JenScript.Model.addMethods(JenScript.Donut2D,{
+		
+		/**
+		 * Initialize Donut2D
+		 * @param {Object} config
+		 * @param {Object} [config.name] donut name
+		 * @param {Object} [config.innerRadius] donut inner radius in pixel
+		 * @param {Object} [config.outerRadius] donut outer radius in pixel
+		 * @param {Object} [config.nature] donut projection nature, User or Device
+		 * @param {Object} [config.centerX] donut center x, depends on projection nature
+		 * @param {Object} [config.centerY] donut center y, depends on projection nature
+		 * @param {Object} [config.startAngleDegree] donut start abgle degree
+		 * 
+		 */
+		init : function(config){
+			config=config || {};
+			/**donut instance Id*/
+			this.Id = 'donut2d'+JenScript.sequenceId++;
+			/** donut2D name */
+		    this.name = (config.name !== undefined)?config.name : 'Donut2D name undefined';
+		    /** donut2D nature */
+		    this.nature = (config.nature !== undefined)?config.nature : 'User';
+		    /** donut2D center x */
+		    this.centerX = (config.centerX !== undefined)?config.centerX : 0;
+		    /** donut2D center y */
+		    this.centerY = (config.centerY !== undefined)?config.centerY : 0;
+		    /** donut2D external radius */
+		    this.outerRadius = (config.outerRadius !== undefined)?config.outerRadius : 100;
+		    /** donut2D internal radius */
+		    this.innerRadius =(config.innerRadius !== undefined)?config.innerRadius : 60;
+		    /** donut2D start angle degree */
+		    this.startAngleDegree = (config.startAngleDegree !== undefined)?config.startAngleDegree : 0;
+		    /** donut2D draw */
+		    this.stroke;
+		    /** donut2D fill */
+		    this.fill = new JenScript.Donut2DDefaultFill();
+		    /** donut2D effect */
+		    this.effects = [];
+		    /** donut2D slices */
+		    this.slices=[];
+		    /** private host plugin */
+		    this.plugin;
+		    /**svg elements*/
+		    this.svg={};
+		},
+		
+		
+		
+		/**
+		 * get Id
+		 * @returns {String} Id
+		 */
+		getId : function(){
+			return this.Id;
+		},
+		
+		/**
+		 * get inner radius
+		 * @returns {Number} inner radius
+		 */
+		getInnerRadius : function(){
+			return this.innerRadius;
+		},
+		
+		/**
+		 * get outer radius
+		 * @returns {Number} outer radius
+		 */
+		getOuterRadius : function(){
+			return this.outerRadius;
+		},
+		
+		/**
+		 * get center X
+		 * @returns {Number} center X
+		 */
+		getCenterX : function(){
+			return this.centerX;
+		},
+		
+		/**
+		 * get center Y
+		 * @returns {Number} center Y
+		 */
+		getCenterY : function(){
+			return this.centerY;
+		},
+		
+		
+		/**
+		 * set Donut2D stroke
+		 * @param {Object} stroke to set
+		 */
+		setStroke : function(stroke){
+			this.stroke  = stroke;
+			this.plugin.repaintPlugin();
+		},
+		
+		/**
+		 * set Donut2D fill
+		 * @param {Object} fill to set
+		 */
+		setFill : function(fill){
+			this.fill  = fill;
+			this.plugin.repaintPlugin();
+		},
+		
+		/**
+		 * add Donut2D effect
+		 * @param {Object} effect to add
+		 */
+		addEffect : function(effect){
+			this.effects[this.effects.length]  = effect;
+			this.plugin.repaintPlugin();
+		},
+		
+		/**
+	     * add slice object in this donut and return donut
+	     * @param {Object} slice to add
+	     *           
+	     */
+	    addSlice : function(slice) {
+	        slice.donut = this;
+	        this.slices[this.slices.length]=slice;
+	        this.plugin.repaintPlugin();
+	        return this;
+	    },
+	    
+	    /**
+	     * create a new slice with given config, append it to this donut and return donut
+	     * @param config the slice config
+	     */
+	    slice : function(config){
+			var s = new JenScript.Donut2DSlice(config);
+			this.addSlice(s);
+			return this;
+		},
+		
+		 /**
+		  * add slices array in this donut
+		  * @param {Object} slice
+		  */
+		 addSlices : function (slices) {
+	       for (var s = 0; s < slices.length; s++) {
+	    	   this.addSlice(slices[s]);
+	       }
+	       return this;
+		 },
+		
+		/**
+		 * select the donut slice by the given name
+		 */
+		select : function(name){
+			for (var i = 0; i < this.slices.length; i++) {
+				if(this.slices[i].name === name)
+					return this.slices[i];
+			}
+		},
+
+	    /**
+	     * return true if donut has at least one slice, false otherwise
+	     * @return true if donut has at least one slice, false otherwise
+	     */
+	    isSolvable : function(){
+	    	return this.slices.length > 0;
+	    },
+
+
+	    /**
+	     * solve donut
+	     */
+	    solveDonut2D : function() {
+	    	var that = this;
+	        var project = (function() {
+		        if (that.nature == 'User') {
+		            var projectedCenter = that.plugin.getProjection().userToPixel(new JenScript.Point2D(that.centerX,that.centerY));
+		            that.buildCenterX = projectedCenter.x;
+		            that.buildCenterY = projectedCenter.y;
+		        }
+		        else  if (that.nature == 'Device') {
+		        	that.buildCenterX = that.centerX;
+		        	that.buildCenterY = that.centerY;
+		        }
+		        that.buildCenter = new JenScript.Point2D(that.buildCenterX,that.buildCenterY);
+		    })();
+	        var normalization = (function() {
+		        var sum = 0;
+		        for (var i = 0; i < that.slices.length; i++) {
+		            var s = that.slices[i];
+		            sum = sum + s.value;
+		        }
+
+		        for (var i = 0; i < that.slices.length; i++) {
+		        	var s = that.slices[i];
+		            var ratio = s.value / sum;
+		            s.ratio=ratio;
+		        }
+		    })();
+	        for (var j = 0; j < this.slices.length; j++) {
+	            var s = this.slices[j];
+	            this.solveSlice(s);
+	        }
+	    },
+
+	    /**
+	     * solve slice
+	     * @param {Object} slice to solve
+	     */
+	    solveSlice : function(slice) {
+
+	        var extendsDegree = slice.getRatio() * 360;
+
+	        if (this.startAngleDegree > 360) {
+	            this.startAngleDegree = this.startAngleDegree - 360;
+	        }
+
+	        var medianDegree = this.startAngleDegree + extendsDegree / 2;
+	        if (medianDegree > 360) {
+	            medianDegree = medianDegree - 360;
+	        }
+
+	        var startAngleDegree = this.startAngleDegree;
+	        var sliceCenterX = this.buildCenterX + slice.divergence * Math.cos(JenScript.Math.toRadians(medianDegree));
+	        var sliceCenterY = this.buildCenterY - slice.divergence * Math.sin(JenScript.Math.toRadians(medianDegree));
+	        
+	        slice.sc = {x:sliceCenterX,y:sliceCenterY};
+	        var sliceOuterBegin = {
+	        	x : sliceCenterX + this.outerRadius* Math.cos(JenScript.Math.toRadians(startAngleDegree)),
+				y : sliceCenterY - this.outerRadius* Math.sin(JenScript.Math.toRadians(startAngleDegree))
+	        };
+	        var sliceOuterEnd = {
+				x : sliceCenterX+ this.outerRadius* Math.cos(JenScript.Math.toRadians(startAngleDegree+extendsDegree)),
+				y : sliceCenterY- this.outerRadius* Math.sin(JenScript.Math.toRadians(startAngleDegree+extendsDegree))
+	        };
+	        slice.ob = sliceOuterBegin;
+	        slice.oe = sliceOuterEnd;
+	        var largeArcFlag = (extendsDegree > 180) ? '1' : '0';
+	        var outerArc = "M" + sliceOuterBegin.x + "," + sliceOuterBegin.y + " A" + this.outerRadius + ","
+								+ this.outerRadius + " 0 " + largeArcFlag + ",0 " + sliceOuterEnd.x + ","
+								+ sliceOuterEnd.y;
+	        
+	        
+
+	        slice.outerArc = outerArc;
+
+	        var sliceInnerBegin = {
+	        	x : sliceCenterX + this.innerRadius* Math.cos(JenScript.Math.toRadians(startAngleDegree)),
+				y : sliceCenterY - this.innerRadius* Math.sin(JenScript.Math.toRadians(startAngleDegree))
+	        };
+	        var sliceInnerEnd = {
+				x : sliceCenterX+ this.innerRadius* Math.cos(JenScript.Math.toRadians(startAngleDegree+extendsDegree)),
+				y : sliceCenterY- this.innerRadius* Math.sin(JenScript.Math.toRadians(startAngleDegree+extendsDegree))
+	        };
+	        slice.ib = sliceInnerBegin;
+	        slice.ie = sliceInnerEnd;
+	        var innerArc = "M" + sliceInnerBegin.x + "," + sliceInnerBegin.y + " A" + this.sliceInnerEnd + ","
+						+ this.sliceInnerEnd + " 0 " + largeArcFlag + ",0 " + sliceInnerEnd.x + ","
+						+ sliceInnerEnd.y;
+	        slice.innerArc = innerArc;
+	        
+	        //face
+	        var sliceFace = "M" + sliceOuterBegin.x + "," + sliceOuterBegin.y + " A" + this.outerRadius + ","
+							+ this.outerRadius + " 0 " + largeArcFlag + ",0 " + sliceOuterEnd.x + ","
+							+ sliceOuterEnd.y+' L '+sliceInnerEnd.x+','+sliceInnerEnd.y+ " A" + this.innerRadius + ","
+							+ this.innerRadius + " 0 " + largeArcFlag + ",1 " + sliceInnerBegin.x + ","
+							+ sliceInnerBegin.y+' Z';
+		        
+	        
+	        slice.face = sliceFace;
+	        
+	        slice.medianDegree =  medianDegree;
+	        slice.startAngleDegree =  startAngleDegree;
+	        slice.endAngleDegree = startAngleDegree + extendsDegree;
+	        slice.extendsDegree = extendsDegree;
+	        
+	        startAngleDegree = startAngleDegree + extendsDegree;
+	        this.startAngleDegree = startAngleDegree;
+	    },
+
+	    /**
+	     * get donut slices
+	     * @return donut slices
+	     */
+	    getSlices : function() {
+	        return this.slices;
+	    },
+
+	    /**
+	     * return true if donut is roll over, false otherwise
+	     * @return true if donut is roll over, false otherwise
+	     */
+	    isLockRollover : function() {
+	        for (var i = 0; i < this.slices.length; i++) {
+	            var s = this.slices[i];
+	            if (s.lockRollover) {
+	                return true;
+	            }
+	        }
+	        return false;
+	    },
+	});
+	
+})();
+(function(){
+
+	/**
+	 * Object Donut2DSlice()
+	 * Defines Donut2D Slice
+	 * @param {Object} config
+	 * @param {Object} [config.name] donut slice name
+	 * @param {Object} [config.value] value that will be ratio normalize
+	 * @param {Object} [config.themeColor] slice theme color, randomized if undefined
+	 * @param {Object} [config.divergence] slice divergence in pixel
+	 * 
+	 */
+	JenScript.Donut2DSlice = function(config){
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.Donut2DSlice,{
+		
+		/**
+		 * Initialize Donut2D Slice
+		 * @param {Object} config
+		 * @param {Object} [config.name] donut slice name
+		 * @param {Object} [config.value] value that will be ratio normalize
+		 * @param {Object} [config.themeColor] slice theme color, randomized if undefined
+		 * @param {Object} [config.divergence] slice divergence in pixel
+		 * 
+		 */
+		init:function(config){
+			config = config || {};
+			/** slice name */
+		    this.name = (config.name !== undefined)?config.name : 'Donut2DSlice name undefined';
+		    /** slice value */
+		    this.value = (config.value !== undefined)?config.value : 1 ;
+		    /** slice theme color */
+		    this.themeColor=(config.themeColor !== undefined)?config.themeColor : JenScript.createColor() ;
+		    /** divergence */
+		    this.divergence = (config.divergence !== undefined)?config.divergence : 0 ;
+		    /**slice fill opacity*/
+		    this.fillOpacity=(config.fillOpacity !== undefined)?config.fillOpacity : 1 ;
+		    /**slice stroke opacity*/
+		    this.strokeOpacity=(config.strokeOpacity !== undefined)?config.strokeOpacity : 1 ;
+		    /** slice normalized value */
+		    this.ratio;
+		    /** start angle degree */
+		    this.startAngleDegree;
+		    /** end angle degree */
+		    this.endAngleDegree;
+		    /** slice path */
+		    this.face;
+		    /** slice outer arc */
+		    this.outerArc;
+		    /** slice inner arc */
+		    this.innerArc;
+		    /** lock roll over */
+		    this.lockRollover = false;
+		    /** slice draw */
+		    this.stroke;
+		    /** slice fill */
+		    this.fill;
+		    /** slice labels */
+		    this.sliceLabels = [];
+		    /** host donut2D of this slice */
+		    this.donut;
+		    
+		    if(this.value <= 0 )
+		    	throw new Error('Slice value should be greater than 0');
+		   
+		},
+		
+
+		/**
+		 * set slice theme color
+		 * @param {String} slice theme color
+		 */
+		setThemeColor : function(color){
+			this.color=color;
+		},
+		
+		/**
+		 * get slice theme color
+		 * @return {String} slice theme color
+		 */
+		getThemeColor : function(){
+			return this.themeColor;
+		},
+		/**
+		 * set slice divergence
+		 * @param {Number} slice divergence
+		 */
+		setDivergence : function(divergence){
+			this.divergence=divergence;
+		},
+		
+		/**
+		 * get slice divergence
+		 * @return {Number} slice divergence
+		 */
+		getDivergence : function(){
+			return this.divergence;
+		},
+		
+		/**
+		 * set slice divergence
+		 * @param {Number} slice divergence
+		 */
+		setDivergence : function(divergence){
+			this.divergence=divergence;
+		},
+		
+		/**
+		 * get slice divergence
+		 * @return {Number} slice divergence
+		 */
+		getDivergence : function(){
+			return this.divergence;
+		},
+		
+		/**
+		 * set slice fill opacity
+		 * @param {Number} slice opacity
+		 */
+		setFillOpacity : function(opacity){
+			this.fillOpacity=opacity;
+		},
+		
+		/**
+		 * get slice fill opacity
+		 * @return {Number} slice opacity
+		 */
+		getFillOpacity : function(){
+			return this.fillOpacity;
+		},
+		
+		/**
+		 * set slice stroke opacity
+		 * @param {Number} slice opacity
+		 */
+		setStrokeOpacity : function(opacity){
+			this.strokeOpacity=opacity;
+		},
+		
+		/**
+		 * get slice stroke opacity
+		 * @return {Number} slice stroke opacity
+		 */
+		getStrokeOpacity : function(){
+			return this.strokeOpacity;
+		},
+		
+		/**
+		 * set slice label
+		 * @param {Object} label
+		 */
+		addSliceLabel : function(label){
+			if(label.textColor === undefined)
+				label.textColor = this.themeColor;
+			this.sliceLabels[this.sliceLabels.length] = label;
+			if(this.donut !== undefined && this.donut.plugin !== undefined){
+		        	this.donut.plugin.repaintDonuts();	
+		    }
+		},
+		
+		/**
+		 * get slice labels
+		 * @returns {Array} slice label array
+		 */
+		getSliceLabels : function(){
+			return this.sliceLabels;
+		},
+		
+		/**
+		 * get ratio of this slice
+		 * @returns {Number} the slice ratio
+		 */
+		getRatio : function(){
+			return this.ratio;
+		},
+		
+		/**
+		 * set donut slice stroke
+		 * @param {Object} stroke
+		 */
+		setStroke : function(stroke){
+			this.stroke = stroke;
+		},
+		
+		/**
+		 * set donut slice fill
+		 * @param {Object} fill
+		 */
+		setFill : function(fill){
+			this.fill = fill;
+		},
+		
+		/**
+		 * set donut slice stroke
+		 * @returns {Object} stroke
+		 */
+		getStroke : function(){
+			return this.stroke;
+		},
+		
+		/**
+		 * set donut slice fill
+		 * @returns {Object} fill
+		 */
+		getFill : function(){
+			return this.fill;
+		},
+	});
+})();
+(function(){
+	/**
+	 * Object AbstractDonut2DFill()
+	 * Defines Donut2D Abstract Fill
+	 * @param {Object} config
+	 * @param {String} [config.name] fill name
+	 */
+	JenScript.AbstractDonut2DFill = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.AbstractDonut2DFill,{
+		/**
+		 * Initialize Donut2D Abstract Fill
+		 * @param {Object} config
+		 * @param {String} [config.name] fill name
+		 */
+		init : function(config){
+			config = config || {};
+			this.name = config.name;
+		},
+		/**
+	     * Abstract fill donut 2D, provide paint by override
+	     * @param {Object} g2d  graphics context
+	     * @param {Object} donut2D
+	     */
+	    fillDonut2D : function(g2d,donut2D){
+	    	throw new Error("AbstractDonut2DFill fillDonut2D method should be provide by override.");
+	    }
+	});
+	
+	/**
+	 * Object Donut2DDefaultFill()
+	 * Defines Donut2D Default Fill
+	 * @param {Object} config
+	 * @param {String} [config.fillColor] fill color for whole donut if provide
+	 */
+	JenScript.Donut2DDefaultFill = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut2DDefaultFill,JenScript.AbstractDonut2DFill);
+	JenScript.Model.addMethods(JenScript.Donut2DDefaultFill,{
+		/**
+		 * Initialize Donut2D Default Fill
+		 * @param {Object} config
+		 * @param {String} [config.fillColor] fill color for whole donut if provide
+		 */
+		_init : function(config){
+			config = config || {};
+			/** fill color */
+			this.fillColor = config.fillColor;
+			config.name='JenScript.Donut2DDefaultFill';
+			JenScript.AbstractDonut2DFill.call(this,config);
+		},
+		
+		/**
+	     * default fill donut 2D
+	     * @param {Object} g2d  graphics context
+	     * @param {Object} donut2D
+	     */
+		fillDonut2D : function(g2d,donut2D){
+	    	for (var i = 0; i < donut2D.slices.length; i++) {
+		        var s = donut2D.slices[i];
+		        
+		        var color = (this.fillColor !== undefined)?this.fillColor : s.themeColor;
+		        var svg = new JenScript.SVGElement().name('path')
+								.attr('d',s.face).attr('stroke','none').attr('fill',color).attr('fill-opacity',s.fillOpacity);
+	
+		        donut2D.svg.donutRoot.appendChild(svg.buildHTML());
+	        }
+	    }
+	});
+	
+	/**
+	 * Object Donut2DRadialFill()
+	 * Defines Donut2D Radial Fill
+	 * @param {Object} config
+	 * @param {String} [config.fillColor] fill color for whole donut if provide, else slice color is use for radial fill
+	 */
+	JenScript.Donut2DRadialFill = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut2DRadialFill,JenScript.AbstractDonut2DFill);
+	JenScript.Model.addMethods(JenScript.Donut2DRadialFill,{
+		/**
+		 * Initialize Donut2D Radial Fill
+		 * @param {Object} config
+		 * @param {String} [config.fillColor] fill color for whole donut if provide, else slice color is use for radial fill
+		 */
+		_init : function(config){
+			config = config || {};
+			/** fill color */
+			this.fillColor = config.fillColor;
+			config.name='JenScript.Donut2DRadialFill';
+			JenScript.AbstractDonut2DFill.call(this,config);
+		},
+		
+		/**
+	     * Radial fill donut 2D
+	     * @param {Object} g2d  graphics context
+	     * @param {Object} donut2D
+	     */
+		fillDonut2D : function(g2d,donut2D){
+			
+			var or = donut2D.outerRadius;
+	        var ir = donut2D.innerRadius;
+	        var mr = ir + (or - ir) / 2;
+	        var mrf = (mr / or)*100+'%';
+	        var irf = (ir / or)*100+'%';
+	        var percents = [ irf,  mrf, '100%' ];
+	        
+	    	for (var i = 0; i < donut2D.slices.length; i++) {
+		        var s = donut2D.slices[i];
+		        
+		        var c = (this.fillColor !== undefined) ? new JenScript.Color(this.fillColor).toHexString():new JenScript.Color(s.themeColor).toHexString();
+		        var darken = JenScript.Color.darken(c).toHexString();
+		        var colors = [darken,c,darken];
+		       
+		        var gradientId = "gradient"+JenScript.sequenceId++;
+				var gradient= new JenScript.SVGRadialGradient().Id(gradientId).center(s.sc.x,s.sc.y).focus(s.sc.x,s.sc.y).radius(donut2D.outerRadius).shade(percents,colors).toSVG();
+				g2d.definesSVG(gradient);
+		        
+				var svg = new JenScript.SVGElement().name('path')
+								.attr('d',s.face).attr('stroke','none')
+								.attr('fill','url(#'+gradientId+')')
+								.attr('fill-opacity',s.fillOpacity);
+	
+				donut2D.svg.donutRoot.appendChild(svg.buildHTML());
+	        }
+	    }
+	});
+	
+	
+	
+	
+	/**
+	 * Object AbstractDonut2DSliceFill()
+	 * Defines Abstract Donut2D Slice Fill
+	 * @param {Object} config
+	 * @param {Object} [config.name] donut slice fill name
+	 */
+	JenScript.AbstractDonut2DSliceFill = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.AbstractDonut2DSliceFill,{
+		/**
+		 * Initialize Abstract Donut2D Slice Fill
+		 * @param {Object} config
+		 * @param {Object} [config.name] donut slice fill name
+		 */
+		init : function(config){
+			config = config || {};
+			this.name = config.name;
+		},
+		/**
+	     * fill donut 2D slice
+	     * @param {Object} g2d
+	     * @param {Object} slice
+	     */
+	    fillDonut2DSlice : function(g2d,slice){
+	    	throw new Error('JenScript.AbstractDonut2DSliceFill fillDonut2DSlice method should be provide by override');
+	    }
+	});
+	
+	
+	/**
+	 * Object Donut2DSliceDefaultFill()
+	 * Defines Donut2D Slice Default Fill
+	 * @param {Object} config
+	 * @param {Object} [config.fillColor] donut slice fill color, else slice theme color is used
+	 */
+	JenScript.Donut2DSliceDefaultFill = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut2DSliceDefaultFill,JenScript.AbstractDonut2DSliceFill);
+	JenScript.Model.addMethods(JenScript.Donut2DSliceDefaultFill,{
+		/**
+		 * Initialize Donut2D Slice Default Fill
+		 * @param {Object} config
+		 * @param {Object} [config.fillColor] donut slice fill color, else slice theme color is used
+		 */
+		_init : function(config){
+			config = config || {};
+			/** fill color */
+			this.fillColor = config.fillColor;
+			config.name ='JenScript.Donut2DSliceDefaultFill';
+			JenScript.AbstractDonut2DSliceFill.call(this,config);
+		},
+		
+		/**
+	     * Default fill donut 2D slice
+	     * @param {Object} g2d
+	     * @param {Object} slice
+	     */
+		fillDonut2DSlice : function(g2d,slice){
+	        var color = (this.fillColor !== undefined)?this.fillColor : slice.themeColor;
+	        var svg = new JenScript.SVGElement().name('path')
+							.attr('d',slice.face).attr('stroke','none').attr('fill',color).attr('fill-opacity',slice.fillOpacity);
+
+	        slice.donut.svg.donutRoot.appendChild(svg.buildHTML());
+	    }
+	});
+	
+	/**
+	 * Object Donut2DSliceRadialFill()
+	 * Defines Donut2D Slice Radial Fill
+	 * @param {Object} config
+	 * @param {Object} [config.fillColor] donut slice fill color, else slice theme color is used
+	 */
+	JenScript.Donut2DSliceRadialFill = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut2DSliceRadialFill,JenScript.AbstractDonut2DFill);
+	JenScript.Model.addMethods(JenScript.Donut2DSliceRadialFill,{
+		/**
+		 * Initialize Donut2D Slice Radial Fill
+		 * @param {Object} config
+		 * @param {Object} [config.fillColor] donut slice fill color, else slice theme color is used
+		 */
+		_init : function(config){
+			config = config || {};
+			/** fill color */
+			this.fillColor = config.fillColor;
+			config.name ='JenScript.Donut2DSliceRadialFill';
+			JenScript.AbstractDonut2DSliceFill.call(this,config);
+		},
+		
+		/**
+	     * Default fill donut 2D slice
+	     * @param {Object} g2d
+	     * @param {Object} slice
+	     */
+		fillDonut2DSlice : function(g2d,slice){
+			var or = slice.donut.outerRadius;
+	        var ir = slice.donut.innerRadius;
+	        var mr = ir + (or - ir) / 2;
+	        var mrf = (mr / or)*100+'%';
+	        var irf = (ir / or)*100+'%';
+	        var percents = [ irf,  mrf, '100%' ];
+	        var c = (this.fillColor !== undefined) ? new JenScript.Color(this.fillColor).toHexString():new JenScript.Color(slice.themeColor).toHexString();
+	        var darken = JenScript.Color.darken(c).toHexString();
+	        var colors = [darken,c,darken];
+	        var gradientId = "gradient"+JenScript.sequenceId++;
+			var gradient= new JenScript.SVGRadialGradient().Id(gradientId).center(slice.sc.x,slice.sc.y).focus(slice.sc.x,slice.sc.y).radius(slice.donut.outerRadius).shade(percents,colors).toSVG();
+			g2d.definesSVG(gradient);
+			var svg = new JenScript.SVGElement().name('path')
+							.attr('d',slice.face).attr('stroke','none').attr('fill','url(#'+gradientId+')');
+
+			slice.donut.svg.donutRoot.appendChild(svg.buildHTML());
+	    }
+	});
+})();
+(function(){
+	
+	/**
+	 * Object AbstractDonut2Stroke()
+	 * Defines Donut2D Abstract Draw
+	 * @param {Object} config
+	 * @param {String} [config.name] draw name
+	 */
+	JenScript.AbstractDonut2Stroke = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.AbstractDonut2Stroke,{
+		/**
+		 * Initialize Donut2D Abstract Draw
+		 * @param {Object} config
+		 * @param {String} [config.name] draw name
+		 */
+		init : function(config){
+			config = config || {};
+			this.name = config.name;
+		},
+		/**
+	     * Abstract stroke donut 2D, override this method to provide stroke
+	     * @param {Object} g2d graphics context
+	     * @param {Object} donut2D
+	     */
+	    strokeDonut2D : function(g2d,donut2D){
+	    	throw new Error('AbstractDonut2Stroke, strokeDonut2D method should be provide by override');
+	    }
+	});
+	
+	/**
+	 * Object Donut2DDefaultDraw()
+	 * Defines Donut2D Default Draw
+	 * @param {Object} config
+	 * @param {Object} [config.strokeColor] color for stroking whole donut, else slice theme color is use for each slice
+	 * @param {Object} [config.strokeWidth] stroke width
+	 */
+	JenScript.Donut2DDefaultStroke = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut2DDefaultStroke,JenScript.AbstractDonut2Stroke);
+	JenScript.Model.addMethods(JenScript.Donut2DDefaultStroke,{
+		/**
+		 * Initialize Donut2D Default Draw
+		 * @param {Object} config
+		 * @param {Object} [config.strokeColor] color for stroking whole donut, else slice theme color is use for each slice
+		 * @param {Object} [config.strokeWidth] stroke width
+		 */
+		_init : function(config){
+			config = config || {};
+			/** draw color */
+			this.strokeColor = config.strokeColor;
+			/** stroke color */
+			this.strokeWidth = config.strokeWidth;
+			config.name = 'JenScript.Donut2DDefaultDraw';
+			JenScript.AbstractDonut2Stroke.call(this,config);
+		},
+		
+		/**
+	     * fill donut 2D
+	     * @param {Object} g2d graphics context
+	     * @param {Object} donut2D
+	     */
+		strokeDonut2D : function(g2d,donut2D){
+	    	for (var i = 0; i < donut2D.slices.length; i++) {
+		        var s = donut2D.slices[i];
+		        
+		        var color = (this.strokeColor !== undefined)?this.strokeColor : s.themeColor;
+		        var svg = new JenScript.SVGElement().name('path')
+								.attr('d',s.face).attr('stroke',color).attr('stroke-opacity',s.strokeOpacity).attr('fill','none');
+	
+		        donut2D.svg.donutRoot.appendChild(svg.buildHTML());
+	        }
+	    }
+	});
+	
+	
+	
+	
+	/**
+	 * Object AbstractDonut2DSliceStroke()
+	 * Defines Donut2D Slice Stroke
+	 * @param {Object} config
+	 * @param {Object} [config.name] donut slice stroke name
+	 */
+	JenScript.AbstractDonut2DSliceStroke = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.AbstractDonut2DSliceStroke,{
+		/**
+		 * Initialize Donut2D Slice Stroke
+		 * @param {Object} config
+		 * @param {Object} [config.name] donut slice stroke name
+		 */
+		init : function(config){
+			config = config || {};
+			this.name = config.name;
+		},
+		/**
+	     * Abstract donut 2D slice stroke
+	     * @param {Object} g2d
+	     * @param {Object} slice
+	     */
+	    strokeDonut2DSlice : function(g2d,slice){
+	    	throw new Error('JenScript.AbstractDonut2DSliceStroke strokeDonut2DSlice method should be provide by override.');
+	    }
+	});
+	
+	/**
+	 * Object Donut2DSliceDefaultStroke()
+	 * Defines Donut2D Slice Default Stroke
+	 * @param {Object} config
+	 * @param {Object} [config.strokeColor] color for stroking donut slice, else slice theme color is use.
+	 * @param {Object} [config.strokeWidth] stroke width
+	 */
+	JenScript.Donut2DSliceDefaultStroke = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut2DSliceDefaultStroke,JenScript.AbstractDonut2DSliceStroke);
+	JenScript.Model.addMethods(JenScript.Donut2DSliceDefaultStroke,{
+		/**
+		 * Initialize Donut2D Slice Default Stroke
+		 * @param {Object} config
+		 * @param {Object} [config.strokeColor] color for stroking donut slice, else slice theme color is use.
+		 * @param {Object} [config.strokeWidth] stroke width
+		 */
+		_init : function(config){
+			config = config || {};
+			/** draw color */
+			this.strokeColor = config.strokeColor;
+			/** stroke color */
+			this.strokeWidth = config.strokeWidth;
+			config.name='JenScript.Donut2DSliceDefaultStroke';
+			JenScript.AbstractDonut2DSliceStroke.call(this,config);
+		},
+		
+		/**
+	     * Default donut 2D slice stroke
+	     * @param {Object} g2d
+	     * @param {Object} slice
+	     */
+		strokeDonut2DSlice : function(g2d,slice){
+	        var color = (this.strokeColor !== undefined)?this.strokeColor : slice.themeColor;
+	        var svg = new JenScript.SVGElement().name('path')
+							.attr('d',slice.face).attr('stroke',color).attr('fill','none');
+
+	        slice.donut.svg.donutRoot.appendChild(svg.buildHTML());
+	    }
+	});
+})();
+(function(){
+
+	/**
+	 * Object AbstractDonut2DEffect()
+	 * Defines Abstract Donut2D Effect
+	 * @param {Object} config
+	 * @param {Object} [config.name] donut effect name
+	 */
+	JenScript.AbstractDonut2DEffect = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.AbstractDonut2DEffect,{
+		/**
+		 * Initialize Abstract Donut2D Effect
+		 * @param {Object} config
+		 * @param {Object} [config.name] donut effect name
+		 */
+		init : function(config){
+			config = config || {};
+			this.name = config.name;
+		},
+		/**
+	     * effect donut 2D
+	     * @param {Object} g2d
+	     * @param {Object} donut2D
+	     */
+	    effectDonut2D : function(g2d,donut2D){}
+	});
+	
+	/**
+	 * Object Donut2DLinearEffect()
+	 * Defines Linear Donut2D Effect
+	 * @param {Object} config
+	 * @param {Object} [config.offsetRadius] effect offsetRadius, default 3 pixel
+	 * @param {Object} [config.incidenceAngleDegree] effect incidence angle degree, default 120
+	 * @param {Object} [config.shader] effect shader
+	 * @param {Object} [config.shader.percents] effect shader percents array
+	 * @param {Object} [config.shader.colors] effect shader colors array
+	 */
+	JenScript.Donut2DLinearEffect = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut2DLinearEffect,JenScript.AbstractDonut2DEffect);
+	JenScript.Model.addMethods(JenScript.Donut2DLinearEffect,{
+		/**
+		 * Initialize Linear Donut2D Effect
+		 * @param {Object} config
+		 * @param {Object} [config.offsetRadius] effect offsetRadius, default 3 pixel
+		 * @param {Object} [config.incidenceAngleDegree] effect incidence angle degree, default 120
+		 * @param {Object} [config.shader] effect shader
+		 * @param {Object} [config.shader.percents] effect shader percents array
+		 * @param {Object} [config.shader.colors] effect shader colors array
+		 */
+		_init : function(config){
+			config = config || {};
+		    /** offset radius */
+		    this.offsetRadius = 3;
+		    /** gradient incidence angle degree */
+		    this.incidence = (config.incidence !== undefined)?config.incidence : 120;
+		    /** default shader fractions */
+		    this.defaultShader = {percents : [ '0%', '49%', '51%', '100%' ],opacity:[0.6,0,0,0.6], colors : ['rgb(60, 60, 60)', 'rgb(255,255,255)','rgb(255,255,255)','rgb(255, 255, 255)']};
+		    /** shader */
+		    this.shader = (config.shader !== undefined)?config.shader : this.defaultShader;
+
+		    /**effect name*/
+		    config.name = 'JenScript.Donut2DLinearEffect';
+		    this.fillOpacity = (config.fillOpacity !== undefined)?config.fillOpacity : 1;
+		    this.gradientsIds = [];
+		    JenScript.AbstractDonut2DEffect.call(this,config);        
+		},
+		
+		/**
+		 * paint effect on the given donut
+		 * @param {Object} graphics context
+		 * @param {Object} donut 
+		 */
+		effectDonut2D : function(g2d,donut2D) {
+			for (var i = 0; i < this.gradientsIds.length; i++) {
+				g2d.deleteGraphicsElement(this.gradientsIds[i]);
+			}
+			this.gradientsIds = [];
+			for (var i = 0; i < donut2D.slices.length; i++) {
+				var slice = donut2D.slices[i];
+		        var outerRadius = donut2D.outerRadius - this.offsetRadius;
+		        var innerRadius = donut2D.innerRadius + this.offsetRadius;
+		        var startAngleDegree = slice.startAngleDegree;
+		        var extendsDegree = slice.extendsDegree;
+		        var largeArcFlag = (extendsDegree > 180) ? '1' : '0';
+		        var polar = function(r,a){
+		        	return {
+			        	x : slice.sc.x + r* Math.cos(JenScript.Math.toRadians(a)),
+						y : slice.sc.y - r* Math.sin(JenScript.Math.toRadians(a))
+			        };
+		        };
+		        var sliceOuterBegin = polar(outerRadius,startAngleDegree);
+		        var sliceOuterEnd   = polar(outerRadius,startAngleDegree+extendsDegree);
+		        var sliceInnerBegin = polar(innerRadius,startAngleDegree);
+		        var sliceInnerEnd   = polar(innerRadius,startAngleDegree+extendsDegree);
+		        var effectFace = "M" + sliceOuterBegin.x + "," + sliceOuterBegin.y + " A" + outerRadius + ","
+								+ outerRadius + " 0 " + largeArcFlag + ",0 " + sliceOuterEnd.x + ","
+								+ sliceOuterEnd.y+' L '+sliceInnerEnd.x+','+sliceInnerEnd.y+ " A" + innerRadius + ","
+								+ innerRadius + " 0 " + largeArcFlag + ",1 " + sliceInnerBegin.x + ","
+								+ sliceInnerBegin.y+' Z';                       
+
+		        var start = polar(outerRadius,this.incidence);
+		        var end   = polar(outerRadius,this.incidence+180);
+		        if (this.shader === undefined) {
+		           this.shader = this.defaultShader;
+		        }
+		      
+		        var gradientId = 'gradient'+JenScript.sequenceId++;
+		        this.gradientsIds[this.gradientsIds.length] = gradientId;
+				var gradient   = new JenScript.SVGLinearGradient().Id(gradientId).from(start.x,start.y).to(end.x, end.y).shade(this.shader.percents,this.shader.colors,this.shader.opacity).toSVG();
+				g2d.definesSVG(gradient);
+				var svg = new JenScript.SVGElement().name('path').attr('d',effectFace).attr('stroke','none').attr('fill-opacity',slice.fillOpacity).attr('fill','url(#'+gradientId+')');
+				donut2D.svg.donutRoot.appendChild(svg.buildHTML());
+			}
+	    }
+	});
+	
+	/**
+	 * Object Donut2DReflectionEffect()
+	 * Defines Donut2D Reflection Effect
+	 * @param {Object} config
+	 * @param {Object} [config.deviation]
+	 * @param {Object} [config.length]
+	 * @param {Object} [config.opacity]
+	 * @param {Object} [config.verticalOffset]
+	 */
+	JenScript.Donut2DReflectionEffect = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut2DReflectionEffect, JenScript.AbstractDonut2DEffect);
+	JenScript.Model.addMethods(JenScript.Donut2DReflectionEffect,{
+		
+		/**
+		 * Initialize Donut2D Reflection Effect
+		 * @param {Object} config
+		 * @param {Object} [config.deviation] blur deviation, default 3 pixels
+		 * @param {Object} [config.opacity] effect opacity, default 0.3
+		 * @param {Object} [config.verticalOffset] effect vertical offset, default 5 pixels
+		 * @param {Object} [config.length] effect length [0,1], 1 reflect whole donut, 0.5 half of the donut, etc
+		 */
+		_init: function(config){
+			config = config || {};
+			this.deviation = (config.deviation !== undefined)?config.deviation : 3;
+			this.opacity = (config.opacity !== undefined)?config.opacity : 0.3;
+			this.length = (config.length !== undefined)?config.length : 0.5;
+			this.verticalOffset = (config.verticalOffset !== undefined)?config.verticalOffset : 0;
+			config.name = "JenScript.Donut2DReflectionEffect";
+			JenScript.AbstractDonut2DEffect.call(this,config);
+		},
+		
+		/**
+		 * Paint donut reflection effect
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} donut 
+		 */
+		effectDonut2D : function(g2d, donut) {
+			var bbox = donut.svg.donutRoot.getBBox();
+			
+			 //clip
+			var clipId = 'clip'+JenScript.sequenceId++;
+			var rectClip = new JenScript.SVGRect().origin(bbox.x,bbox.y+bbox.height).size(bbox.width,bbox.height*this.length);
+			var clip = new JenScript.SVGClipPath().Id(clipId).appendPath(rectClip);
+			g2d.definesSVG(clip.toSVG());
+				
+			
+			//filter
+			var filterId = 'filter'+JenScript.sequenceId++;
+			var filter = new JenScript.SVGFilter().Id(filterId).from(bbox.x,bbox.y).size(bbox.width,bbox.height).toSVG();
+			var gaussianFilter = new JenScript.SVGElement().name('feGaussianBlur')
+															.attr('in','SourceGraphic')
+															.attr('stdDeviation',this.deviation);
+															
+			filter.appendChild(gaussianFilter.buildHTML());
+			g2d.definesSVG(filter);
+		
+			var e = donut.svg.donutRoot.cloneNode(true);
+			e.removeAttribute('id');
+			e.setAttribute('filter','url(#'+filterId+')');
+			e.setAttribute('transform','translate(0,'+bbox.height+'), scale(1,-1), translate(0,'+(-2*(bbox.y+bbox.height/2)-this.verticalOffset)+')'  );
+			e.setAttribute('opacity',this.opacity);
+			
+			var ng = new JenScript.SVGElement().name('g').buildHTML();
+			e.setAttribute('id',e.getAttribute('id')+'_reflection'+JenScript.sequenceId++);
+			ng.setAttribute('clip-path','url(#'+clipId+')');
+			ng.appendChild(e);
+			g2d.insertSVG(ng);	
+		}
+	});
+})();
+(function(){
+	
+	
+	/**
+	 * Object Donut2DAbstractLabel()
+	 * Defines Donut2D Abstract Label
+	 * @param {Object} config
+	 * @param {String} [config.name] the label type name
+	 * @param {String} [config.text] the label text
+	 * @param {String} [config.textColor] the label text color
+	 * @param {Number} [config.fontSize] the label text font size
+	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {Object} [config.shader] the label fill shader
+	 * @param {Object} [config.shader.percents] the label fill shader percents
+	 * @param {Object} [config.shader.colors] the label fill shader colors
+	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+	 * @param {String} [config.outlineColor] the label outline color
+	 * @param {String} [config.cornerRadius] the label outline corner radius
+	 * @param {String} [config.fillColor] the label fill color
+	 */
+	JenScript.Donut2DAbstractLabel = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut2DAbstractLabel,JenScript.AbstractLabel);
+	JenScript.Model.addMethods(JenScript.Donut2DAbstractLabel,{
+		
+		/**
+		 * Initialize Abstract Donut2D Label
+		 * @param {Object} config
+		 * @param {String} [config.name] the label type name
+		 * @param {String} [config.text] the label text
+		 * @param {String} [config.textColor] the label text color
+		 * @param {Number} [config.fontSize] the label text font size
+		 * @param {String} [config.textAnchor] the label text anchor
+		 * @param {Object} [config.shader] the label fill shader
+		 * @param {Object} [config.shader.percents] the label fill shader percents
+		 * @param {Object} [config.shader.colors] the label fill shader colors
+		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+		 * @param {String} [config.outlineColor] the label outline color
+		 * @param {String} [config.cornerRadius] the label outline corner radius
+		 * @param {String} [config.fillColor] the label fill color
+		 */
+		_init : function(config){
+			JenScript.AbstractLabel.call(this,config);
+		},
+		
+		/**
+		 * Abstract label paint for Donut2D 
+		 */
+		paintDonut2DSliceLabel : function(g2d,slice){
+			throw new Error('paintDonut2DSliceLabel method should be provide by override');
+		}
+		
+	});
+	
+	/**
+	 * Object Donut2DBorderLabel()
+	 * Defines Donut Border Label, a label which is paint on the donut border left or right side 
+	 * @param {Object} config
+	 * @param {String} [config.name] the label type name
+	 * @param {String} [config.text] the label text
+	 * @param {String} [config.textColor] the label text color
+	 * @param {Number} [config.fontSize] the label text font size
+	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {Object} [config.shader] the label fill shader
+	 * @param {Object} [config.shader.percents] the label fill shader percents
+	 * @param {Object} [config.shader.colors] the label fill shader colors
+	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+	 * @param {String} [config.outlineColor] the label outline color
+	 * @param {String} [config.cornerRadius] the label outline corner radius
+	 * @param {String} [config.fillColor] the label fill color
+	 * @param {Number} [config.margin] the margin distance from donut to draw the label
+	 * @param {Number} [config.linkExtends] the quad edge control point for label link
+	 */
+	JenScript.Donut2DBorderLabel = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut2DBorderLabel, JenScript.Donut2DAbstractLabel);
+	JenScript.Model.addMethods(JenScript.Donut2DBorderLabel, {
+		
+		/**
+		 * Initialize Donut2D Border Label, a label which is paint on the donut border left or right side 
+		 * @param {Object} config
+		 * @param {String} [config.name] the label type name
+		 * @param {String} [config.text] the label text
+		 * @param {String} [config.textColor] the label text color
+		 * @param {Number} [config.fontSize] the label text font size
+		 * @param {String} [config.textAnchor] the label text anchor
+		 * @param {Object} [config.shader] the label fill shader
+		 * @param {Object} [config.shader.percents] the label fill shader percents
+		 * @param {Object} [config.shader.colors] the label fill shader colors
+		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+		 * @param {String} [config.outlineColor] the label outline color
+		 * @param {String} [config.cornerRadius] the label outline corner radius
+		 * @param {String} [config.fillColor] the label fill color
+		 * @param {Number} [config.margin] the margin distance from donut to draw the label
+		 * @param {Number} [config.linkExtends] the quad edge control point for label link
+		 */
+		__init : function(config){
+			config = config || {};
+			this.margin = (config.margin !== undefined)? config.margin : 50;
+			this.linkExtends = (config.linkExtends !== undefined)? config.linkExtends : 30;
+			config.name = 'JenScript.Donut2DBorderLabel';
+			JenScript.Donut2DAbstractLabel.call(this, config);
+		},
+		
+		/**
+		 * set margin for this border label
+		 * @param {Object} margin
+		 */
+		setMargin : function(margin){
+			this.margin = margin;
+			this.slice.donut.plugin.repaintPlugin();
+		},
+		
+		/**
+		 * set links extends for this border label
+		 * @param {Object} margin
+		 */
+		setLinkExtends : function(linkExtends){
+			this.linkExtends = linkExtends;
+			this.slice.donut.plugin.repaintPlugin();
+		},
+		
+		/**
+		 * paint donut2D slice border label
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} slice
+		 */
+		paintDonut2DSliceLabel : function(g2d, slice) {
+		        var radius = slice.donut.getOuterRadius();
+		        var medianDegree = slice.medianDegree;
+		     
+		        var px1 = slice.donut.buildCenterX + (radius + slice.getDivergence())* Math.cos(JenScript.Math.toRadians(medianDegree));
+		        var py1 = slice.donut.buildCenterY - (radius + slice.getDivergence()) * Math.sin(JenScript.Math.toRadians(medianDegree));
+		        var px2 = slice.donut.buildCenterX + (radius + this.linkExtends + slice.getDivergence())* Math.cos(JenScript.Math.toRadians(medianDegree));
+		        var py2 = slice.donut.buildCenterY- (radius + this.linkExtends + slice.getDivergence()) * Math.sin(JenScript.Math.toRadians(medianDegree));
+
+		        var px3 = 0;
+		        var py3 = py2;
+		        var px4 = 0;
+		        var py4 = py2;
+		        var pos = 'middle';
+		        if (medianDegree >= 270 && medianDegree <= 360
+		                || medianDegree >= 0 && medianDegree <= 90) {
+		            px3 = slice.donut.buildCenterX + radius + this.margin  - 5;
+		            px4 = slice.donut.buildCenterX + radius + this.margin  + 5;
+		            
+		            pos='start';
+		            if(medianDegree === 270)
+		            	pos = 'middle';
+		            if(medianDegree === 90)
+		            	pos = 'middle';
+		        }
+		        else {// 90-->270
+		            px3 = slice.donut.buildCenterX- radius - this.margin + 5;
+		            px4 = slice.donut.buildCenterX- radius - this.margin -5;
+		            pos='end';
+		        }
+		        
+		        
+		        var quaddata = 'M '+px1+','+py1+' Q '+px2+','+py2+' '+px3+','+py3;
+		        var quadlink = new JenScript.SVGElement().name('path')
+													.attr('d',quaddata)
+													.attr('fill','none')
+													.attr('stroke','darkgray')
+													.buildHTML();
+
+		        
+		        this.setTextAnchor(pos);
+		        this.setLocation(new JenScript.Point2D(px4,py4));
+		        var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
+				this.setTextColor(ct);
+				
+				this.paintLabel(g2d);
+				this.svg.label.appendChild(quadlink);
+		 }
+	});
+	
+	
+	/**
+	 * Object Donut2DRadialLabel()
+	 * Defines Donut2D Radial Label, a label which is paint on the median radian segment of slice
+	 * @param {Object} config
+	 * @param {String} [config.name] the label type name
+	 * @param {String} [config.text] the label text
+	 * @param {String} [config.textColor] the label text color
+	 * @param {Number} [config.fontSize] the label text font size
+	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {Object} [config.shader] the label fill shader
+	 * @param {Object} [config.shader.percents] the label fill shader percents
+	 * @param {Object} [config.shader.colors] the label fill shader colors
+	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+	 * @param {String} [config.outlineColor] the label outline color
+	 * @param {String} [config.cornerRadius] the label outline corner radius
+	 * @param {String} [config.fillColor] the label fill color
+	 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from donut radius
+	 */
+	JenScript.Donut2DRadialLabel = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut2DRadialLabel, JenScript.Donut2DAbstractLabel);
+	JenScript.Model.addMethods(JenScript.Donut2DRadialLabel,{
+		
+		/**
+		 * Initialize Donut2D Radial Label, a label which is paint on the median radian segment of slice
+		 * @param {Object} config
+		 * @param {String} [config.name] the label type name
+		 * @param {String} [config.text] the label text
+		 * @param {String} [config.textColor] the label text color
+		 * @param {Number} [config.fontSize] the label text font size
+		 * @param {String} [config.textAnchor] the label text anchor
+		 * @param {Object} [config.shader] the label fill shader
+		 * @param {Object} [config.shader.percents] the label fill shader percents
+		 * @param {Object} [config.shader.colors] the label fill shader colors
+		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+		 * @param {String} [config.outlineColor] the label outline color
+		 * @param {String} [config.cornerRadius] the label outline corner radius
+		 * @param {String} [config.fillColor] the label fill color
+		 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from donut radius
+		 */
+		__init : function(config){
+			config = config || {};
+			this.offsetRadius = (config.offsetRadius !== undefined)?config.offsetRadius : 20;
+			config.name = 'JenScript.Donut2DAbstractLabel';
+			JenScript.Donut2DAbstractLabel.call(this,config);
+		},
+
+		/**
+		 * set offset radius for this radial label.
+		 * offset radius is the extends distance from radius to draw the radial label
+		 * @param {Number} offsetRadius
+		 */
+		setOffsetRadius : function(offsetRadius) {
+			this.offsetRadius = offsetRadius;
+			this.slice.donut.plugin.repaintPlugin();
+		},
+		
+		/**
+		 * paint slice radial label
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} slice
+		 */
+		paintDonut2DSliceLabel : function(g2d, slice) {
+			var anchor = {
+				x : slice.sc.x + (slice.donut.outerRadius + this.offsetRadius)
+						* Math.cos(JenScript.Math.toRadians(slice.medianDegree)),
+				y : slice.sc.y - (slice.donut.outerRadius + this.offsetRadius)
+						* Math.sin(JenScript.Math.toRadians(slice.medianDegree))
+			};
+			var pos = "middle";
+			var dx = 0;
+			if (slice.medianDegree > 0 && slice.medianDegree < 90) {
+				pos = "start";
+				dx = 10;
+			} else if (slice.medianDegree > 90 && slice.medianDegree < 270) {
+				pos = "end";
+				dx = -10;
+			} else if (slice.medianDegree > 270 && slice.medianDegree <= 360) {
+				pos = "start";
+				dx = 10;
+			} else if (slice.medianDegree === 90 || slice.medianDegree === 270) {
+				pos = "middle";
+			}
+			this.setLocation(new JenScript.Point2D(anchor.x,anchor.y));
+			this.setTextAnchor(pos);
+			var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
+			this.setTextColor(ct);
+			
+			this.paintLabel(g2d);
+		}
+	});
+})();
+(function(){
+	
+	//R. Module pattern
+	
+	JenScript.Donut2DBuilder = function(view,projection,config) {
+		view.registerProjection(projection);
+		var dp = new JenScript.Donut2DPlugin();
+		projection.registerPlugin(dp);
+		
+		var donut = new JenScript.Donut2D(config);
+		dp.addDonut(donut);
+		
+		var labels = [];
+		var slices = [];
+		var effects = [];
+		var lastSlice;
+		
+		//improve with index 
+		var slice = function(config){
+			var s = new JenScript.Donut2DSlice(config);
+			lastSlice = s;
+			donut.addSlice(s);
+			slices.push(s);
+			return this;
+		}
+		var label = function(type,config){
+			var l;
+			if('radial' === type)
+				l = new JenScript.Donut2DRadialLabel(config);
+			if('border' === type)
+				l = new JenScript.Donut2DBorderLabel(config);
+			lastSlice.addSliceLabel(l);
+			labels.push(l);
+			return this;
+		}
+		var effect = function(type, config){
+			var fx;
+			if('linear' === type)
+				fx = new JenScript.Donut2DLinearEffect(config);
+			if('reflection' === type)
+				fx = new JenScript.Donut2DReflectionEffect(config);
+			donut.addEffect(fx);
+			effects.push(fx);
+			return this;
+		}
+		var linearFx = function(config){
+			effect('linear',config);
+			return this;
+		}
+		var reflectFx = function(config){
+			effect('reflection',config);
+			return this;
+		}
+		
+		
+		//Pie Builder Interface
+		return {
+			slice : slice,
+			label : label,
+			effect : effect,
+			linearFx : linearFx,
+			reflectFx : reflectFx,
+			
+			view : function(){return view;},
+			projection : function(){return projection;},
+			donut : function(){return donut;},
+			labels : function(){return labels;},
+			slices : function(){return slice;},
+		};
+	};
+})();
+
+
+(function(){
+	/**
+	 * Donut 3D Plugin
+	 * @param {Object} config
+	 */
+	JenScript.Donut3DPlugin = function(config) {
+		config = config || {};
+		config.name = 'Donut3DPlugin';
+		this.donuts = [];
+		//this.listeners=[];
+		JenScript.Plugin.call(this,config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut3DPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.Donut3DPlugin, {
+		
+		/**
+		 * add Donut 3D and repaint plugin
+		 * @param {Object} donut
+		 */
+		addDonut : function(donut) {
+			donut.plugin = this;
+			this.donuts[this.donuts.length] = donut;
+			this.repaintPlugin();
+		},
+		
+		/**
+		 * repaint plugin on projection bound changed 
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'donut3D projection bound changed');
+		},
+		
+		repaintDonuts : function(){
+			 this.repaintPlugin();
+		},
+		
+		/**
+		 * paint donut 3D plugin
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} the part being paint
+		 */
+		paintPlugin : function(g2d,part) {
+			if (part !== JenScript.ViewPart.Device) {
+				return;
+			}
+			for (var i = 0; i < this.donuts.length; i++) {
+				var donut = this.donuts[i];
+				if(donut.isSolvable()){
+					donut.solveDonut3D();
+					
+					g2d.deleteGraphicsElement(donut.Id);
+					donut.svg.donutRoot = new JenScript.SVGGroup().Id(donut.Id).toSVG();
+					g2d.insertSVG(donut.svg.donutRoot);
+					
+					donut.donut3DPaint.paintDonut3D(g2d, donut);
+					
+					for (var i = 0; i < donut.effects.length; i++) {
+						var effect = donut.effects[i];
+						effect.effectDonut3D(g2d,donut);
+					}
+					
+					for (var j = 0; j < donut.slices.length; j++) {
+						var slice = donut.slices[j];
+						var labels = slice.getSliceLabels();
+						for (var l = 0; l < labels.length; l++) {
+							labels[l].paintDonut3DSliceLabel(g2d,slice);
+						}
+					}
+				}
+			}
+		}
+	});
+})();
+(function(){
+	/**
+	 * Donut 3D Object
+	 * @param {Object} config
+	 * @param {Number} [config.tilt] the donut tilt
+	 * @param {Number} [config.thickness] the donut thickness
+	 * @param {Number} [config.startAngleDegree] the donut start angle degree
+	 * @param {Number} [config.innerRadius] the donut inner radius, absolute in pixel
+	 * @param {Number} [config.outerRadius] the donut outer radius, absolute in pixel
+	 * @param {Number} [config.centerX] the donut center X
+	 * @param {Number} [config.centerY] the donut center Y
+	 * @param {Number} [config.nature] 'User' projection 'Device' projection (component)
+	 * 
+	 */
+	JenScript.Donut3D = function(config) {
+		this.init(config);
+	};
+	
+	JenScript.Model.addMethods(JenScript.Donut3D, {
+		
+		 /**
+		  * init the donut with given config
+		  * @param {Object} config
+		  */
+		 init:function(config){
+			 config = config || {};
+			 /**donut instance Id*/
+			 this.Id = 'donut3d'+JenScript.sequenceId++;
+			
+			/** donut 3d name */
+			 this.name = (config.name !== undefined)? config.name : 'donut3D'+JenScript.sequenceId++;
+			
+			 /** inner radius in pixel */
+		    this.innerRadius = (config.innerRadius !== undefined)? config.innerRadius : 60;
+
+		    /** outer radius in pixel */
+		    this.outerRadius = (config.outerRadius !== undefined)? config.outerRadius : 120;
+
+		    /** donut3D thickness */
+		    this.thickness = (config.thickness !== undefined)? config.thickness : 50;
+
+		    /** tilt angle in degree 0 to 90 */
+		    this.tilt = (config.tilt !== undefined)? config.tilt : 40;
+		    
+		    /** start angle degree */
+		    this.startAngleDegree = (config.startAngleDegree !== undefined)? config.startAngleDegree : 40;
+
+		    /** center x coordinate in the specified coordinate system nature */
+		    this.centerX  = (config.centerX !== undefined)? config.centerX : 0;
+
+		    /** center y coordinate in the specified coordinate system nature */
+		    this.centerY = (config.centerY !== undefined)? config.centerY : 0;
+		    
+		    /** donut 3D nature , User or Device*/
+		    this.nature = (config.nature !== undefined)? config.nature : 'User';
+		    
+		    /** donut3D projection thickness */
+		    this.projectionThickness;
+		    
+		    /** outer A radius */
+		    this.outerA;
+
+		    /** outer B radius */
+		    this.outerB;
+
+		    /** inner A radius */
+		    this.innerA;
+
+		    /** inner B radius */
+		    this.innerB;
+
+		    /** donut 3D paint */
+		    this.donut3DPaint = new JenScript.Donut3DDefaultPaint();
+
+		    /** host plugin */
+		    this.plugin;
+
+		    /** slices of this donut 3D */
+		    this.slices = [];
+		    
+		    this.effects = [];
+		    
+		    /**svg elements*/
+		    this.svg={};
+		 },
+		 
+		 
+		 setInnerRadius : function(ir){
+			 this.innerRadius = ir;
+		 },
+		 
+		 setOuterRadius : function(or){
+			 this.outerRadius = or;
+		 },
+		 
+		 setThickness : function(t){
+			 this.thickness = t;
+		 },
+		 
+		 setTilt : function(t){
+			 this.tilt = t;
+		 },
+		 
+		 setStartAngleDegree : function(a){
+			this.startAngleDegree = a;
+		 },
+		 
+		 setCenterX : function(x){
+			this.centerX  = x;
+		 },
+		 
+		 setCenterY : function(y){
+			this.centerY = y;
+		 },
+		 
+		 setCenter : function(x,y){
+			 this.centerX  = x;
+			 this.centerY = y;
+		 },
+		 
+		 setNature : function(n){
+			this.nature = n;
+		 },
+		 
+	 	/**
+		 * add Donut3D effect
+		 * @param {Object} effect to add
+		 */
+		addEffect : function(effect){
+			this.effects[this.effects.length]  = effect;
+			this.plugin.repaintPlugin();
+		},
+		 
+		 /**
+		  * shift start angle for this donut
+		  */
+		 shift : function(){
+				var that = this;
+				for (var i = 0; i < 10; i++) {
+					shiftAngle(i);
+				}
+				function shiftAngle(i){
+					setTimeout(function(){
+						that.startAngleDegree=that.startAngleDegree+36;
+						that.plugin.repaint();
+					},i*100);
+				}
+			},
+			
+		/**
+		  * shift start angle for this donut
+		  */
+		 shift : function(angle,millis,frame){
+			var timeStep = millis/frame;
+			var angleStep = angle/frame;
+			var that = this;
+			for (var i = 0; i < frame; i++) {
+				shiftAngle(i);
+			}
+			function shiftAngle(i){
+				setTimeout(function(){
+					if(that.startAngleDegree + angleStep > 360)
+						that.startAngleDegree = that.startAngleDegree +angleStep - 360;
+					else if(that.startAngleDegree + angleStep < 0)
+						that.startAngleDegree = that.startAngleDegree +angleStep + 360;
+					else
+						that.startAngleDegree=that.startAngleDegree+angleStep;
+					
+					that.plugin.repaintDonuts();
+				},i*timeStep);
+			}
+		},
+		 
+		 /**
+		  * add slice in this donut
+		  * @param {Object} slice
+		  */
+		 addSlice : function (slice) {
+	        slice.donut=this;
+	        this.slices[this.slices.length] = slice;
+	        this.plugin.repaintDonuts();
+	        return this;
+		 },
+		 
+	 	/**
+	     * create a new slice with given config, append it to this donut and return donut
+	     * @param config the slice config
+	     */
+	    slice : function(config){
+			var s = new JenScript.Donut3DSlice(config);
+			this.addSlice(s);
+			return this;
+		},
+		 
+		 /**
+		  * add slices array in this donut
+		  * @param {Object} slice
+		  */
+		 addSlices : function (slices) {
+	       for (var s = 0; s < slices.length; s++) {
+	    	   this.addSlice(slices[s]);
+	       }
+	       return this;
+		 },
+		 
+	    
+	    /**
+	     * get the top face of this donut 3d
+	     * @return the top face
+	     */
+	    getTopFace : function() {
+	        var top = '';
+	        for (var i = 0; i < this.slices.length; i++) {
+				var s = this.slices[i];
+				for (var j = 0; j < s.fragments.length; j++) {
+					var f = s.fragments[j];
+					top=top+f.topFace;
+				}
+			}
+	        return top;
+	    },
+	    
+	    isSolvable : function(){
+	    	return this.slices.length > 0;
+	    },
+
+	    /**
+	     * solve donut 3D geometry
+	     */
+	    solveDonut3D : function() {
+	    	if(this.tilt<0 || this.tilt > 90){
+	    		throw new Error("donut 3D tilt out of range[0,90]");
+	    	}
+	        var that = this;
+	        (function() {
+	        	if(that.startAngleDegree > 0){
+	        		if(that.startAngleDegree >= 360){
+	        			while(that.startAngleDegree >=360){that.startAngleDegree = that.startAngleDegree - 360;}
+	        		}
+	        	}else{
+	        		while(that.startAngleDegree >=0){that.startAngleDegree = that.startAngleDegree + 360;}
+	        	}
+		    })();
+	        (function() {
+		        var oneDegreeTiltThickness = that.thickness / 90;
+		        that.projectionThickness = oneDegreeTiltThickness * (90 - that.tilt);
+		    })();
+	        (function() {
+		        var oneTiltExternalProfil = that.outerRadius / 90;
+		        var oneTiltInternalProfil = that.innerRadius / 90;
+
+		        that.outerA = that.outerRadius;
+		        that.outerB = oneTiltExternalProfil * that.tilt;
+
+		        that.innerA = that.innerRadius;
+		        that.innerB = oneTiltInternalProfil * that.tilt;
+		    })();
+	        (function() {
+	        	        var sum = 0;
+	        	        for (var i = 0; i < that.slices.length; i++) {
+	        	            sum = sum + that.slices[i].value;
+	        	        }
+
+	        	        for (var i = 0; i < that.slices.length; i++) {
+	        	            var percent = that.slices[i].value / sum;
+	        	            that.slices[i].normalizedValue = percent;
+	        	        }
+	        	    })();
+	        var buildAngleDegree = this.startAngleDegree;
+	        for (var i = 0; i < this.slices.length; i++) {
+	        	//this.solveSliceGeometry(this.slices[i], buildAngleDegree);
+	            this.solveSliceFragments(this.slices[i], buildAngleDegree);
+	            buildAngleDegree = this.slices[i].endAngleDegree;
+	            if (buildAngleDegree > 360) {
+	                buildAngleDegree = buildAngleDegree - 360;
+	            }
+	        }
+	    },
+	    
+	    
+	    /**
+	     * solve slice fragment geometry
+	     * 
+	     * @param donutSlice
+	     *            the slice to solve
+	     * @param buildAngleDegree
+	     *            the start build angle degree of the specified slice
+	     */
+	    solveSliceFragments : function(donutSlice,buildAngleDegree) {
+	        donutSlice.clearFragments();
+	        donutSlice.painted = false;
+	        var sliceStartDegree = buildAngleDegree;
+	        var sliceExtendsDegree = donutSlice.normalizedValue * 360;
+	        donutSlice.startAngleDegree= sliceStartDegree;
+	        donutSlice.endAngleDegree = sliceStartDegree + sliceExtendsDegree;
+	        
+	        //for label
+	        
+	        var medianDegree = sliceStartDegree + sliceExtendsDegree / 2;
+	        if (medianDegree > 360) {
+	            medianDegree = medianDegree - 360;
+	        }
+	        donutSlice.medianDegree=medianDegree;
+	        var c = this.getDonutCenter();
+	        var sliceCenterX = c.x + donutSlice.divergence * Math.cos(JenScript.Math.toRadians(medianDegree));
+	        var sliceCenterY = c.y - donutSlice.divergence * Math.sin(JenScript.Math.toRadians(medianDegree));
+	        
+	        donutSlice.sc = {x:sliceCenterX,y:sliceCenterY};
+	        
+	        //end for label
+	        
+	        var fragmentStartAngleDegree = sliceStartDegree;
+	        var fragmentExtends = sliceExtendsDegree;
+	        var resteExtends = sliceExtendsDegree;
+	        while (resteExtends > 0) {
+	            fragmentExtends = this.getFragmentExtendsDegree(sliceStartDegree,sliceExtendsDegree, fragmentStartAngleDegree, resteExtends);
+	            var fragment = this.createSliceFragment(donutSlice,fragmentStartAngleDegree, fragmentExtends);
+	            donutSlice.addFragment(fragment);
+	            resteExtends = resteExtends - fragmentExtends;
+	            fragmentStartAngleDegree = fragmentStartAngleDegree+ fragmentExtends;
+	            if (fragmentStartAngleDegree >= 360) {
+	                fragmentStartAngleDegree = fragmentStartAngleDegree - 360;
+	            }
+	        }
+	    },
+	    
+	    /**
+	     * get the next fragment angle extends for given parameters
+	     * @param {Number} sliceStartDegree
+	     * @param {Number} sliceExtendsDegree
+	     * @param {Number} fragmentStartDegre
+	     * @param {Number} resteExtendsDegree
+	     */
+	    getFragmentExtendsDegree : function(sliceStartDegree,sliceExtendsDegree,fragmentStartDegree,resteExtendsDegree) {
+	        if (fragmentStartDegree >= 0 && fragmentStartDegree < 180) {
+	            var potentialExtends = 180 - fragmentStartDegree;
+	            if (potentialExtends <= resteExtendsDegree) {
+	                return potentialExtends;
+	            }
+	            else {
+	                return resteExtendsDegree;
+	            }
+	        }
+	        else if (fragmentStartDegree >= 180 && fragmentStartDegree < 360) {
+	            var potentialExtends = 360 - fragmentStartDegree;
+	            if (potentialExtends <= resteExtendsDegree) {
+	                return potentialExtends;
+	            }
+	            else {
+	                return resteExtendsDegree;
+	            }
+	        }
+	        return 0;
+	    },
+	    
+	    
+	    /**
+	     * get the donut center depends on donut nature
+	     */
+	    getDonutCenter : function(){
+	    	if (this.nature === 'User') {
+	            return this.plugin.getProjection().userToPixel({x:this.centerX,y: this.centerY});
+	        }
+	        if (this.nature == 'Device') {
+	            return {x:this.centerX,y: this.centerY};
+	        }
+	    },
+	    
+	    /**
+	     * create slice fragment for parent slice given by start and extends degree angle
+	     * @param {Object} donutSlice
+	     * @param {Number} startAngleDegree
+	     * @param {Number} extendsDegree
+	     */
+	    createSliceFragment: function(donutSlice,startAngleDegree, extendsDegree) {
+
+	        var fragment = new JenScript.Donut3DSlice({name : donutSlice.name+".part", value : 1,themeColor: donutSlice.themeColor});
+	        fragment.fragment=true;
+	        fragment.parentSlice = donutSlice;
+	        
+	        if (startAngleDegree >= 0 && startAngleDegree < 180) {
+	            fragment.type='Back';
+	            fragment.name=fragment.name + ".back";
+	        }
+	        else if (startAngleDegree >= 180 && startAngleDegree < 360) {
+	            fragment.type='Front';
+	            fragment.name = fragment.name + ".front";
+	        }
+
+	        var c = this.getDonutCenter();
+	        var exploseTiltRadius = donutSlice.divergence / 90;
+	        var exploseRadius = exploseTiltRadius * this.tilt;
+	        var exploseA = donutSlice.divergence;
+	        var exploseB = exploseRadius;
+	        var cX = c.x + exploseA* Math.cos(JenScript.Math.toRadians(donutSlice.startAngleDegree + Math.abs(donutSlice.endAngleDegree - donutSlice.startAngleDegree) / 2));
+	        var cY = c.y - exploseB* Math.sin(JenScript.Math.toRadians(donutSlice.startAngleDegree + Math.abs(donutSlice.endAngleDegree - donutSlice.startAngleDegree) / 2));
+	        var ssOuterTop = {
+	        	x : cX + this.outerA* Math.cos(JenScript.Math.toRadians(startAngleDegree)),
+				y : cY - this.outerB* Math.sin(JenScript.Math.toRadians(startAngleDegree))
+	        };
+	        var seOuterTop = {
+				x : cX+ this.outerA* Math.cos(JenScript.Math.toRadians(startAngleDegree+extendsDegree)),
+				y : cY- this.outerB* Math.sin(JenScript.Math.toRadians(startAngleDegree+extendsDegree))
+	        };
+	        fragment.sos = ssOuterTop;
+	        fragment.soe = seOuterTop;
+	        var largeArcFlag = (extendsDegree > 180) ? '1' : '0';
+	        var outerArcTop = "M" + ssOuterTop.x + "," + ssOuterTop.y + " A" + this.outerA + ","
+								+ this.outerB + " 0 " + largeArcFlag + ",0 " + seOuterTop.x + ","
+								+ seOuterTop.y;
+	        
+	        var outerArcBottom = "M" + ssOuterTop.x + "," + (ssOuterTop.y+ this.projectionThickness) + " A" + this.outerA + ","
+								+ this.outerB + " 0 " + largeArcFlag + ",0 " + seOuterTop.x + ","
+								+ (seOuterTop.y+this.projectionThickness);
+	        fragment.outerArcTop = outerArcTop;
+	        fragment.outerArcBottom = outerArcBottom;
+	        var ssInnerTop = {
+		        	x : cX + this.innerA* Math.cos(JenScript.Math.toRadians(startAngleDegree)),
+					y : cY - this.innerB* Math.sin(JenScript.Math.toRadians(startAngleDegree))
+		    };
+		    var seInnerTop = {
+					x : cX+ this.innerA* Math.cos(JenScript.Math.toRadians(startAngleDegree+extendsDegree)),
+					y : cY- this.innerB* Math.sin(JenScript.Math.toRadians(startAngleDegree+extendsDegree))
+		    };
+		    fragment.sis = ssInnerTop;
+	        fragment.sie = seInnerTop;
+		    var innerArcTop =  "M" + ssInnerTop.x + "," + ssInnerTop.y + " A" + this.innerA + ","
+							+ this.innerB + " 0 " + largeArcFlag + ",0 " + seInnerTop.x + ","
+							+ seInnerTop.y;
+		    
+		    var innerArcBottom = "M" + ssInnerTop.x + "," + (ssInnerTop.y+ this.projectionThickness) + " A" + this.innerA + ","
+							+ this.innerB + " 0 " + largeArcFlag + ",0 " + seInnerTop.x + ","
+							+ (seInnerTop.y+ this.projectionThickness);
+		    	
+		    fragment.innerArcTop = innerArcTop;
+		    fragment.innerArcBottom = innerArcBottom;
+
+	        var topFace = "M" + ssOuterTop.x + "," + ssOuterTop.y + " A" + this.outerA + ","
+							+ this.outerB + " 0 " + largeArcFlag + ",0 " + seOuterTop.x + ","
+							+ seOuterTop.y+' L '+seInnerTop.x+','+seInnerTop.y+ " A" + this.innerA + ","
+							+ this.innerB + " 0 " + largeArcFlag + ",1 " + ssInnerTop.x + ","
+							+ ssInnerTop.y+' Z';
+	        
+	        fragment.topFace = topFace;
+
+	        
+	        var bottomFace = "M" + ssOuterTop.x + "," + (ssOuterTop.y+ this.projectionThickness) + " A" + this.outerA + ","
+							+ this.outerB + " 0 " + largeArcFlag + ",0 " + seOuterTop.x + ","
+							+ (seOuterTop.y+this.projectionThickness)+' L '+seInnerTop.x+','+(seInnerTop.y+this.projectionThickness)+ " A" + this.innerA + ","
+							+ this.innerB + " 0 " + largeArcFlag + ",1 " + ssInnerTop.x + ","
+							+ (ssInnerTop.y+this.projectionThickness)+' Z';
+	        
+	        fragment.bottomFace = bottomFace;
+
+	        
+	        fragment.startFace= 'M '+ssOuterTop.x+','+ssOuterTop.y
+	        							+' L '+ssInnerTop.x+','+ssInnerTop.y
+	        							+' L '+ssInnerTop.x+','+(ssInnerTop.y+this.projectionThickness)
+	        							+' L '+ssOuterTop.x+','+(ssOuterTop.y+this.projectionThickness)
+	        							+' Z';
+
+	        fragment.endFace = 'M '+seOuterTop.x+','+seOuterTop.y
+									+' L '+seInnerTop.x+','+seInnerTop.y
+									+' L '+seInnerTop.x+','+(seInnerTop.y+this.projectionThickness)
+									+' L '+seOuterTop.x+','+(seOuterTop.y+this.projectionThickness)
+									+' Z';
+
+
+	        fragment.innerFace="M " + ssInnerTop.x + "," + ssInnerTop.y + " A " + this.innerA + ","
+								+ this.innerB + " 0 " + largeArcFlag + ",0 " + seInnerTop.x + ","
+								+ seInnerTop.y+' L '+seInnerTop.x+','+(seInnerTop.y+this.projectionThickness)
+								+ " A " + this.innerA + ","
+								+ this.innerB + " 0 " + largeArcFlag + ",1 " + ssInnerTop.x + ","
+								+ (ssInnerTop.y+ this.projectionThickness)
+								+' Z';
+	       
+	        fragment.outerFace = "M " + ssOuterTop.x + "," + ssOuterTop.y + " A " + this.outerA + ","
+								+ this.outerB + " 0 " + largeArcFlag + ",0 " + seOuterTop.x + ","
+								+ seOuterTop.y+' L '+seOuterTop.x+','+(seOuterTop.y+this.projectionThickness)
+								+ " A " + this.outerA + ","
+								+ this.outerB + " 0 " + largeArcFlag + ",1 " + ssOuterTop.x + ","
+								+ (ssOuterTop.y+ this.projectionThickness)
+								+' Z';
+
+	        fragment.startAngleDegree=startAngleDegree;
+	        fragment.endAngleDegree=startAngleDegree + extendsDegree;
+	        return fragment;
+	    },
+	    
+	    /**
+	     * true if the specified slice is in specified slice collection, false
+	     * otherwise
+	     * 
+	     * @param {Object} donutSlice
+	     * @param {Object} slices
+	     * @return true if the specified slice is in specified slice collection,
+	     *         false otherwise
+	     */
+	    isIn : function(donutSlice,slices) {
+	        for (var i = 0; i < slices.length; i++) {
+	        	if (donutSlice.Id === slices[i].Id) {
+	                return true;
+	            }
+	        }
+	        return false;
+	    },
+	    
+	    
+	    /**
+	     * get slices found on the specified frame angle
+	     * 
+	     * @param {Number} startAngleDegree
+	     *            the start angle degree
+	     * @param {Number} endAngleDegree
+	     *            the end angle degree
+	     * @return {Object} the slices intercept by the specified frame angle
+	     */
+	    getSlicesFragmentOnAngle : function(sliceParent,startAngleDegree, endAngleDegree) {
+	        if (startAngleDegree < 0 || startAngleDegree > 360
+	                || endAngleDegree < 0 || endAngleDegree > 360) {
+	            throw new Error("StarAngleDegree and EndAngleDegree out of range [0,360]");
+	        }
+	        if (endAngleDegree < startAngleDegree) {
+	            throw new Error("EndAngleDegree should be  greater than StartAngleDegree");
+	        }
+	        var slicesOnAngle = [];
+	        for (var i = 0; i < sliceParent.fragments.length; i++) {
+				var s = sliceParent.fragments[i];
+	            if (s.startAngleDegree >= startAngleDegree
+	                    && s.endAngleDegree >= startAngleDegree
+	                    && s.startAngleDegree <= endAngleDegree
+	                    && s.endAngleDegree <= endAngleDegree) {
+	                slicesOnAngle[slicesOnAngle.length]=s;
+	            }
+	            else if (s.startAngleDegree <= startAngleDegree
+	                    && s.endAngleDegree >= startAngleDegree
+	                    && s.startAngleDegree <= endAngleDegree
+	                    && s.endAngleDegree <= endAngleDegree) {
+	            	 slicesOnAngle[slicesOnAngle.length]=s;
+	            }
+	            else if (s.startAngleDegree >= startAngleDegree
+	                    && s.endAngleDegree >= startAngleDegree
+	                    && s.startAngleDegree <= endAngleDegree
+	                    && s.endAngleDegree >= endAngleDegree) {
+	            	 slicesOnAngle[slicesOnAngle.length]=s;
+	            }
+	            else if (s.startAngleDegree <= startAngleDegree
+	                    && s.endAngleDegree >= startAngleDegree
+	                    && s.startAngleDegree <= endAngleDegree
+	                    && s.endAngleDegree >= endAngleDegree) {
+	            	 slicesOnAngle[slicesOnAngle.length]=s;
+	            }
+			}
+	        return slicesOnAngle;
+	    },
+	    
+	    /**
+	     * get first slice found with the specified angle degree
+	     * 
+	     * @param {Number} angleDegree
+	     *            the angle degree
+	     * @return {Object} the slices across this angle degree
+	     */
+	    getSliceOnAngle : function(angleDegree) {
+	        if (angleDegree < 0 && angleDegree > 360) {
+	            throw new Error("angleDegree out of range [0,360]");
+	        }
+	        for (var i = 0; i < this.slices.length; i++) {
+				var s = this.slices[i];
+				if (s.endAngleDegree <= 360) {
+	                if (s.startAngleDegree <= angleDegree
+	                        && s.endAngleDegree >= angleDegree) {
+	                	return s;
+	                }
+	            }
+	            else if (s.endAngleDegree > 360) {
+	                var reboundAngleDegree = angleDegree;
+	                if (angleDegree < s.startAngleDegree) {
+	                    reboundAngleDegree = angleDegree + 360;
+	                }
+
+	                var f1 = s.startAngleDegree <= reboundAngleDegree;
+	                var f2 = s.endAngleDegree >= reboundAngleDegree;
+
+	                if (f1 && f2) {
+	                	return s;
+	                }
+	            }
+			}
+	        return undefined;
+	    },
+	    
+	    /**
+	     * get all slices found with the specified angle degree
+	     * 
+	     * @param {Number} angleDegree
+	     *            the angle degree
+	     * @return {Object} the slices across this angle degree
+	     */
+	    getSlicesOnAngle : function(angleDegree) {
+	        if (angleDegree < 0 && angleDegree > 360) {
+	            throw new Error("angleDegree out of range [0,360]");
+	        }
+	        var slicesOnAngle = [];
+	        for (var i = 0; i < this.slices.length; i++) {
+				var s = this.slices[i];
+				if (s.endAngleDegree <= 360) {
+	                if (s.startAngleDegree <= angleDegree
+	                        && s.endAngleDegree >= angleDegree) {
+	                    slicesOnAngle[slicesOnAngle.length] = s;
+	                }
+	            }
+	            else if (s.endAngleDegree > 360) {
+	                var reboundAngleDegree = angleDegree;
+	                if (angleDegree < s.startAngleDegree) {
+	                    reboundAngleDegree = angleDegree + 360;
+	                }
+
+	                var f1 = s.startAngleDegree <= reboundAngleDegree;
+	                var f2 = s.endAngleDegree >= reboundAngleDegree;
+
+	                if (f1 && f2) {
+	                	slicesOnAngle[slicesOnAngle.length] = s;
+	                }
+	            }
+			}
+	        return slicesOnAngle;
+	    },
+
+	    /**
+	     * get slices found on the specified frame angle
+	     * @param {Number} startAngleDegree
+	     *            the start angle degree
+	     * @param {Number} endAngleDegree
+	     *            the end angle degree
+	     * @return {Object} the slices intercept by the specified frame angle
+	     */
+	    getSlicesOnRangeAngle : function(startAngleDegree,endAngleDegree) {
+	        if (startAngleDegree < 0 || startAngleDegree > 360
+	                || endAngleDegree < 0 || endAngleDegree > 360) {
+	            throw new Error("StarAngleDegree and EndAngleDegree out of range [0,360]");
+	        }
+	        if (endAngleDegree < startAngleDegree) {
+	            throw new Error("EndAngleDegree should be  greater than StartAngleDegree");
+	        }
+	        var slicesOnAngle = [];
+	        for (var i = 0; i < this.slices.length; i++) {
+	        	var s = this.slices[i];
+	            if (s.startAngleDegree >= startAngleDegree
+	                    && s.endAngleDegree >= startAngleDegree
+	                    && s.startAngleDegree <= endAngleDegree
+	                    && s.endAngleDegree <= endAngleDegree) {
+	            	slicesOnAngle[slicesOnAngle.length] = s;
+	            }
+	            else if (s.startAngleDegree <= startAngleDegree
+	                    && s.endAngleDegree >= startAngleDegree
+	                    && s.startAngleDegree <= endAngleDegree
+	                    && s.endAngleDegree <= endAngleDegree) {
+	            	slicesOnAngle[slicesOnAngle.length] = s;
+	            }
+	            else if (s.startAngleDegree >= startAngleDegree
+	                    && s.endAngleDegree >= startAngleDegree
+	                    && s.startAngleDegree <= endAngleDegree
+	                    && s.endAngleDegree >= endAngleDegree) {
+	            	slicesOnAngle[slicesOnAngle.length] = s;
+	            }
+	            else if (s.startAngleDegree <= startAngleDegree
+	                    && s.endAngleDegree >= startAngleDegree
+	                    && s.startAngleDegree <= endAngleDegree
+	                    && s.endAngleDegree >= endAngleDegree) {
+	            	slicesOnAngle[slicesOnAngle.length] = s;
+	            }
+	        }
+	        return slicesOnAngle;
+	    },
+	    
+	    /**
+	     * get ordered slice to paint
+	     * 
+	     * @return {Object} sorted slices to be paint
+	     */
+	    getPaintOrder : function() {
+	    	this.getPaintOrderFragments();
+	        var paintOrder = [];
+	        var firstSlices = this.getSlicesOnAngle(90);
+	        var lastSlices = this.getSlicesOnAngle(270);
+	        
+	        for (var f = 0; f < firstSlices.length; f++) {
+	        	if (firstSlices[f] !== undefined && !this.isIn(firstSlices[f], paintOrder)
+	                    && !this.isIn(firstSlices[f], lastSlices)) {
+	                paintOrder[paintOrder.length] =firstSlices[f];
+	            }
+			}
+	        // LEFT
+	        var slicesLeft = this.getSlicesOnRangeAngle(90, 270);
+	        
+	        for (var l = 0; l < slicesLeft.length; l++) {
+	        	
+	        	 if (!this.isIn(slicesLeft[l], paintOrder) && ! this.isIn(slicesLeft[l], lastSlices)) {
+	        		 paintOrder[paintOrder.length] =slicesLeft[l];
+		         }
+	        }
+	        // RIGHT
+	        var zeroSlice = this.getSliceOnAngle(0);
+	        var slicesRight1 = this.getSlicesOnRangeAngle(0, 90);
+	        slicesRight1.reverse();
+	        for (var r1 = 0; r1 < slicesRight1.length; r1++) {
+	        	 if (!this.isIn(slicesRight1[r1], paintOrder) && !slicesRight1[r1].Id === zeroSlice.Id
+		                    && !this.isIn(slicesRight1[r1], lastSlices)) {
+	        		 paintOrder[paintOrder.length] =slicesRight1[r1];
+		         }
+	        }
+	        if (zeroSlice !== undefined && !this.isIn(zeroSlice, paintOrder)
+	                && !this.isIn(zeroSlice, lastSlices)) {
+	            paintOrder[paintOrder.length] = zeroSlice;
+	        }
+	        // RIGHT 2
+	        var slicesRight2 = this.getSlicesOnRangeAngle(270, 360);
+	        slicesRight2.reverse();
+	        for (var r2 = 0; r2 < slicesRight2.length; r2++) {
+	        	 if (!this.isIn(slicesRight2[r2], paintOrder) && !this.isIn(slicesRight2[r2], lastSlices)) {
+	        		 paintOrder[paintOrder.length] =slicesRight2[r2];
+		         }
+	        }
+	        for (var last = 0; last < lastSlices.length; last++) {
+	        	if (lastSlices[last] !== undefined) {            	
+	        		 paintOrder[paintOrder.length] =lastSlices[last];
+	            }
+	        }
+	        return paintOrder;
+	    },
+	    
+	    /**
+	     * get ordered slice to paint
+	     * 
+	     * @return {Object} sorted slices to be paint
+	     */
+	    getPaintOrderFragments : function() {
+	    	 var paintOrderFragments = [];
+	    	 var firstSlices = this.getSlicesOnAngle(90);    	 
+	    	 var flattenFirstSlicesFragments = [];
+	    	 for (var i = 0; i < firstSlices.length; i++) {
+				 var firstSlice = firstSlices[i];
+				 var fragments = firstSlice.fragments;
+				 for (var j = 0; j < fragments.length; j++) {
+					 flattenFirstSlicesFragments[flattenFirstSlicesFragments.length] = fragments[j];
+				 }
+	    	 }
+	         var lastSlices = this.getSlicesOnAngle(270);
+	         var flattenLastSlicesFragments = [];
+	         for (var i = 0; i < lastSlices.length; i++) {
+				 var lastSlice = lastSlices[i];
+				 var fragments = lastSlice.fragments;
+				 for (var j = 0; j < fragments.length; j++) {
+					 flattenLastSlicesFragments[flattenLastSlicesFragments.length] = fragments[j];
+				 }
+	    	 }
+	         //first fragment on 90°        
+	         for (var i = 0; i < flattenFirstSlicesFragments.length; i++) {
+	        	 var firstSliceFragment = flattenFirstSlicesFragments[i];
+	        	 if(firstSliceFragment.startAngleDegree <= 90 && firstSliceFragment.endAngleDegree >= 90){
+						paintOrderFragments[paintOrderFragments.length] = firstSliceFragment;
+					}
+			 }
+	         //other from first
+	         for (var i = 0; i < flattenFirstSlicesFragments.length; i++) {
+	        	 var firstSliceFragment = flattenFirstSlicesFragments[i];
+	        	 if (!this.isIn(firstSliceFragment, paintOrderFragments) && !this.isIn(firstSliceFragment, flattenLastSlicesFragments)) {
+	        		 paintOrderFragments[paintOrderFragments.length] = firstSliceFragment;
+	              }
+			 }
+	         //left
+	         var slicesLeft = this.getSlicesOnRangeAngle(90, 270);
+	         for (var i = 0; i < slicesLeft.length; i++) {
+	        	 var sliceLeft = slicesLeft[i];
+	        	 var fragments = sliceLeft.fragments;
+	        	 for (var j = 0; j < fragments.length; j++) {
+					var leftFragment = fragments[j];
+					if (!this.isIn(leftFragment, paintOrderFragments) && !this.isIn(leftFragment, flattenLastSlicesFragments)) {
+						 paintOrderFragments[paintOrderFragments.length] = leftFragment;
+	                 }
+				}
+			 }
+	         // right
+	         var zeroSlice = this.getSliceOnAngle(0);
+	         var slicesRight1 = this.getSlicesOnRangeAngle(0, 90);
+	         slicesRight1.reverse();
+	         for (var i = 0; i < slicesRight1.length; i++) {
+				var sliceRight1 = slicesRight1[i];
+				var right1Fragments = this.getSlicesFragmentOnAngle(sliceRight1, 0, 90);
+				for (var j = 0; j < right1Fragments.length; j++) {
+					var right1Fragment = right1Fragments[j];
+					if (!this.isIn(right1Fragment, paintOrderFragments) && !this.isIn(right1Fragment,zeroSlice.fragments)) {
+						if(this.isIn(right1Fragment, flattenLastSlicesFragments)){
+			   				 for (var k = 0; k < flattenLastSlicesFragments.length; k++) {
+								var dLastFragment = flattenLastSlicesFragments[k];
+								if(dLastFragment.Id === right1Fragment.Id && right1Fragment.type === 'Back'){
+									paintOrderFragments[paintOrderFragments.length] = right1Fragment;
+								}
+			   				 }
+			   			 }else{
+			   				paintOrderFragments[paintOrderFragments.length] = right1Fragment;
+			   			 }
+		            }
+				}
+			 }
+	         var zeroFragments = zeroSlice.fragments;
+	         for (var i = zeroFragments.length-1; i >= 0; i--) {
+	        	 var zeroFragment = zeroFragments[i];
+	         	  if (zeroFragment !== undefined && !this.isIn(zeroFragment, paintOrderFragments)) {
+	         		 if(this.isIn(zeroFragment, flattenLastSlicesFragments)){
+	         			 for (var j = 0; j < flattenLastSlicesFragments.length; j++) {
+							var dLastFragment = flattenLastSlicesFragments[j];
+							if(dLastFragment.Id===zeroFragment.Id && zeroFragment.type === 'Back'){
+								paintOrderFragments[paintOrderFragments.length] = zeroFragment;
+							}
+						}
+	        			 
+	       			 }else{
+	       				paintOrderFragments[paintOrderFragments.length] = zeroFragment;
+	       			 }
+	               }
+			}
+	         // RIGHT 2
+	         var slicesRight2 = this.getSlicesOnRangeAngle(270, 360);
+	         slicesRight2.reverse();
+	         for (var i = 0; i < slicesRight2.length; i++) {
+	        	 var sliceRight2 = slicesRight2[i];
+	        	 var right2Fragments = this.getSlicesFragmentOnAngle(sliceRight2, 270, 360);
+	        	 for (var j = 0; j < right2Fragments.length; j++) {
+					var right2Fragment = right2Fragments[j];
+					if (!this.isIn(right2Fragment, paintOrderFragments) && !this.isIn(right2Fragment,zeroSlice.fragments)) {
+			   			 if(this.isIn(right2Fragment, flattenLastSlicesFragments)){
+			   				 for (var k = 0; k < flattenLastSlicesFragments.length; k++) {
+								var dLastFragment = flattenLastSlicesFragments[k];
+								if(dLastFragment.Id === right2Fragment.Id && right2Fragment.type === 'Back'){
+									paintOrderFragments[paintOrderFragments.length] = right2Fragment;
+								}
+							}
+			   			 }else{
+			   				paintOrderFragments[paintOrderFragments.length] = right2Fragment;
+			   			 }
+		            }
+				}
+			}
+	        for (var i = 0; i < flattenLastSlicesFragments.length; i++) {
+				var lastFragment = flattenLastSlicesFragments[i];
+				 if (!this.isIn(lastFragment, paintOrderFragments)){
+	        		 paintOrderFragments[paintOrderFragments.length] = lastFragment;
+	        	 }
+			}
+	        return paintOrderFragments;
+	    }
+	});
+})();
+(function(){
+	/**
+	 * Donut3D Slice
+	 * @param {Object} config
+	 */
+	JenScript.Donut3DSlice = function(config) {
+		this.init(config);
+	};
+	
+	JenScript.Model.addMethods(JenScript.Donut3DSlice,{
+		
+		/**
+		 * init the donut 3D slice
+		 * @param {Object} config
+		 */
+		init : function(config){
+			config = config || {};
+			this.Id = 'donut3dslice'+JenScript.sequenceId++;
+			/** slice name */
+		    this.name = config.name;
+		    /** value */
+		    this.value =  (config.value !== undefined)?config.value:1;
+		    /** theme color */
+		    this.themeColor = config.themeColor;
+		    /** divergence */
+		    this.divergence = (config.divergence !== undefined)?config.divergence:0;
+		    /** percent normalize value */
+		    this.normalizedValue;
+		    /** start angle degree */
+		    this.startAngleDegree;
+		    /** end angle degree */
+		    this.endAngleDegree;
+		    /** outer arc top */
+		    this.outerArcTop;
+		    /** inner arc top */
+		    this.innerArcTop;
+		    /** outer arc bottom */
+		    this.outerArcBottom;
+		    /** inner Arc bottom */
+		    this.innerArcBottom;
+		    /** top face */
+		    this.topFace;
+		    /** bottom face */
+		    this.bottomFace;
+		    /** start face */
+		    this.startFace;
+		    /** end face */
+		    this.endFace;
+		    /** inner face */
+		    this.innerFace;
+		    /** outer face */
+		    this.outerFace;
+		    /** edge point */
+		    this.sos;
+		    /** edge point */
+		    this.soe;
+		    /** edge point */
+		    this.sis;
+		    /** edge point */
+		    this.sie;
+		    /** slice label */
+		    this.sliceLabels = [];
+		    /** fragment type Front or Back */
+		    this.type;
+		    /**fragment slice flag*/
+		    this.isFragment;
+		    /**slice parent for this fragment*/
+		    this.parentSlice;
+		    /** inner model */
+		    this.innerModel;
+		    /** center x */
+		    this.centerX;
+		    /** center y */
+		    this.centerY;
+		    /** paint flag */
+		    this.painted = false;
+		    /** enter flag */
+		    this.lockEnter = false;
+		    /** host donut 3D */
+		    this.donut;
+		    /**fragment*/
+		    this.fragments = [];
+		    
+		   // alert("slice value : "+this.name+","+this.value);
+		    if(this.value <= 0 )
+		    	throw new Error('Slice value should be greater than 0');
+		},
+		
+		setName : function(name) {
+			this.name = name;
+		},
+
+		getName : function() {
+			return this.name;
+		},
+
+		setValue : function(value) {
+			this.value = value;
+		},
+
+		getValue : function() {
+			return this.value;
+		},
+		
+		setDivergence : function(divergence) {
+			this.divergence = divergence;
+		},
+
+		getDivergence : function() {
+			return this.divergence;
+		},
+		
+		setThemeColor : function(themeColor) {
+			this.themeColor = themeColor;
+		},
+
+		getThemeColor : function() {
+			return this.themeColor;
+		},
+
+		
+		/**
+	     * get all slice label that have been registered on this slice
+	     * 
+	     * @return the slice Label collection of this slice
+	     */
+	     getSliceLabels : function() {
+	        return this.sliceLabels;
+	     },
+
+	    /**
+	     * @param sliceLabel
+	     *            the slice label to add
+	     */
+	    addSliceLabel : function(sliceLabel) {
+	        this.sliceLabels[this.sliceLabels.length] = sliceLabel;
+	        sliceLabel.slice = this;
+	        if(this.donut !== undefined && this.donut.plugin !== undefined){
+	        	this.donut.plugin.repaintDonuts();	
+	        }
+	    },
+		
+		/**
+		 * set slice parameters
+		 */
+		set : function(name,value,themeColor){
+		    this.name = name;
+		    this.value = value;
+		    this.themeColor = themeColor;
+		    if(this.donut !== undefined && this.donut.plugin !== undefined){
+	        	this.donut.plugin.repaintDonuts();	
+	        }
+		},
+		
+		/**
+		 * clear slice fragments
+		 */
+		clearFragments : function(){
+			this.fragments = [];
+		},
+		
+		/**
+		 * add fragment in this slice
+		 * @param {Object} fragment
+		 */
+		addFragment : function(fragment){
+			this.fragments[this.fragments.length] = fragment;
+		},
+		
+		/**
+	     * return true if the specified fragment is the first fragment of this slice, false otherwise
+	     * @param {Object} fragment
+	     * @return true if the specified fragment is the first fragment of this   slice, false otherwise
+	     */
+	    isFirst : function(fragment) {
+	        return this.fragments[0].Id === fragment.Id;
+	    },
+
+	    /**
+	     * return true if the specified fragment is the last fragment of this slice, false otherwise
+	     * @param {Object} fragment
+	     * @return true if the specified fragment is the last fragment of this slice, false otherwise
+	     *        
+	     */
+	    isLast : function(fragment) {
+	    	return this.fragments[this.fragments.length-1].Id === fragment.Id;
+	    },
+
+		
+		/**
+	     * get the front inner face of this slice
+	     * @return {Object} front inner face of this slice
+	     */
+	    getFrontInnerFace : function() {
+	        var frontInnerFace='';
+	        for (var f = 0; f < this.fragments.length; f++) {
+	        	var fragment = this.fragments[f];
+	        	 if (fragment.type === 'Front') {
+		                frontInnerFace = frontInnerFace + fragment.innerFace;
+		         }
+			}
+	        return frontInnerFace;
+	    },
+
+	    /**
+	     * get the back inner face of this slice
+	     * @return {Object} back inner face of this slice
+	     */
+	    getBackInnerFace : function() {
+	        var backInnerFace ='';
+	        for (var f = 0; f < this.fragments.length; f++) {
+	        	var fragment = this.fragments[f];
+	        	 if (fragment.type === 'Back') {
+	        		 backInnerFace = backInnerFace + fragment.innerFace;
+		         }
+			}
+	        return backInnerFace;
+	    }
+	});	
+})();
+(function(){
+	/**
+	 * donut 3D painter
+	 */
+	JenScript.Donut3DDefaultPaint = function() {	
+		/** incidence angle degree */
+		this.incidenceAngleDegree = 90;
+
+		/** paint flag top effect */
+		this.paintTopEffect = true;
+
+		/** paint flag inner effect */
+		this.paintInnerEffect = true;
+
+		/** paint flag outer effect */
+		this.paintOuterEffect = true;
+
+		/** alpha use to paint top effect */
+		this.alphaTop = 0.8;
+
+		/** alpha use to paint inner effect */
+		this.alphaInner = 1;
+
+		/** alpha use to paint outer effect */
+		this.alphaOuter = 1;
+
+		/** alpha use to fill */
+		this.alphaFill = 0.7;
+
+		// fill back flag
+		this.fillBackBottom = true;
+		this.fillBackOuter = true;
+		this.fillBackInner = true;
+		this.fillBackTop = true;
+		this.fillBackStart = true;
+		this.fillBackEnd = true;
+
+		// front back flag
+		this.fillFrontBottom = true;
+		this.fillFrontOuter = true;
+		this.fillFrontInner = true;
+		this.fillFrontTop = true;
+		this.fillFrontStart = true;
+		this.fillFrontEnd = true;
+	};
+	
+	JenScript.Model.addMethods(JenScript.Donut3DDefaultPaint, {
+		
+		
+		/**
+		 * paint the given donut 3D
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} donut3d the graphics context
+		 */
+		paintDonut3D : function(g2d,donut3d) {
+			var slicesFragments = donut3d.getPaintOrderFragments();
+			for (var f = 0; f < slicesFragments.length; f++) {
+				var fragment = slicesFragments[f];
+				this._paintDonut3DFill(g2d, donut3d, fragment);
+				if (this.paintTopEffect) {
+					this._paintTopEffect(g2d, donut3d, fragment);
+				}
+				if (this.paintOuterEffect) {
+					this._paintOuterEffect(g2d, donut3d, fragment);
+				}
+				if (this.paintInnerEffect) {
+					this._paintInnerEffect(g2d, donut3d, fragment);
+				}
+				fragment.painted = true;
+			}
+		},
+		
+		/**
+		 * paint outer effect of given donut 3D
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} donut3d the graphics context
+		 */
+		_paintOuterEffect : function(g2d,donut3d,section) {
+			var c = donut3d.getDonutCenter();
+			var outerFrontFace = '';
+			for (var i = 0; i < donut3d.slices.length; i++) {
+				var fragments = donut3d.slices[i].fragments;
+				for (var j = 0; j < fragments.length; j++) {
+					var frag = fragments[j];
+					if (frag.type === 'Front') {
+						outerFrontFace = outerFrontFace+' '+frag.outerFace;
+					}
+				}
+			}
+			var gradientId = 'gradient'+JenScript.sequenceId++;
+			var startX = c.x-donut3d.outerA;
+			var startY = c.y;
+			var endX = c.x+donut3d.outerA;
+			var endY = c.y;
+			var percents = [ '0%', '40%', '80%', '100%' ];
+			var c1 = 'rgb(40, 40, 40)';
+			var c2 = 'rgb(40, 40, 40)';
+			var c3 = 'rgb(255, 255, 255)';
+			var c4 = 'rgb(255, 255, 255)';
+			var colors = [ c1, c2, c3, c4 ];
+			var opacity = [0.3,0.05,0.05,0.5];
+			var gradient= new JenScript.SVGLinearGradient().Id(gradientId).from(startX,startY).to(endX, endY).shade(percents,colors,opacity).toSVG();
+			g2d.definesSVG(gradient);
+			var outerEffect = new JenScript.SVGElement().name('path')
+													.attr('d',outerFrontFace)
+													.attr('fill','url(#'+gradientId+')')
+													.attr('opacity',this.alphaOuter)
+													.buildHTML();
+			
+			donut3d.svg.donutRoot.appendChild(outerEffect);
+			//g2d.insertSVG(outerEffect);
+		},
+		
+		
+		
+		/**
+		 * paint inner effect of given donut 3D
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} donut3d the graphics context
+		 */
+		_paintInnerEffect : function(g2d,donut3d,section) {
+			var innerBackFace = '';
+			for (var i = 0; i < donut3d.slices.length; i++) {
+				var fragments = donut3d.slices[i].fragments;
+				for (var j = 0; j < fragments.length; j++) {
+					var frag = fragments[j];
+					if (frag.type === 'Back') {
+						innerBackFace = innerBackFace+' '+frag.innerFace;
+					}
+				}
+			}
+			
+			var clipId1 = 'clip'+JenScript.sequenceId++;
+			var clip1 = new JenScript.SVGElement().name('clipPath')
+												.attr('id',clipId1)
+												.buildHTML();
+			var c = donut3d.getDonutCenter();
+			var clip1Path = new JenScript.SVGElement().name('ellipse')
+													.attr('cx',c.x)
+													.attr('cy',c.y)
+													.attr('rx',donut3d.innerA)
+													.attr('ry',donut3d.innerB)
+													.buildHTML();
+			
+			clip1.appendChild(clip1Path);
+			g2d.definesSVG(clip1);
+			
+			var startX = c.x +donut3d.innerA;
+			var startY = c.y;
+			var endX = c.x-donut3d.innerA;
+			var endY = c.y;
+			var percents = [ '0%', '40%', '80%', '100%' ];
+			var c1 = 'rgb(40, 40, 40)';
+			var c2 = 'rgb(40, 40, 40)';
+			var c3 = 'rgb(240, 240, 240)';
+			var c4 = 'rgb(240, 240, 240)';
+			var colors = [ c1, c2, c3, c4 ];
+			var opacity = [0.2,0.3,0,0.6];
+			var gradientId = 'gradient'+JenScript.sequenceId++;
+			var gradient= new JenScript.SVGLinearGradient().Id(gradientId).from(startX,startY).to(endX, endY).shade(percents,colors,opacity).toSVG();
+			g2d.definesSVG(gradient);
+			var innerEffect = new JenScript.SVGElement().name('path')
+												.attr('d',innerBackFace)
+												.attr('clip-path','url(#'+clipId1+')')
+												.attr('fill','url(#'+gradientId+')')
+												.attr('opacity',this.alphaInner)
+												.buildHTML();
+			donut3d.svg.donutRoot.appendChild(innerEffect);
+			//g2d.insertSVG(innerEffect);
+		},
+		
+		/**
+		 * paint end face effect of given donut 3D
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} donut3d the graphics context
+		 * @param {Object} section the graphics context
+		 */
+		paintEndEffect : function(g2d,donut3d,section) {
+
+			//g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+
+//			Line2D lineBottom = section.getEndBottomLine();
+//			Line2D lineTop = section.getEndTopLine();
+//
+//			double a = (lineTop.getY1() - lineTop.getY2()) / (lineTop.getX1() - lineTop.getX2());
+//			double bTop = lineTop.getY1() - 2 * a * lineTop.getX1();
+//			double bBottom = lineBottom.getY1() - 2 * a * lineBottom.getX1();
+//
+//			double distanceLineTop = Math.abs(bBottom - bTop) / Math.sqrt(a * a + 1);
+//
+//			double cxBottom = (lineBottom.getX1() + lineBottom.getX2()) / 2d;
+//			double cyBottom = (lineBottom.getY1() + lineBottom.getY2()) / 2d;
+//
+//			double cxTop = (lineTop.getX1() + lineTop.getX2()) / 2d;
+//			double cyTop = (lineTop.getY1() + lineTop.getY2()) / 2d;
+//
+//			GeometryPath path = new GeometryPath(lineBottom);
+//			float topLength = (float) Math.sqrt((lineTop.getX2() - lineTop.getX1()) * (lineTop.getX2() - lineTop.getX1()) + (lineTop.getY2() - lineTop.getY1()) * (lineTop.getY2() - lineTop.getY1()));
+//			double angleRadian = path.angleAtLength(topLength / 2f);
+//
+//			double px = cxBottom + distanceLineTop * Math.cos(angleRadian + Math.PI / 2);
+//			double py = cyBottom + distanceLineTop * Math.sin(angleRadian + Math.PI / 2);
+//
+//			Point2D start2 = new Point2D.Double(cxBottom, cyBottom);
+//			Point2D end2 = new Point2D.Double(px, py);
+//
+//			float[] dist2 = { 0f, 0.4f, 0.6f, 1.0f };
+//
+//			Color cStart2 : 'rgb(40, 40, 40, 140);
+//			Color cStart2bis : 'rgb(40, 40, 40, 10);
+//			Color cEnd2bis : 'rgb(255, 255, 255, 10);
+//			Color cEnd2 : 'rgb(240, 240, 240, 140);
+//
+//			Color[] colors2 = { cStart2, cStart2bis, cEnd2bis, cEnd2 };
+//
+//			if (!start2.equals(end2)) {
+//				LinearGradientPaint p2 = new LinearGradientPaint(start2, end2, dist2, colors2);
+//
+//				g2d.setPaint(p2);
+//
+//				g2d.fill(section.getEndFace());
+//			}
+
+		},
+	
+		/**
+		 * paint top effect of given donut 3D
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} donut3d the graphics context
+		 */
+		_paintTopEffect:function(g2d,donut3d,section) {
+			var c = donut3d.getDonutCenter();
+			var startSection = donut3d.getSliceOnAngle(this.incidenceAngleDegree);
+			var exploseStartTiltRadius = startSection.divergence / 90;
+			var exploseStartRadius = exploseStartTiltRadius * donut3d.tilt;
+			var exploseStartA = startSection.divergence;
+			var exploseStartB = exploseStartRadius;
+			var centerStartX = c.x + exploseStartA * Math.cos(JenScript.Math.toRadians(startSection.startAngleDegree + Math.abs(startSection.endAngleDegree-startSection.startAngleDegree) / 2));
+			var centerStartY = c.y - exploseStartB * Math.sin(JenScript.Math.toRadians(startSection.startAngleDegree + Math.abs(startSection.endAngleDegree-startSection.startAngleDegree) / 2));
+			var startX = centerStartX + donut3d.outerA * Math.cos(JenScript.Math.toRadians(this.incidenceAngleDegree));
+			var startY = centerStartY - donut3d.outerB * Math.sin(JenScript.Math.toRadians(this.incidenceAngleDegree));
+			var endSection = donut3d.getSliceOnAngle(this.incidenceAngleDegree + 180);
+			var exploseEndTiltRadius = endSection.divergence / 90;
+			var exploseEndRadius = exploseEndTiltRadius * donut3d.tilt;
+			var exploseEndA = endSection.divergence;
+			var exploseEndB = exploseEndRadius;
+			var centerEndX = c.x + exploseEndA * Math.cos(JenScript.Math.toRadians(endSection.startAngleDegree + Math.abs(endSection.endAngleDegree-endSection.startAngleDegree) / 2));
+			var centerEndY = c.y - exploseEndB * Math.sin(JenScript.Math.toRadians(endSection.startAngleDegree + Math.abs(endSection.endAngleDegree-endSection.startAngleDegree) / 2));
+			var endX = centerEndX + donut3d.outerA * Math.cos(JenScript.Math.toRadians(this.incidenceAngleDegree + 180));
+			var endY = centerEndY - donut3d.outerB * Math.sin(JenScript.Math.toRadians(this.incidenceAngleDegree + 180));
+			var c1 = 'rgb(40, 40, 40)';
+			var c2 = 'rgb(40, 40, 40)';
+			var c3 = 'rgb(255, 255, 255)';
+			var c4 = 'rgb(255, 255, 255)';
+			var percents = ['0%','45%','55%','100%'];
+			var colors = [ c1, c2, c3, c4 ];
+			var opacity =[0.5,0,0,0.8];
+			var gradientId = 'gradient'+ JenScript.sequenceId++;
+			var gradient= new JenScript.SVGLinearGradient().Id(gradientId).from(startX,startY).to(endX, endY).shade(percents,colors,opacity).toSVG();
+			g2d.definesSVG(gradient);
+			if (section !== undefined && section.topFace !== undefined) {
+				var topFaceEffect = new JenScript.SVGElement().name('path')
+									.attr('d',section.topFace)
+									.attr('opacity',this.alphaTop)
+									.attr('fill','url(#'+gradientId+')')
+									//.attr('clip-path','url(#'+clipId1+')')
+									.buildHTML();
+				
+				donut3d.svg.donutRoot.appendChild(topFaceEffect);
+				//g2d.insertSVG(topFaceEffect);
+			}
+		},
+		
+		
+
+		/**
+		 * fill given donut 3D
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} donut3d the graphics context
+		 */
+		_paintDonut3DFill : function(g2d,donut3d,s) {
+			/**
+			 * Back fragment outer face
+			 */
+			if (this.fillBackOuter) {
+				if (s.type === 'Back') {
+					var outerFace = new JenScript.SVGElement().name('path')
+														.attr('d',s.outerFace)
+														.attr('opacity',this.alphaFill)
+														.attr('fill',s.themeColor)
+														.buildHTML();
+					donut3d.svg.donutRoot.appendChild(outerFace);
+					//g2d.insertSVG(outerFace);
+				}
+			}
+
+			/**
+			 * Back fragment bottom face
+			 */
+			if (this.fillBackBottom) {
+				if (s.type === 'Back') {
+					var bottomFace = new JenScript.SVGElement().name('path')
+														.attr('d',s.bottomFace)
+														.attr('opacity',this.alphaFill)
+														.attr('fill',s.themeColor)
+														.buildHTML();
+					donut3d.svg.donutRoot.appendChild(bottomFace);
+					//g2d.insertSVG(bottomFace);
+				}
+			}
+
+			/**
+			 * Back fragment inner face
+			 */
+			if (this.fillBackInner) {
+				if (s.type == 'Back') {
+					
+					var clipId1 = 'clip'+JenScript.sequenceId++;
+					var clip1 = new JenScript.SVGElement().name('clipPath')
+														.attr('id',clipId1)
+														.buildHTML();
+
+					var clip1Path = new JenScript.SVGElement().name('path')
+															.attr('d',donut3d.getTopFace())
+															.buildHTML();
+					
+					clip1.appendChild(clip1Path);
+					g2d.definesSVG(clip1);
+
+					var visibleInnerBackFace = new JenScript.SVGElement().name('path')
+															.attr('d',s.innerFace)
+															.attr('opacity',this.alphaFill)
+															.attr('fill',s.themeColor)
+															//.attr('clip-path','url(#'+clipId1+')')
+															.buildHTML();
+					donut3d.svg.donutRoot.appendChild(visibleInnerBackFace);
+					//g2d.insertSVG(visibleInnerBackFace);
+				}
+			}
+			
+			/**
+			 * Back fragment start and end face
+			 */
+			if (this.fillBackStart) {
+				if (s.type === 'Back') {
+					if (s.parentSlice.isFirst(s)) {
+						var startFace = new JenScript.SVGElement().name('path')
+												.attr('d',s.startFace)
+												.attr('opacity',this.alphaFill)
+												.attr('fill',s.themeColor)
+												.buildHTML();
+						//g2d.insertSVG(startFace);
+						donut3d.svg.donutRoot.appendChild(startFace);
+						
+						if (s.parentSlice.isFirst(s) && (s.parentSlice.startAngleDegree <= 90 || s.parentSlice.startAngleDegree >= 270)) {
+							//paintStartEffect(g2d, donut3d, s);
+						}
+					}
+
+				}
+			}
+
+			if (this.fillBackEnd) {
+				if (s.type === 'Back') {
+					if (s.parentSlice.isLast(s)) {
+						var endFace = new JenScript.SVGElement().name('path')
+															.attr('d',s.endFace)
+															.attr('opacity',this.alphaFill)
+															.attr('fill',s.themeColor)
+															.buildHTML();
+						//g2d.insertSVG(endFace);
+						donut3d.svg.donutRoot.appendChild(endFace);
+						
+						if (s.parentSlice.isLast(s) && (s.endAngleDegree >= 90 && s.endAngleDegree <= 270)) {
+							//paintEndEffect(g2d, donut3d, s);
+						}
+					}
+				}
+			}
+
+
+			/**
+			 * Back fragment top face
+			 */
+			if (this.fillBackTop) {
+				if (s.type === 'Back') {
+					var topFace = new JenScript.SVGElement().name('path')
+									.attr('d',s.topFace)
+									.attr('opacity',this.alphaFill)
+									.attr('fill',s.themeColor)
+									.buildHTML();
+					//g2d.insertSVG(topFace);
+					donut3d.svg.donutRoot.appendChild(topFace);
+				}
+			}
+
+			/***
+			 * FRONT
+			 */
+
+			/**
+			 * Front fragment inner face
+			 */
+			if (this.fillFrontInner) {
+				if (s.type === 'Front') {
+					var innerFace = new JenScript.SVGElement().name('path')
+												.attr('d',s.innerFace)
+												.attr('opacity',this.alphaFill)
+												.attr('fill',s.themeColor)
+												.buildHTML();
+					//g2d.insertSVG(innerFace);
+					donut3d.svg.donutRoot.appendChild(innerFace);
+				}
+				
+			}
+			/**
+			 * Front fragment bottom face
+			 */
+			if (this.fillFrontBottom) {
+				if (s.type === 'Front') {
+					var bottomFace = new JenScript.SVGElement().name('path')
+												.attr('d',s.bottomFace)
+												.attr('opacity',this.alphaFill)
+												.attr('fill',s.themeColor)
+												.buildHTML();
+					//g2d.insertSVG(bottomFace);
+					donut3d.svg.donutRoot.appendChild(bottomFace);
+				}
+			}
+			
+			/**
+			 * Front fragment start and end face
+			 */
+			if (this.fillFrontStart) {
+				if (s.type === 'Front') {
+					if (s.parentSlice.isFirst(s)) {
+						var startFace = new JenScript.SVGElement().name('path')
+																.attr('d',s.startFace)
+																.attr('opacity',this.alphaFill)
+																.attr('fill',s.themeColor)
+																.buildHTML();
+						//g2d.insertSVG(startFace);
+						donut3d.svg.donutRoot.appendChild(startFace);
+						
+						if (s.parentSlice.isFirst(s) && (s.startAngleDegree < 90 || s.startAngleDegree > 270)) {
+							//paintStartEffect(g2d, donut3d, s);
+						}
+					}
+
+				}
+			}
+
+			if (this.fillFrontEnd) {
+				if (s.type === 'Front') {
+					if (s.parentSlice.isLast(s)) {
+						var endFace = new JenScript.SVGElement().name('path')
+																.attr('d',s.endFace)
+																.attr('opacity',this.alphaFill)
+																.attr('fill',s.themeColor)
+																.buildHTML();
+						//g2d.insertSVG(endFace);
+						donut3d.svg.donutRoot.appendChild(endFace);
+						
+						if (s.parentSlice.isLast(s) && (s.endAngleDegree > 90 && s.endAngleDegree < 270)) {
+							//paintEndEffect(g2d, donut3d, s);
+						}
+					}
+				}
+			}
+
+			/**
+			 * Front fragment outer face
+			 */
+			if (this.fillFrontOuter) {
+				if (s.type === 'Front') {
+					var outerFace = new JenScript.SVGElement().name('path')
+														.attr('d',s.outerFace)
+														.attr('opacity',this.alphaFill)
+														.attr('fill',s.themeColor)
+														.buildHTML();
+					//g2d.insertSVG(outerFace);
+					donut3d.svg.donutRoot.appendChild(outerFace);
+				}
+			}
+			/**
+			 * Front fragment top face
+			 */
+			if (this.fillFrontTop) {
+				if (s.type === 'Front') {
+					var topFace = new JenScript.SVGElement().name('path')
+														.attr('d',s.topFace)
+														.attr('opacity',this.alphaFill)
+														.attr('fill',s.themeColor)
+														.buildHTML();
+					//g2d.insertSVG(topFace);
+					donut3d.svg.donutRoot.appendChild(topFace);
+				}
+			}
+		},
+		
+	});
+})();
+(function(){
+	
+	
+	/**
+	 * Object Donut3DAbstractLabel()
+	 * Defines Donut3D Abstract Label
+	 * @param {Object} config
+	 * @param {String} [config.name] the label type name
+	 * @param {String} [config.text] the label text
+	 * @param {String} [config.textColor] the label text color
+	 * @param {Number} [config.fontSize] the label text font size
+	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {Object} [config.shader] the label fill shader
+	 * @param {Object} [config.shader.percents] the label fill shader percents
+	 * @param {Object} [config.shader.colors] the label fill shader colors
+	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+	 * @param {String} [config.outlineColor] the label outline color
+	 * @param {String} [config.cornerRadius] the label outline corner radius
+	 * @param {String} [config.fillColor] the label fill color
+	 */
+	JenScript.Donut3DAbstractLabel = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut3DAbstractLabel,JenScript.AbstractLabel);
+	JenScript.Model.addMethods(JenScript.Donut3DAbstractLabel,{
+		
+		/**
+		 * Initialize Abstract Donut3D Label
+		 * @param {Object} config
+		 * @param {String} [config.name] the label type name
+		 * @param {String} [config.text] the label text
+		 * @param {String} [config.textColor] the label text color
+		 * @param {Number} [config.fontSize] the label text font size
+		 * @param {String} [config.textAnchor] the label text anchor
+		 * @param {Object} [config.shader] the label fill shader
+		 * @param {Object} [config.shader.percents] the label fill shader percents
+		 * @param {Object} [config.shader.colors] the label fill shader colors
+		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+		 * @param {String} [config.outlineColor] the label outline color
+		 * @param {String} [config.cornerRadius] the label outline corner radius
+		 * @param {String} [config.fillColor] the label fill color
+		 */
+		_init : function(config){
+			JenScript.AbstractLabel.call(this,config);
+		},
+		
+		/**
+		 * Abstract label paint for Donut3D 
+		 */
+		paintDonut3DSliceLabel : function(g2d,slice){
+			throw new Error('paintDonut3DSliceLabel method should be provide by override');
+		}
+		
+	});
+	
+	/**
+	 * Object Donut3DBorderLabel()
+	 * Defines Donut Border Label, a label which is paint on the donut border left or right side 
+	 * @param {Object} config
+	 * @param {String} [config.name] the label type name
+	 * @param {String} [config.text] the label text
+	 * @param {String} [config.textColor] the label text color
+	 * @param {Number} [config.fontSize] the label text font size
+	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {Object} [config.shader] the label fill shader
+	 * @param {Object} [config.shader.percents] the label fill shader percents
+	 * @param {Object} [config.shader.colors] the label fill shader colors
+	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+	 * @param {String} [config.outlineColor] the label outline color
+	 * @param {String} [config.cornerRadius] the label outline corner radius
+	 * @param {String} [config.fillColor] the label fill color
+	 * @param {Number} [config.margin] the margin distance from donut to draw the label
+	 * @param {Number} [config.linkExtends] the quad edge control point for label link
+	 */
+	JenScript.Donut3DBorderLabel = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut3DBorderLabel, JenScript.Donut3DAbstractLabel);
+	JenScript.Model.addMethods(JenScript.Donut3DBorderLabel, {
+		
+		/**
+		 * Initialize Donut3D Border Label, a label which is paint on the donut border left or right side 
+		 * @param {Object} config
+		 * @param {String} [config.name] the label type name
+		 * @param {String} [config.text] the label text
+		 * @param {String} [config.textColor] the label text color
+		 * @param {Number} [config.fontSize] the label text font size
+		 * @param {String} [config.textAnchor] the label text anchor
+		 * @param {Object} [config.shader] the label fill shader
+		 * @param {Object} [config.shader.percents] the label fill shader percents
+		 * @param {Object} [config.shader.colors] the label fill shader colors
+		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+		 * @param {String} [config.outlineColor] the label outline color
+		 * @param {String} [config.cornerRadius] the label outline corner radius
+		 * @param {String} [config.fillColor] the label fill color
+		 * @param {Number} [config.margin] the margin distance from donut to draw the label
+		 * @param {Number} [config.linkExtends] the quad edge control point for label link
+		 */
+		__init : function(config){
+			config = config || {};
+			this.margin = (config.margin !== undefined)? config.margin : 50;
+			this.linkExtends = (config.linkExtends !== undefined)? config.linkExtends : 30;
+			config.name = 'JenScript.Donut3DBorderLabel';
+			JenScript.Donut3DAbstractLabel.call(this, config);
+		},
+		
+		/**
+		 * set margin for this border label
+		 * @param {Object} margin
+		 */
+		setMargin : function(margin){
+			this.margin = margin;
+			//this.slice.donut.plugin.repaintPlugin(); // think to lighter repaint mechanism
+			
+			//cool alternative
+			var g2d = this.slice.donut.plugin.getGraphicsContext(JenScript.ViewPart.Device);
+			this.paintDonut3DSliceLabel(g2d,this.slice);
+		},
+		
+		/**
+		 * set links extends for this border label
+		 * @param {Object} margin
+		 */
+		setLinkExtends : function(linkExtends){
+			this.linkExtends = linkExtends;
+			//this.slice.donut.plugin.repaintPlugin();
+			
+			var g2d = this.slice.donut.plugin.getGraphicsContext(JenScript.ViewPart.Device);
+			this.paintDonut3DSliceLabel(g2d,this.slice);
+		},
+		
+		/**
+		 * paint donut3D slice border label
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} slice
+		 */
+		paintDonut3DSliceLabel : function(g2d, slice) {
+			var pc = slice.donut.getDonutCenter();
+		      
+	        var medianDegree = slice.startAngleDegree + Math.abs(slice.endAngleDegree - slice.startAngleDegree) / 2;
+	        if (medianDegree >= 360) {
+	            medianDegree = medianDegree - 360;
+	        }
+
+	        var px1 = pc.x + (slice.donut.outerA + slice.divergence)
+	                * Math.cos(JenScript.Math.toRadians(medianDegree));
+	        var py1 = pc.y - (slice.donut.outerB + slice.divergence)
+	                * Math.sin(JenScript.Math.toRadians(medianDegree));
+
+	        var px2 = pc.x
+	                + (slice.donut.outerA + this.linkExtends + slice.divergence)
+	                * Math.cos(JenScript.Math.toRadians(medianDegree));
+	        var py2 = pc.y
+	                - (slice.donut.outerB + this.linkExtends + slice.divergence)
+	                * Math.sin(JenScript.Math.toRadians(medianDegree));
+
+	        var px3 = 0;
+	        var py3 = py2;
+	        var px4 = 0;
+	        var py4 = py2;
+	        var pos = 'middle';
+	        if (medianDegree >= 270 && medianDegree <= 360
+	                || medianDegree >= 0 && medianDegree <= 90) {
+	            px3 = pc.x + slice.donut.outerA + this.margin  - 5;
+	            px4 = pc.x + slice.donut.outerA + this.margin  + 5;
+	            
+	            pos='start';
+	            if(medianDegree === 270)
+	            	pos = 'middle';
+	            if(medianDegree === 90)
+	            	pos = 'middle';
+	        }
+	        else {// 90-->270
+	            px3 = pc.x- slice.donut.outerA - this.margin + 5;
+	            px4 = pc.x- slice.donut.outerA - this.margin -5;
+	            pos='end';
+	        }
+	        
+	        
+	        var quaddata = 'M '+px1+','+py1+' Q '+px2+','+py2+' '+px3+','+py3;
+	        var quadlink = new JenScript.SVGElement().name('path')
+												.attr('d',quaddata)
+												.attr('fill','none')
+												.attr('stroke','darkgray')
+												.buildHTML();
+		        
+		        this.setTextAnchor(pos);
+		        this.setLocation(new JenScript.Point2D(px4,py4));
+		        var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
+				this.setTextColor(ct);
+				
+				this.paintLabel(g2d);
+				this.svg.label.appendChild(quadlink);
+		 }
+	});
+	
+	
+	/**
+	 * Object Donut3DRadialLabel()
+	 * Defines Donut3D Radial Label, a label which is paint on the median radian segment of slice
+	 * @param {Object} config
+	 * @param {String} [config.name] the label type name
+	 * @param {String} [config.text] the label text
+	 * @param {String} [config.textColor] the label text color
+	 * @param {Number} [config.fontSize] the label text font size
+	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {Object} [config.shader] the label fill shader
+	 * @param {Object} [config.shader.percents] the label fill shader percents
+	 * @param {Object} [config.shader.colors] the label fill shader colors
+	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+	 * @param {String} [config.outlineColor] the label outline color
+	 * @param {String} [config.cornerRadius] the label outline corner radius
+	 * @param {String} [config.fillColor] the label fill color
+	 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from donut radius
+	 */
+	JenScript.Donut3DRadialLabel = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut3DRadialLabel, JenScript.Donut3DAbstractLabel);
+	JenScript.Model.addMethods(JenScript.Donut3DRadialLabel,{
+		
+		/**
+		 * Initialize Donut3D Radial Label, a label which is paint on the median radian segment of slice
+		 * @param {Object} config
+		 * @param {String} [config.name] the label type name
+		 * @param {String} [config.text] the label text
+		 * @param {String} [config.textColor] the label text color
+		 * @param {Number} [config.fontSize] the label text font size
+		 * @param {String} [config.textAnchor] the label text anchor
+		 * @param {Object} [config.shader] the label fill shader
+		 * @param {Object} [config.shader.percents] the label fill shader percents
+		 * @param {Object} [config.shader.colors] the label fill shader colors
+		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+		 * @param {String} [config.outlineColor] the label outline color
+		 * @param {String} [config.cornerRadius] the label outline corner radius
+		 * @param {String} [config.fillColor] the label fill color
+		 * @param {Number} [config.offsetRadius] the offset radius define the extends radius from donut radius
+		 */
+		__init : function(config){
+			config = config || {};
+			this.offsetRadius = (config.offsetRadius !== undefined)?config.offsetRadius : 20;
+			config.name = 'JenScript.Donut3DRadialLabel';
+			JenScript.Donut2DAbstractLabel.call(this,config);
+		},
+
+		/**
+		 * set offset radius for this radial label.
+		 * offset radius is the extends distance from radius to draw the radial label
+		 * @param {Number} offsetRadius
+		 */
+		setOffsetRadius : function(offsetRadius) {
+			this.offsetRadius = offsetRadius;
+			this.slice.donut.plugin.repaintPlugin();
+		},
+		
+		/**
+		 * paint slice radial label
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} slice
+		 */
+		paintDonut3DSliceLabel : function(g2d, slice) {
+			var anchor = {
+				x : slice.sc.x + (slice.donut.outerA + this.offsetRadius)
+						* Math.cos(JenScript.Math.toRadians(slice.medianDegree)),
+				y : slice.sc.y - (slice.donut.outerB + this.offsetRadius)
+						* Math.sin(JenScript.Math.toRadians(slice.medianDegree))
+			};
+			var pos = "middle";
+			var dx = 0;
+			if (slice.medianDegree > 0 && slice.medianDegree < 90) {
+				pos = "start";
+				dx = 10;
+			} else if (slice.medianDegree > 90 && slice.medianDegree < 270) {
+				pos = "end";
+				dx = -10;
+			} else if (slice.medianDegree > 270 && slice.medianDegree <= 360) {
+				pos = "start";
+				dx = 10;
+			} else if (slice.medianDegree === 90 || slice.medianDegree === 270) {
+				pos = "middle";
+			}
+			this.setLocation(new JenScript.Point2D(anchor.x,anchor.y));
+			this.setTextAnchor(pos);
+			var ct = (this.textColor !== undefined)? this.textColor : slice.themeColor;
+			this.setTextColor(ct);
+			
+			this.paintLabel(g2d);
+		}
+	});
+})();
+(function(){
+	
+	//R. Module pattern
+	
+	JenScript.Donut3DBuilder = function(view,projection,config) {
+		view.registerProjection(projection);
+		var dp = new JenScript.Donut3DPlugin();
+		projection.registerPlugin(dp);
+		
+		var donut = new JenScript.Donut3D(config);
+		dp.addDonut(donut);
+		
+		var labels = [];
+		var slices = [];
+		var lastSlice;
+		
+		//improve with index 
+		var slice = function(config){
+			var s = new JenScript.Donut3DSlice(config);
+			lastSlice = s;
+			donut.addSlice(s);
+			slices.push(s);
+			return this;
+		}
+		var label = function(type,config){
+			var l;
+			if('radial' === type)
+				l = new JenScript.Donut3DRadialLabel(config);
+			if('border' === type)
+				l = new JenScript.Donut3DBorderLabel(config);
+			lastSlice.addSliceLabel(l);
+			labels.push(l);
+			return this;
+		}
+		
+		var effect = function(type, config){
+			var fx;
+			if('reflection' === type)
+				fx = new JenScript.Donut3DReflectionEffect(config);
+			donut.addEffect(fx);
+			effects.push(fx);
+			return this;
+		}
+		var reflectFx = function(config){
+			effect('reflection',config);
+			return this;
+		}
+		
+		
+		//Pie Builder Interface
+		return {
+			slice : slice,
+			label : label,
+			effect : effect,
+			reflectFx : reflectFx,
+			
+			view : function(){return view;},
+			projection : function(){return projection;},
+			donut : function(){return donut;},
+			labels : function(){return labels;},
+			slices : function(){return slice;},
+		};
+	};
+})();
+
+
+(function(){
+
+	/**
+	 * Object AbstractDonut3DEffect()
+	 * Defines Abstract Donut3D Effect
+	 * @param {Object} config
+	 * @param {Object} [config.name] donut effect name
+	 */
+	JenScript.AbstractDonut3DEffect = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.AbstractDonut3DEffect,{
+		/**
+		 * Initialize Abstract Donut2D Effect
+		 * @param {Object} config
+		 * @param {Object} [config.name] donut effect name
+		 */
+		init : function(config){
+			config = config || {};
+			this.name = config.name;
+		},
+		/**
+	     * effect donut 3D
+	     * @param {Object} g2d
+	     * @param {Object} donut3D
+	     */
+	    effectDonut3D : function(g2d,donut3D){}
+	});
+	
+	
+	
+	/**
+	 * Object Donut3DReflectionEffect()
+	 * Defines Donut3D Reflection Effect
+	 * @param {Object} config
+	 * @param {Object} [config.deviation]
+	 * @param {Object} [config.opacity]
+	 */
+	JenScript.Donut3DReflectionEffect = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Donut3DReflectionEffect, JenScript.AbstractDonut3DEffect);
+	JenScript.Model.addMethods(JenScript.Donut3DReflectionEffect,{
+		
+		/**
+		 * Initialize Donut3D Reflection Effect
+		 * @param {Object} config
+		 * @param {Object} [config.deviation] blur deviation, default 3 pixels
+		 * @param {Object} [config.opacity] effect opacity, default 0.3
+		 * @param {Object} [config.verticalOffset] effect vertical offset, default 5 pixels
+		 * @param {Object} [config.length] effect length [0,1], 1 reflect whole donut, 0.5 half of the donut, etc
+		 */
+		_init: function(config){
+			config = config || {};
+			this.deviation = (config.deviation !== undefined)?config.deviation : 3;
+			this.opacity = (config.opacity !== undefined)?config.opacity : 0.3;
+			this.length = (config.length !== undefined)?config.length : 0.5;
+			this.verticalOffset = (config.verticalOffset !== undefined)?config.verticalOffset : 0;
+			config.name = "JenScript.Donut3DReflectionEffect";
+			JenScript.AbstractDonut3DEffect.call(this,config);
+		},
+		
+		/**
+		 * Paint donut reflection effect
+		 * @param {Object} g2d the graphics context
+		 * @param {Object} donut 
+		 */
+		effectDonut3D : function(g2d, donut) {
+			var bbox = donut.svg.donutRoot.getBBox();
+			
+			 //clip
+			var clipId = 'clip'+JenScript.sequenceId++;
+			var rectClip = new JenScript.SVGRect().origin(bbox.x,bbox.y+bbox.height).size(bbox.width,bbox.height*this.length);
+			var clip = new JenScript.SVGClipPath().Id(clipId).appendPath(rectClip);
+			g2d.definesSVG(clip.toSVG());
+				
+			
+			//filter
+			var filterId = 'filter'+JenScript.sequenceId++;
+			var filter = new JenScript.SVGFilter().Id(filterId).from(bbox.x,bbox.y).size(bbox.width,bbox.height).toSVG();
+			var gaussianFilter = new JenScript.SVGElement().name('feGaussianBlur')
+															.attr('in','SourceGraphic')
+															.attr('stdDeviation',this.deviation);
+															
+			filter.appendChild(gaussianFilter.buildHTML());
+			g2d.definesSVG(filter);
+		
+			var e = donut.svg.donutRoot.cloneNode(true);
+			e.removeAttribute('id');
+			e.setAttribute('filter','url(#'+filterId+')');
+			e.setAttribute('transform','translate(0,'+bbox.height+'), scale(1,-1), translate(0,'+(-2*(bbox.y+bbox.height/2)-this.verticalOffset)+')'  );
+			e.setAttribute('opacity',this.opacity);
+			
+			var ng = new JenScript.SVGElement().name('g').buildHTML();
+			e.setAttribute('id',e.getAttribute('id')+'_reflection'+JenScript.sequenceId++);
+			ng.setAttribute('clip-path','url(#'+clipId+')');
+			ng.appendChild(e);
+			g2d.insertSVG(ng);	
+		}
+	});
+})();
+(function(){
+	
+	JenScript.TranslateMode = function(mode) {
+		this.mode = mode.toLowerCase();
+		
+		this.isTx= function(){
+			return (this.mode === 'x' || this.mode === 'tx' || this.mode === 'translatex');
+		};
+		this.isTy= function(){
+			return (this.mode === 'y' || this.mode === 'ty' || this.mode === 'translatey');
+		};
+		this.isTxy= function(){
+			return (this.mode === 'xy' || this.mode === 'txy' || this.mode === 'translatexy');
+		};
+	};
+	
+	JenScript.TranslatePlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.TranslatePlugin, JenScript.Plugin);
+
+	JenScript.Model.addMethods(JenScript.TranslatePlugin, {
+		_init : function(config){
+			config = config ||{};
+			config.name =  'TranslatePlugin';
+			config.selectable = true;
+			config.priority = 1000;
+			
+			this.translateListeners = [];
+			
+			this.lockTranslate = false;
+			
+			//translate points
+			this.translateStartX;
+			this.translateStartY;
+			this.translateCurrentX;
+			this.translateCurrentY;
+			this.translateDx=0;
+			this.translateDy=0;
+			
+			this.mode = (config.mode !== undefined)? new JenScript.TranslateMode(config.mode) : new JenScript.TranslateMode('xy');//'TranslateXY', 'TranslateX', 'TranslateY'
+			
+			
+			JenScript.Plugin.call(this, config);
+			
+		},
+		
+		getTranslateDx : function(){
+			return this.translateDx;
+		},
+		
+		getTranslateDy : function(){
+			return this.translateDy;
+		},
+		
+		isLockTranslate : function(){
+			return this.lockTranslate;
+		},
+		
+//		 /**
+//	     * get clicked button, LEFT, RIGHT or MIDDLE
+//	     */
+//		getButton : function (event){
+//			var button;
+//			if (event.which == null)
+//			    /* IE case */
+//			    button= (event.button < 2) ? "LEFT" :
+//			              ((event.button == 4) ? "MIDDLE" : "RIGHT");
+//			 else
+//			    /* All others */
+//			    button= (event.which < 2) ? "LEFT" :
+//			              ((event.which == 2) ? "MIDDLE" : "RIGHT");
+//			return button;
+//		},
+
+		
+		/**
+		 * check translate authorization by checking input event
+		 * should be use only from press,release handler
+		 * 
+		 * part should be 'Device'
+		 * plugin is selected
+		 * plugin is not passive
+		 * evt button code is 'LEFT'
+		 * location x,y is not sensible shape
+		 */
+		isTranslateAuthorized : function(evt,part,x,y){
+			return ((part === JenScript.ViewPart.Device) && this.isLockSelected() && !this.isLockPassive() && !this.isWidgetSensible(x,y));
+		},
+		
+		onPress : function(evt,part,x, y) {
+			//mozilla, prevent Default to enable dragging correctly
+			if(evt.preventDefault){
+				evt.preventDefault();
+			}
+					
+			if(this.isTranslateAuthorized(evt,part,x,y)){
+				this.startTranslate(new JenScript.Point2D(x,y));
+			}else{
+				//console.log('press translate not authorize to start : '+this.Id);
+			}
+		},
+		
+		/**
+		 * translate release handler
+		 * @param {Object} evt
+		 * @param {String} part
+		 * @param {Number} x
+		 * @param {Number} y
+		 */
+		onRelease : function(evt,part,x, y) {
+			if(this.isTranslateAuthorized(evt,part,x,y)){
+				this.stopTranslate(new JenScript.Point2D(x,y));
+			}else{
+				//console.log('release translate not authorize to stop : '+this.Id);
+			}
+		},
+		
+		/**
+		 * translate exit handler
+		 * @param {Object} evt
+		 * @param {String} part
+		 * @param {Number} x
+		 * @param {Number} y
+		 */
+		onExit : function(evt,part,x, y) {
+			this.stopTranslate(new JenScript.Point2D(x,y));
+		},
+		
+		/**
+		 * authorize bound translate only if translate is lock
+		 */
+		onMove : function(evt,part,x, y) {
+			//mozilla, prevent Default to enable dragging correctly
+			if(evt.preventDefault){
+				evt.preventDefault();
+			}
+			if (this.isTranslateAuthorized(evt,part,x,y) && this.lockTranslate) {
+				this.boundTranslate(new JenScript.Point2D(x,y));
+			}else{
+				////console.log('move translate not authorize to bound : '+this.Id);
+			}
+		},
+		
+		/**
+	     * start translate operation at the specified device point and lock translate
+	     * @param {Object} startDevice
+	     *            the start point of device translate
+	     */
+	    startTranslate  :function(startDevice) {
+	    	//console.log('start translate : '+this.Id);
+	    	this.lockTranslate = true;
+			this.translateStartX = startDevice.x;
+			this.translateStartY = startDevice.y;
+		    this.fireTranslateEvent('start');
+	    },
+	    
+	    /**
+	     * stop translate operation at the specified device point and release lock translate
+	     * @param {Object} endDevice
+	     *            the end point of device translate
+	     */
+	    stopTranslate : function(endDevice) {
+			//console.log('stop translate : '+this.Id);
+		    this.translateCurrentX = endDevice.x;
+		    this.translateCurrentY = endDevice.y;
+		    this.lockTranslate = false;
+	    	this.fireTranslateEvent('stop');
+		},
+		
+	    /**
+	     * add translate listener with given action
+	     * 
+	     * start : when translate get press, create start translate transaction
+	     * bound : when translate get drag and bound projection with (dx,dy) tuple translate
+	     * stop : when translate release, transaction is immediately stop
+	     * 
+	     * @param {String}   translate action event type like start, stop, translate, finish, L2R, B2T
+	     * @param {Function} listener
+	     * @param {String}   listener owner name
+	     */
+		addTranslateListener  : function(actionEvent,listener,name){
+			if(name === undefined)
+				throw new Error('Translate listener, listener name should be supplied.');
+			var l = {action:actionEvent , onEvent : listener,name:name};
+			this.translateListeners[this.translateListeners.length] =l;
+		},
+		
+		/**
+		 * fire listener when translate is being to start, stop, translate,finish L2R, and B2T
+		 */
+		fireTranslateEvent : function(actionEvent){
+			for (var i = 0; i < this.translateListeners.length; i++) {
+				var l = this.translateListeners[i];
+				if(actionEvent === l.action){
+					l.onEvent(this);
+				}
+			}
+		},
+			
+		/**
+		 * shift to the given direction
+		 * @param {String} direction, West, East, North, South
+		 */
+		shift : function(direction, sample) {
+				this.lockPassive = true;
+		        var that = this;
+		        if(sample === undefined){
+		        	sample  = {step : 5,sleep : 5,fraction : 20};
+		        }
+		        var step = (sample.step !== undefined)?sample.step : 5;
+                var sleep = (sample.sleep !== undefined)?sample.sleep : 5;
+                var fraction = (sample.fraction !== undefined)?sample.fraction : 20;
+                var deltaY = this.getProjection().getPixelHeight() / fraction;
+                var deltaX = this.getProjection().getPixelWidth() / fraction;
+                var dx = 0;
+                var dy = 0;
+                if (direction == 'North')
+                	dy = deltaY;
+                if (direction == 'South')
+                	dy = -deltaY;
+                if (direction == 'West')
+                	dx = deltaX;
+                if (direction == 'East')
+                	dx = -deltaX;
+                
+                var execute  = function(i,success){
+                	setTimeout(function(){
+                		that.boundTranslate(new JenScript.Point2D(dx*i,dy*i),false);
+                		success(i);
+                	},i*sleep);
+                	
+                };
+                this.startTranslate(new JenScript.Point2D(0,0));
+                
+                for (var i =0 ; i <= step ; i++) {
+                	execute(i,function success(rank){
+                				if(rank === step){
+                					that.lockPassive = false;
+                					that.stopTranslate(new JenScript.Point2D(0,0));
+                				}
+                			});
+                }
+	    },
+	    
+	   
+		
+		/**
+		 * bound translate points with given device point
+		 * @param {Object} device point
+		 */
+		boundTranslate : function(currentDevice) {
+			
+			this.translateCurrentX = currentDevice.x;
+			this.translateCurrentY = currentDevice.y;
+		    
+			var	deltaDeviceX = this.translateCurrentX - this.translateStartX;
+			var	deltaDeviceY = this.translateCurrentY - this.translateStartY;
+			
+			if(this.mode.isTx()){
+				deltaDeviceY = 0;
+			}
+			else if(this.mode.isTy()){
+				deltaDeviceX = 0;
+			}
+			
+			this.processTranslate(deltaDeviceX, deltaDeviceY);
+			this.translateStartX = this.translateCurrentX;
+			this.translateStartY = this.translateCurrentY;
+			this.fireTranslateEvent('bound');
+		},
+		
+		
+		
+
+		/**
+		 * process translate with given delta pixel dx and dy
+		 * @param {Number} dx
+		 * @param {Number} dy
+		 */
+		processTranslate : function(dx,dy) {
+			
+			this.translateDx = dx;
+		    this.translateDy = dy;
+		    var proj = this.getProjection();
+		    if (proj === undefined) {
+		        return;
+		    }
+		    var w = proj.getPixelWidth();
+		    var h = proj.getPixelHeight();
+
+		    var pMinXMinYDevice = {x:-dx, y: (h - dy)};
+		    var pMaxXMaxYDevice = {x: (w - dx),y: -dy};
+
+		    var pMinXMinYUser = proj.pixelToUser(pMinXMinYDevice);
+		    var pMaxXMaxYUser = proj.pixelToUser(pMaxXMaxYDevice);
+
+		    proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
+		},
+		
+		onProjectionRegister : function(){
+		},
+	});
+	
+	
+	
+	
+})();
+(function(){
+	JenScript.TranslatePad = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.TranslatePad, JenScript.AbstractBackwardForwardPadWidget);
+	JenScript.Model.addMethods(JenScript.TranslatePad,{
+		___init: function(config){
+			config = config || {};
+			config.Id = 'translate_pad'+JenScript.sequenceId++;
+			config.width=64;
+			config.height=64;
+			config.xIndex=60;
+			config.yIndex=100;
+			
+			JenScript.AbstractBackwardForwardPadWidget.call(this,config);
+			
+			 /** theme color to fill pad base */
+		    this.baseFillColor = JenScript.RosePalette.COALBLACK;
+		    /** theme color to draw pad base */
+		    this.baseStrokeColor = JenScript.RosePalette.MELON;
+		    /** stroke width to draw pad base */
+		    this.baseStrokeWidth = 1;
+		    /** theme color to fill pad control */
+		   // this.controlFillColor = 'rgba(250,0,0,0.4)';
+		    /** theme color to draw pad control */
+		    this.controlStrokeColor = JenScript.RosePalette.AEGEANBLUE;
+		    /** stroke width to draw pad control */
+		    this.controlStrokeWidth =1;
+		    /** button fill color */
+		    this.buttonFillColor = JenScript.RosePalette.CALYPSOBLUE;
+		    /** button rollover fill color */
+		    this.buttonRolloverFillColor = JenScript.RosePalette.MELON;
+		    /** button stroke color */
+		    this.buttonStrokeColor =  JenScript.RosePalette.COALBLACK;
+		    /** button rollover stroke color */
+		    this.buttonRolloverStrokeColor =JenScript.RosePalette.MELON;
+		    /** button stroke */
+		    this.buttonStrokeWidth =1;
+		},
+		
+		
+	    onNorthButtonPress : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().shift('North');
+	    },
+	  
+	    onSouthButtonPress : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().shift('South');
+	    },
+
+	    onWestButtonPress : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().shift('West');
+	    },
+
+	    onEastButtonPress : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().shift('East');
+	    },
+	    
+	    onRegister : function(){
+	    	this.attachPluginLockUnlockFactory('Tranlate Pad widget factory');
+	    }
+	});
+})();
+(function(){
+	JenScript.TranslateX = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.TranslateX, JenScript.AbstractBackwardForwardBarWidget);
+	JenScript.Model.addMethods(JenScript.TranslateX,{
+		___init: function(config){
+			config = config || {};
+			config.Id = 'translate_tx'+JenScript.sequenceId++;
+			config.width=(config.width !== undefined)?config.width:100;
+			config.height=(config.height !== undefined)?config.height:16;
+			config.xIndex=(config.xIndex !== undefined)?config.xIndex:2;
+			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
+			config.barOrientation = 'Horizontal';
+			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 10,sleep: 5,fraction:10};
+		    this.setOrphanLock(true);
+		},
+	    onButton1Press : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().shift('West', this.sample);
+	    },
+	    onButton2Press : function() {
+	    	if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().shift('East', this.sample);
+	    },
+	    
+	    onRegister : function(){
+	    	this.attachPluginLockUnlockFactory('TranlateX widget factory');
+	    }
+	});
+})();
+(function(){
+	JenScript.TranslateY = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.TranslateY, JenScript.AbstractBackwardForwardBarWidget);
+	JenScript.Model.addMethods(JenScript.TranslateY,{
+		___init: function(config){
+			config = config || {};
+			config.Id = 'translate_ty'+JenScript.sequenceId++;
+			config.width=(config.width !== undefined)?config.width:16;
+			config.height=(config.height !== undefined)?config.height:100;
+			config.xIndex=(config.xIndex !== undefined)?config.xIndex:100;
+			config.yIndex=(config.yIndex !== undefined)?config.yIndex:1;
+			config.barOrientation = 'Vertical';
+			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 10,sleep: 5,fraction:10};
+		    this.setOrphanLock(true);
+		},
+		
+		
+	    onButton1Press : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().shift('North', this.sample);
+
+	    },
+	    onButton2Press : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().shift('South', this.sample);
+	    },
+	    
+	    onRegister : function(){
+	    	this.attachPluginLockUnlockFactory('TranlateY widget factory');
+	    }
+		
+	});
+})();
+(function(){
+	JenScript.TranslateCompassWidget = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.TranslateCompassWidget, JenScript.Widget);
+	
+	JenScript.Model.addMethods(JenScript.TranslateCompassWidget, {
+		_init : function(config){
+			config = config || {};
+		    this.translateCompassWidgetID = 'translate_compass'+JenScript.sequenceId++;
+		    this.compassSquareSize = (config.compassSquareSize !== undefined)?config.compassSquareSize:64;
+		    this.compassWidget;
+		    this.compassStyle = 'Merge';
+		    this.name;
+		    this.ringDrawColor = 'rgba(91,151,168,0.7)';
+		    this.ringFillColor = (config.ringFillColor !== undefined)?config.ringFillColor: 'red';
+		    this.ringFillOpacity = 0.5;
+		    this.ringDrawOpacity=1;
+		    this.ringNeedleDrawColor;
+		    this.ringNeedleFillColor;
+		    this.averageCounter = 0;
+		    
+		    this.maxAverage = 2;
+		    this.averageDx = 0;
+		    this.averageDy = 0;
+		    
+	        this.compassGeometry = new this.CompassGeometry(0, 0, this.compassSquareSize / 2 - 10,this.compassSquareSize / 2 - 4);
+	        this.needleGeometry= new this.NeedleGeometry(); 
+	        this.needleVector = new this.NeedleVector();
+	        
+	        config.Id =  this.translateCompassWidgetID;
+	        config.width = this.compassSquareSize;
+	        config.height = this.compassSquareSize;
+	        config.xIndex = 100;
+	        config.yIndex = 0;
+			JenScript.Widget.call(this,config);
+		},
+		
+		CompassGeometry : function(centerX,centerY,innerRadius,outerRadius){
+	        this.centerX = centerX;
+	        this.centerY = centerY;
+	        this.innerRadius = innerRadius;
+	        this.outerRadius = outerRadius;
+	        this.builCompass = function() {
+	        };
+		},
+		
+		NeedleGeometry : function(){
+	        this.theta = 0;
+	        this.paint = 'rgba(0, 0, 0, 0.6)';
+	        this.colorTheme = 'white';
+	        this.alphaProjection = 18;
+		},
+		
+		NeedleVector : function(){
+			 this.startx = 0;
+	         this.endx = 0;
+	         this.starty = 0;
+	         this.endy = 0;
+		},
+		
+	
+		onRegister : function() {
+			var that = this;
+			//common behavior
+			//this.attachPluginLockUnlockFactory('Translate Compass widget factory');
+			
+			this.getHost().addTranslateListener('start',
+		            function (pluginEvent) {
+						//console.log('compass widget start listener is being to create compass widget');
+						that.create();
+						//console.log('compass created');
+		            },'Translate compass widget translate start listener, create'
+			);
+			//translate behavior
+			this.getHost().addTranslateListener('bound',
+	            function (pluginEvent) {
+	                if (that.averageCounter < that.maxAverage) {
+	                	that.averageCounter++;
+	                	that.averageDx = that.averageDx + that.getHost().getTranslateDx();
+	                	that.averageDy = that.averageDy + that.getHost().getTranslateDy();
+	                }
+	                else {
+	                	that.needleVector.startx = 0;
+	                	that.needleVector.endx = that.averageDx / that.averageCounter;
+	                	that.needleVector.starty = 0;
+	                	that.needleVector.endy = that.averageDy / that.averageCounter;
+	                	
+	                	that.destroy();
+	                	that.create();
+	 	               
+	                	that.averageCounter = 0;
+	                	that.averageDx = 0;
+	                	that.averageDy = 0;
+	                }
+	               
+	            },'translate compass widget translate process listener'
+			);
+			
+//			this.getHost().addTranslateListener('stop',
+//		            function onTranslate(pluginEvent) {
+//						//var g2d = that.getHost().getProjection().getView().getWidgetPlugin().getGraphicsContext('Device');
+//						//g2d.deleteGraphicsElement(that.Id);
+//						that.destroy();
+//		            },'translate compass widget translate stop listener, destroy'
+//			);
+			
+			this.getHost().addTranslateListener('stop',
+		            function (pluginEvent) {
+						//console.log('finish translate from widget '+that.getHost().Id);
+						//console.log('compass widget finish listener is being to destroy compass widget');
+						that.destroy();
+						//console.log('compass destroy');
+		            },'translate compass widget translate stop listener, destroy'
+			);
+		},
+		
+		  /**
+	     * get compass geometry
+	     * 
+	     * @return compass geometry
+	     */
+	    getCompassGeometry : function() {
+	        return this.compassGeometry;
+	    },
+	    
+	    solveCompass : function(){
+	    	var currentFolder = this.getWidgetFolder();
+	        var tcx = (currentFolder.x + currentFolder.width / 2);
+	        var tcy = (currentFolder.y + currentFolder.height / 2);
+	        
+	        this.getCompassGeometry().centerX = tcx;
+	        this.getCompassGeometry().centerY = tcy;
+
+	        var theta = 0;
+	        var centerX = this.needleVector.startx;
+	        var centerY = this.needleVector.starty;
+	        var x = this.needleVector.endx;
+	        var y = this.needleVector.endy;
+
+	        if (x > centerX && y <= centerY) {
+	            theta = Math.atan((centerY - y)  / (x - centerX));
+	                  
+	        }
+	        else if (x > centerX && y > centerY) {
+	            theta = Math.atan((centerY - y)
+	                    /(x - centerX))
+	                    + 2 * Math.PI;
+	        }
+	        else if (x < centerX) {
+	            theta = Math.atan((centerY - y)
+	                    / (x - centerX))
+	                    + Math.PI;
+	        }
+	        else if (x == centerX && y < centerY) {
+	            theta = Math.PI / 2;
+	        }
+	        else if (x == centerX && y > centerY) {
+	            theta = 3 * Math.PI / 2;
+	        }
+
+	        this.needleGeometry.theta = JenScript.Math.toDegrees(theta);
+	    },
+
+	    /**
+	     * paint translate compass
+	     * 
+	     * @param {Object} g2d
+	     */
+	    paintTranslateCompass : function(g2d) {
+	    	var currentFolder = this.getWidgetFolder();
+	    	if(currentFolder === undefined){
+	    		console.log("compass widget folder is undefined");
+	    		return;
+	    	}
+	    	
+	        this.solveCompass();
+	        var g = this.compassGeometry;
+	        var n = this.needleGeometry;
+	        
+	        var innerRing = new JenScript.SVGPath()
+	        								.moveTo((g.centerX-g.outerRadius),g.centerY)
+	        								.arcTo(g.outerRadius,g.outerRadius,0,1,1,(g.centerX+g.outerRadius),g.centerY)
+	        								.arcTo(g.outerRadius,g.outerRadius,0,1,1,(g.centerX-g.outerRadius),g.centerY)
+	        								.moveTo((g.centerX-g.innerRadius),g.centerY)
+	        								.arcTo(g.innerRadius,g.innerRadius,0,1,1,(g.centerX+g.innerRadius),g.centerY)
+	        								.arcTo(g.innerRadius,g.innerRadius,0,1,1,(g.centerX-g.innerRadius),g.centerY)
+	        								.attr('fill-rule','evenodd')
+	        								//.attr('fill-rule','nonzero')
+	        								
+	        								.strokeNone()
+	        								.fill(this.ringFillColor)
+	        								.fillOpacity(this.ringFillOpacity)
+	        								.close();
+
+	        var delta1 = 2;// 10;
+	        var delta2 = 8;// 4;
+	        var alphaProjection = 18;
+	        var theta = n.theta;
+	        var X = (g.outerRadius + delta2)* Math.cos(JenScript.Math.toRadians(theta));
+	        var Y = (g.outerRadius + delta2)* Math.sin(JenScript.Math.toRadians(theta));
+	        var x1 = (g.innerRadius + delta1)* Math.cos(JenScript.Math.toRadians(theta-alphaProjection));
+	        var y1 = (g.innerRadius + delta1)* Math.sin(JenScript.Math.toRadians(theta-alphaProjection));
+	        var x2 = (g.innerRadius + delta1)* Math.cos(JenScript.Math.toRadians(theta+alphaProjection));
+	        var y2 = (g.innerRadius + delta1)* Math.sin(JenScript.Math.toRadians(theta+alphaProjection));
+           
+	        var needle = new JenScript.SVGPath()
+	        						.moveTo(g.centerX+X,g.centerY-Y)
+	        						.lineTo(g.centerX+x2,g.centerY-y2)
+									.lineTo(g.centerX+x1,g.centerY-y1)
+									.strokeNone()
+	        						.fill(this.ringFillColor)
+	        						.strokeOpacity(this.ringDrawOpacity)
+									.close();
+	       var compassGroup = new JenScript.SVGGroup().Id(this.Id);
+	       g2d.deleteGraphicsElement(this.Id);
+	       compassGroup.child(innerRing.toSVG()).child(needle.toSVG());
+		   g2d.insertSVG(compassGroup.toSVG());
+
+
+	    },
+
+	   paintWidget : function(g2d) {
+	        if (this.getHost()!==undefined && this.getHost().isLockTranslate()) {
+	        	//console.log('paint translate compass for proj : '+this.getHost().getProjection().name);
+	            this.paintTranslateCompass(g2d);
+	        }
+	    },
+	});
+})();
+(function(){
+	JenScript.TranslateSynchronizer = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.TranslateSynchronizer,{
+		init: function(config){
+			/** the translate plug ins to synchronize */
+		    this.translateList =[];
+		    /** dispatchingEvent flag */
+		    this.dispathingEvent = false;
+		    
+		    var translates = config.translates;
+		    
+		    if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < translates.length; i++) {
+	            	var that = this;
+	            	translates[i].addTranslateListener('start',function (plugin){that.translateStarted(plugin);},' Translate synchronizer, start listener');
+	            	translates[i].addTranslateListener('bound',function (plugin){that.bound(plugin);},' Translate synchronizer, bound listener');
+	            	translates[i].addTranslateListener('stop',function (plugin){that.translateStoped(plugin);},' Translate synchronizer, stop listener');
+	            	translates[i].addPluginListener('lock',function (plugin){that.pluginSelected(plugin);},'Translate Synchronizer plugin lock listener');
+	            	translates[i].addPluginListener('unlock',function (plugin){that.pluginSelected(plugin);},'Translate Synchronizer plugin unlock listener');
+	                this.translateList[this.translateList.length] = translates[i];
+	            }
+	            this.dispathingEvent = false;
+	        }
+		},
+	
+	    pluginSelected : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.translateList.length; i++) {
+					var plugin = this.translateList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.select();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+    
+	    pluginUnlockSelected : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.translateList.length; i++) {
+					var plugin = this.translateList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.unselect();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+   
+	    translateL2RChanged : function(source) {
+	    },
+	   
+	    translateB2TChanged : function(source) {
+	    },
+
+	    translateStarted : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.translateList.length; i++) {
+					var plugin = this.translateList[i];
+	                if (plugin.Id !== source.Id) {
+	                    plugin.startTranslate(new JenScript.Point2D(source.translateStartX,source.translateStartY));
+	                }
+	            }
+	            this.dispathingEvent = false;
+	        }
+	    },
+
+	    bound : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.translateList.length; i++) {
+					var plugin = this.translateList[i];
+					 if (plugin.Id !== source.Id) {
+						 plugin.boundTranslate({x:source.translateCurrentX, y:source.translateCurrentY});
+	                 }
+	            }
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
+    
+	    translateStoped : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.translateList.length; i++) {
+					var plugin = this.translateList[i];
+					 if (plugin.Id !== source.Id) {
+	                    plugin.stopTranslate(new JenScript.Point2D(source.translateCurrentX,source.translateCurrentY));
+	                 }
+	            }
+	            this.dispathingEvent = false;
+	        }
+	    }
+	});
+})();
+(function(){
+	
+	JenScript.ZoomBoxMode = function(mode) {
+		this.mode = mode.toLowerCase();
+		
+		this.isBx= function(){
+			return (this.mode === 'x' || this.mode === 'bx' || this.mode === 'box');
+		};
+		this.isBy= function(){
+			return (this.mode === 'y' || this.mode === 'by' || this.mode === 'boy');
+		};
+		this.isBxy= function(){
+			return (this.mode === 'xy' || this.mode === 'bxy' || this.mode === 'boxxy');
+		};
+	};
+	
+	JenScript.ZoomBoxPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.ZoomBoxPlugin, JenScript.Plugin);
+	
+	JenScript.Model.addMethods(JenScript.ZoomBoxPlugin, {
+		
+		_init : function(config){
+			config = config || {};
+			
+			config.name =  'ZoomBox';
+			config.selectable = true;
+			config.priority = 1000;
+			
+			this.zoomBoxDrawColor = config.zoomBoxDrawColor ;
+			this.zoomBoxFillColor = config.zoomBoxFillColor;
+			this.mode = (config.mode !== undefined) ? new JenScript.ZoomBoxMode(config.mode) : new JenScript.ZoomBoxMode('xy');
+			this.speed = (config.speed !== undefined) ? config.speed : 'default'; //slow, default, fast
+
+		    this.minimalDelatX = 16;
+		    this.minimalDeltaY = 16;
+			this.drag = false;
+			this.lockEffect = false;
+			this.lockZoomingTransaction = false;
+			this.zoomBoxStartX;
+			this.zoomBoxStartY;
+			this.zoomBoxCurrentX;
+			this.zoomBoxCurrentY;
+			this.zoomFxBoxStartX;
+			this.zoomFxBoxStartY;
+			this.zoomFxBoxCurrentX;
+			this.zoomFxBoxCurrentY;
+			this.boxHistory = [];
+			this.maxHistory = 8;
+			this.zoomBack = [];
+			this.boxListeners = [];
+			JenScript.Plugin.call(this,config);
+		},
+		
+
+		/**
+		 * when zoom box is being register in projection,
+		 * attach 'bound change' listener that takes the responsibility to repaint cycle
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},that.toString());
+			
+		},
+		
+		
+		
+		/**
+	     * fire translate start to listener
+	     */
+		fireEvent : function(actionEvent){
+			for(var i = 0 ;i<this.boxListeners.length;i++){
+				var l = this.boxListeners[i];
+				if(l.action === actionEvent)
+					l.onEvent(this);
+			}
+		},
+		
+		
+		
+		 /**
+	     * add zoom box listener
+	     * @param {String} action event type like start, stop, translate, L2R,B2T
+	     * @param {Function} listener
+	     */
+		addBoxListener : function(actionEvent,listener) {
+			var l={action:actionEvent,onEvent:listener};
+			this.boxListeners[this.boxListeners.length] = l;
+		},
+
+		onPress : function(evt,part,x,y) {
+			//mozilla, prevent Default to enable dragging correctly
+			if(evt.preventDefault){
+				evt.preventDefault();
+			}
+			if(part !== JenScript.ViewPart.Device) return;
+			if (!this.isLockSelected()) {
+				return;
+			}
+
+			if (this.isLockPassive()) {
+				return;
+			}
+			
+			this.drag = true;
+			
+			this.processZoomStart(new JenScript.Point2D(x,y));
+		},
+		
+		/**
+	     * start parameters for a start bound zoom box
+	     * 
+	     * @param startBox
+	     *            box start point coordinate in the current transaction type
+	     */
+	    processZoomStart : function(startBox) {
+            this.zoomBoxStartX = startBox.getX();
+            this.zoomBoxStartY = startBox.getY();
+            this.zoomBoxCurrentX = this.zoomBoxStartX;
+            this.zoomBoxCurrentY = this.zoomBoxStartY;
+            
+            this.zoomFxBoxStartX = 0;
+			this.zoomFxBoxStartY = 0;
+			this.zoomFxBoxCurrentX = 0;
+			this.zoomFxBoxCurrentY = 0;
+
+	        this.fireEvent('boxStart');
+
+	        this.lockZoomingTransaction = true;
+	    },
+		
+		onRelease : function(evt,part,x, y) {
+			if(part !== JenScript.ViewPart.Device) return;
+			this.drag = false;
+			if (!this.isLockSelected()) {
+				return;
+			}
+			if (this.isLockPassive()) {
+				return;
+			}
+			if (this.isForwardCondition()) {
+				this.processZoomOut();
+				//this.fireEvent('boxOut');
+			} else if (this.isValidateBound()) {
+				this.processZoomIn();
+				//this.fireEvent('boxIn');
+			}
+
+			this.repaintPlugin();
+		},
+		
+		onMove : function(evt,part,deviceX, deviceY) {
+			if(part !== JenScript.ViewPart.Device) return;
+			if (this.drag) {
+				this.processZoomBound(new JenScript.Point2D(deviceX,deviceY));
+				//this.getProjection().getView().repaint();
+				this.repaintPlugin();
+			}
+		},
+		
+		/**
+	     * bound zoom box for the current specified coordinate in the current transaction
+	     * 
+	     * @param currentBox
+	     *
+	     */
+	    processZoomBound : function(currentBox) {
+	        this.zoomBoxCurrentX = currentBox.getX();
+	        this.zoomBoxCurrentY = currentBox.getY();
+	        this.fireEvent('boxBound');
+	    },
+		
+		isValidateBound : function() {
+			 if (this.mode.isBxy()) {
+		            if (this.zoomBoxCurrentX > this.zoomBoxStartX + this.minimalDelatX
+		                    && this.zoomBoxCurrentY > this.zoomBoxStartY + this.minimalDeltaY) {
+		                return true;
+		            }
+		        }
+		        else if (this.mode.isBx()) {
+		            if (this.zoomBoxCurrentX > this.zoomBoxStartX + this.minimalDelatX) {
+		                return true;
+		            }
+		        }
+		        else if (this.mode.isBy()) {
+		            if (this.zoomBoxCurrentY > this.zoomBoxStartY + this.minimalDeltaY) {
+		                return true;
+		            }
+		        }
+		        return false;
+		},
+
+		isForwardCondition : function() {
+			if (this.mode.isBxy()) {
+				if (this.zoomBoxCurrentX < this.zoomBoxStartX
+						|| this.zoomBoxCurrentY < this.zoomBoxStartY) {
+					return true;
+				}
+			} else if (this.mode.isBx()) {
+				if (this.zoomBoxCurrentX < this.zoomBoxStartX) {
+					return true;
+				}
+			} else if (this.mode.isBy()) {
+				if (this.zoomBoxCurrentY < this.zoomBoxStartY) {
+					return true;
+				}
+			}
+			return false;
+		},
+		
+		processZoomOut : function() {
+			var proj = this.getProjection();
+			var that = this;
+			that.zoomBack.reverse();
+			for (var i = 0; i < this.zoomBack.length; i++) {
+				__p(i, function callback(rank) {
+					if (rank === that.zoomBack.length-1) {
+						setTimeout(function() {
+							that.fireEvent('boxFinish');
+							that.repaintPlugin();
+						}, 10);
+					}
+				});
+			}
+			this.fireEvent('boxOut');
+			function __p(i, callback) {
+				setTimeout(function() {
+					var bound = that.zoomBack[i];
+					//console.log("rank ",i," bounds : ",bound);
+					proj.bound(bound.minX,bound.maxX,bound.minY,bound.maxY);	
+					callback(i);
+				}, 20 * i);
+			}
+		},
+		
+		processZoomIn : function() {
+			this.lockEffect=true;
+			var deviceStart = {
+				x : this.zoomBoxStartX,
+				y : this.zoomBoxStartY
+			};
+			var deviceCurrent = {
+				x : this.zoomBoxCurrentX,
+				y : this.zoomBoxCurrentY
+			};
+
+			var userWindowStartPoint = this.getProjection().pixelToUser(deviceStart);
+			var userWindowCurrentPoint = this.getProjection().pixelToUser(deviceCurrent);
+			var proj = this.getProjection();
+
+			var iMinx = proj.minX;
+			var iMaxx = proj.maxX;
+			var iMiny = proj.minY;
+			var iMaxy = proj.maxY;
+
+			this.boxHistory[this.boxHistory.length] = {
+				minx : iMinx,
+				maxx : iMaxx,
+				miny : iMiny,
+				maxy : iMaxy
+			};
+			var deltaMinx = Math.abs(proj.minX - userWindowStartPoint.x) / 10;
+			var deltaMaxx = Math.abs(proj.maxX - userWindowCurrentPoint.x) / 10;
+			var deltaMiny = Math.abs(proj.minY - userWindowCurrentPoint.y) / 10;
+			var deltaMaxy = Math.abs(proj.maxY - userWindowStartPoint.y) / 10;
+
+			// boxHistory[boxHistory.length] = {minx:userWindowStartPoint.x,
+			// maxx:userWindowCurrentPoint.x,
+			// miny:userWindowCurrentPoint.y,
+			// maxy:userWindowStartPoint.y};
+
+			var fxDeltaPixelMinx = Math.abs(proj.userToPixelX(deltaMinx)
+					- proj.userToPixelX(0));
+			var fxDeltaPixelMaxx = Math.abs(proj.userToPixelX(deltaMaxx)
+					- proj.userToPixelX(0));
+			var fxDeltaPixelMiny = Math.abs(proj.userToPixelY(deltaMiny)
+					- proj.userToPixelY(0));
+			var fxDeltaPixelMaxy = Math.abs(proj.userToPixelY(deltaMaxy)
+					- proj.userToPixelY(0));
+
+			var speedMillis = 200;
+			
+			if(this.speed === 'slow')
+				speedMillis = 60;
+			if(this.speed === 'default')
+				speedMillis = 30;
+			if(this.speed === 'fast')
+				speedMillis = 10;
+			//console.log("speed millis :"+speedMillis);
+			
+			var that = this;
+			that.zoomBack = [];
+			var count=0;
+			for (var i = 1; i <= 10; i++) {
+				_p(i, function callback(rank) {
+					that.zoomBack[count++] = proj.getBounds(); 
+					if (rank === 10) {
+						that.lockEffect=false;
+						that.lockZoomingTransaction = false;
+						setTimeout(function() {
+							that.fireEvent('boxFinish');
+							that.repaintPlugin();
+						}, 10);
+					}
+				});
+			}
+			this.fireEvent('boxIn');
+			
+			
+			
+			
+			function _p(i, callback) {
+				var millis = speedMillis * i;
+				console.log(" millis :"+millis);
+				setTimeout(function() {
+					that.lockZoomingTransaction = true;
+					
+					var m1=0,m2=0,m3=0,m4=0;
+					if(that.mode.isBxy()){
+						m1 = iMinx + deltaMinx * i;
+						m2 = iMaxx - deltaMaxx * i;
+						m3 = iMiny+ deltaMiny * i;
+						m4 = iMaxy - deltaMaxy * i;
+						that.zoomFxBoxStartX = that.zoomBoxStartX - fxDeltaPixelMinx * i;
+						that.zoomFxBoxStartY = that.zoomBoxStartY - fxDeltaPixelMaxy * i;
+						that.zoomFxBoxCurrentX = that.zoomBoxCurrentX + fxDeltaPixelMaxx* i;
+						that.zoomFxBoxCurrentY = that.zoomBoxCurrentY + fxDeltaPixelMiny* i;
+					}
+					else if(that.mode.isBx()){
+						m1 = iMinx + deltaMinx * i;
+						m2 = iMaxx - deltaMaxx * i;
+						m3 = proj.getMinY();
+						m4 = proj.getMaxY();
+						that.zoomFxBoxStartX = that.zoomBoxStartX - fxDeltaPixelMinx * i;
+						that.zoomFxBoxStartY = 0;
+						that.zoomFxBoxCurrentX = that.zoomBoxCurrentX + fxDeltaPixelMaxx* i;
+						that.zoomFxBoxCurrentY = that.getProjection().getPixelHeight();
+					}
+					else if(that.mode.isBy()){
+						m1 = proj.getMinX();
+						m2 = proj.getMaxX();
+						m3 = iMiny+ deltaMiny * i;
+						m4 = iMaxy - deltaMaxy * i;
+						that.zoomFxBoxStartX = 0;
+						that.zoomFxBoxStartY = that.zoomBoxStartY - fxDeltaPixelMaxy * i;
+						that.zoomFxBoxCurrentX = that.getProjection().getPixelWidth();
+						that.zoomFxBoxCurrentY = that.zoomBoxCurrentY + fxDeltaPixelMiny* i;
+					}
+					proj.bound(m1, m2, m3, m4);
+					
+					that.zoomBack[count++] = proj.getBounds();
+					callback(i);
+				}, millis);
+			}
+		},
+		
+		paintBox : function(g2d, part) {
+			var zoomBoxWidth = this.zoomBoxCurrentX - this.zoomBoxStartX;
+			var zoomBoxHeight = this.zoomBoxCurrentY - this.zoomBoxStartY;
+			var bx=0,by=0,bw=0,bh=0;
+			if (this.mode.isBxy()) {
+	            bx = this.zoomBoxStartX;
+	            by = this.zoomBoxStartY;
+	            bw = zoomBoxWidth;
+	            bh = zoomBoxHeight;
+	        }
+	        else if (this.mode.isBx()) {
+	        	bx = this.zoomBoxStartX;
+	            by = 0;
+	            bw = zoomBoxWidth;
+	            bh = this.getProjection().getPixelHeight();
+	        }
+	        else if (this.mode.isBy()) {
+	        	bx = 0;
+	            by = this.zoomBoxStartY;
+	            bw = this.getProjection().getPixelWidth();
+	            bh = zoomBoxHeight;
+	        }
+			var fillColor = (this.zoomBoxFillColor !== undefined) ?this.zoomBoxFillColor: this.getProjection().getThemeColor();
+			var drawColor = (this.zoomBoxDrawColor !== undefined) ?this.zoomBoxDrawColor: this.getProjection().getThemeColor();
+			var box = new JenScript.SVGRect().origin(bx,by)
+											.size(bw,bh)
+											.strokeWidth(0.5)
+											.stroke(drawColor)
+											.fillOpacity(0.2)
+											.strokeOpacity(0.8)
+											.fill(fillColor)
+											.toSVG();
+			g2d.insertSVG(box);
+		 },
+		 
+		 paintBoxEffect : function(g2d, part) {
+			var zoomFxBoxWidth = this.zoomFxBoxCurrentX - this.zoomFxBoxStartX;
+			var zoomFxBoxHeight = this.zoomFxBoxCurrentY - this.zoomFxBoxStartY;
+			var fillColor = (this.zoomBoxFillColor !== undefined) ?this.zoomBoxFillColor: this.getProjection().getThemeColor();
+			var drawColor = (this.zoomBoxDrawColor !== undefined) ?this.zoomBoxDrawColor: this.getProjection().getThemeColor();
+			var box = new JenScript.SVGRect().origin(this.zoomFxBoxStartX,this.zoomFxBoxStartY)
+												.size(zoomFxBoxWidth,zoomFxBoxHeight)
+												.strokeWidth(0.5)
+												.stroke(drawColor)
+												.fillOpacity(0.2)
+												.strokeOpacity(0.8)
+												.fill(fillColor)
+												.toSVG();
+											
+			g2d.insertSVG(box);
+		 },
+		 
+		 paintPlugin : function(g2d, part) {
+				if (part !== JenScript.ViewPart.Device) {
+					return;
+				}
+				if(this.lockZoomingTransaction) {
+					 if (!this.lockEffect && this.isValidateBound()) {
+						this.paintBox(g2d, part); 
+					 }
+					 else{
+						 this.paintBoxEffect(g2d);
+					 }
+				}
+		},
+		
+	    /**
+	     * get the zoom box start point in device coordinate
+	     * 
+	     * @return device start point
+	     */
+	    getBoxStartDevicePoint : function() {
+	        return new JenScript.Point2D(this.zoomBoxStartX, this.zoomBoxStartY);
+	    },
+
+	    /**
+	     * get Bound Box current device point
+	     * 
+	     * @return bound box current device point
+	     */
+	    getBoxCurrentDevicePoint : function() {
+	        return new JenScript.Point2D(this.zoomBoxCurrentX,this.zoomBoxCurrentY);
+	    },
+	    
+	    /**
+	     * get the zoom box start point in user coordinate
+	     * 
+	     * @return device start point
+	     */
+	    getBoxStartUserPoint : function() {
+	        return this.getProjection().pixelToUser(this.getBoxStartDevicePoint());
+	    },
+
+	    /**
+	     * get Bound Box current user point
+	     * 
+	     * @return bound box current user point
+	     */
+	    getBoxCurrentUserPoint : function() {
+	        return this.getProjection().pixelToUser(this.getBoxCurrentDevicePoint());
+	    }
+	});
+	
+	
+})();
+(function(){
+	JenScript.ZoomBoxSynchronizer = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.ZoomBoxSynchronizer,{
+		init: function(config){
+			/** the box plugins to synchronize */
+		    this.boxesList =[];
+		    /** dispatchingEvent flag */
+		    this.dispathingEvent = false;
+		    
+		    var boxes = config.boxes;
+		    
+		    if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < boxes.length; i++) {
+	            	var that = this;
+	            	boxes[i].addBoxListener('boxStart',function (plugin){that.boxStart(plugin);});
+	            	boxes[i].addBoxListener('boxBound',function (plugin){that.boxBound(plugin);});
+	            	boxes[i].addBoxListener('boxIn',function (plugin){that.boxIn(plugin);});
+	            	boxes[i].addBoxListener('boxOut',function (plugin){that.boxOut(plugin);});
+	            	boxes[i].addBoxListener('boxFinish',function (plugin){that.boxFinish(plugin);});
+//	            	boxes[i].addBoxListener('boxHistory',function (plugin){that.translateB2TChanged(plugin);});
+//	            	boxes[i].addBoxListener('boxClearHistory',function (plugin){that.translateB2TChanged(plugin);});
+	            	boxes[i].addPluginListener('lock',function (plugin){that.pluginSelected(plugin);},'ZoomBox Synchronizer plugin lock listener');
+	            	boxes[i].addPluginListener('unlock',function (plugin){that.pluginSelected(plugin);},'ZoomBox Synchronizer plugin unlock listener');
+	                this.boxesList[this.boxesList.length] = boxes[i];
+	            }
+	            this.dispathingEvent = false;
+	        }
+		},
+	
+	    pluginSelected : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+						console.log("lock other box");
+	                    plugin.select();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
+    
+	    pluginUnlockSelected : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.unselect();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
+	    boxStart : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+						//console.log('start other box');
+						var deviceBoxStartSource = source.getBoxStartDevicePoint();
+	                    plugin.processZoomStart(deviceBoxStartSource);
+	                    plugin.repaintPlugin();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
+	    boxBound : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+						//console.log('bound other box');
+	                    var deviceBoxCurrentSource = source.getBoxCurrentDevicePoint();
+	                    plugin.processZoomBound(deviceBoxCurrentSource);
+	                    plugin.repaintPlugin();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
+	    boxIn : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+						//console.log('box in other box');
+	                    plugin.processZoomIn();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
+	    boxOut : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.processZoomOut();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
+	    boxFinish : function(source) {
+	        
+	    },
+	    
+	});
+})();
+(function(){
+	JenScript.ZoomLensPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.ZoomLensPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.ZoomLensPlugin, {
+		_init : function(config){
+			config = config || {};
+			config.name =  "ZoomLensPlugin";
+			config.selectable = true;
+			config.priority = 1000;
+			/** zoom int lock flag */
+			this.zoomInLock = false;
+			/** zoom out lock flag */
+			this.zoomOutLock = false;
+			/** zoom milli tempo */
+			this.zoomMiliTempo = 100;
+			/** zoom factor */
+			this.factor = 30;
+			/** current zoom process nature */
+			this.processNature;
+			this.lensListeners = [];
+			this.lensType = (config.lensType !== undefined) ? config.lensType : 'LensXY';
+			JenScript.Plugin.call(this,config);
+			
+			//this.registerWidget(new JenScript.LensX());
+			//this.registerWidget(new JenScript.LensY());
+			//this.registerWidget(new JenScript.LensPad());
+		},
+		
+		
+		getProcessNature : function(){
+			return this.processNature;
+		},
+		
+		onRelease : function(evt,part,x,y){
+			this.zoomInLock = false;
+			this.zoomOutLock = false;
+		},
+		
+		
+		addLensListener : function(actionEvent,listener,name) {
+			var l={action:actionEvent,onEvent:listener,name:name};
+			this.lensListeners[this.lensListeners.length] = l;
+		},
+		
+		fireLensEvent : function(action){
+			for(var i = 0 ;i<this.lensListeners.length;i++){
+				var l = this.lensListeners[i];
+				if(l.action === action)
+					l.onEvent(this);
+			}
+		},
+		
+		/**
+		 * stop zoom in
+		 */
+		stopZoomIn : function() {
+			this.zoomInLock = false;
+		},
+		
+		/**
+		 * stop zoom out
+		 */
+		stopZoomOut : function() {
+			this.zoomOutLock = false;
+		},
+
+		/**
+		 * start zoom in with in the specified nature
+		 * 
+		 * @param zoomNature
+		 */
+		startZoomIn : function(zoomNature) {
+			this.zoomInLock = true;
+			var that = this;
+			var execute = function(i){
+				setTimeout(function(){
+					that.zoomIn(zoomNature);
+				},i*that.zoomMiliTempo);
+			};
+			
+			for(var i= 0;i<10;i++){
+				execute(i);
+			}
+		},
+		
+		/**
+		 * start zoom out with in the specified nature
+		 * 
+		 * @param zoomNature
+		 */
+		startZoomOut : function(zoomNature) {
+			this.zoomOutLock = true;
+			var that = this;
+			var execute = function(){
+				setTimeout(function(i){
+					that.zoomOut(zoomNature);
+				},i*that.zoomMiliTempo);
+			};
+			for(var i= 0;i<10;i++){
+				execute(i);
+			}
+		},
+		
+		/**
+		 * zoom in with in the specified nature
+		 * 
+		 * @param zoomNature
+		 */
+		zoomIn : function(processNature) {
+			this.processNature = processNature;
+			var proj = this.getProjection();
+
+			var w = proj.getPixelWidth();
+			var h = proj.getPixelHeight();
+			var factor = this.factor;
+			
+			var pMinXMinYDevice = undefined;
+			var pMaxXMaxYDevice = undefined;
+			
+			if (processNature === 'ZoomXY') {
+				pMinXMinYDevice = {x:w / factor, y:h - h / factor};
+				pMaxXMaxYDevice = {x:w - w / factor,y: h / factor};
+			} else if (processNature === 'ZoomX') {
+				pMinXMinYDevice = {x:w / factor, y:h};
+				pMaxXMaxYDevice = {x:w - w / factor,y: 0};
+			} else if (processNature === 'ZoomY') {
+				pMinXMinYDevice = {x:0,y: h - h / factor};
+				pMaxXMaxYDevice = {x:w,y: h / factor};
+			}
+			var pMinXMinYUser = proj.pixelToUser(pMinXMinYDevice);
+			var pMaxXMaxYUser = proj.pixelToUser(pMaxXMaxYDevice);
+			//if (w2d instanceof Window2D.Linear) {
+				//Window2D.Linear wl = (Window2D.Linear) w2d;
+				if(this.lensType == 'LensXY'){
+					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
+				}
+				else if(this.lensType === 'LensX'){
+					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, proj.getMinY(), proj.getMaxY());
+				}
+				else if(this.lensType === 'LensY'){
+					proj.bound(proj.getMinX(), proj.getMaxX(), pMinXMinYUser.y, pMaxXMaxYUser.y);
+				}
+			//}
+				
+			this.fireLensEvent('zoomIn');
+		},
+
+		/**
+		 * zoom out with in the specified nature
+		 * 
+		 * @param zoomNature
+		 */
+		zoomOut : function(processNature) {
+			this.processNature = processNature;
+			var proj = this.getProjection();
+			
+			var w = proj.getPixelWidth();
+			var h = proj.getPixelHeight();
+			var factor = this.factor;
+			
+			var pMinXMinYDevice = undefined;
+			var pMaxXMaxYDevice = undefined;
+
+			if (processNature === 'ZoomXY') {
+				pMinXMinYDevice = {x:-w / factor, y:h + h / factor};
+				pMaxXMaxYDevice = {x:w + w / factor,y: -h / factor};
+			} else if (processNature === 'ZoomX') {
+				pMinXMinYDevice = {x:-w / factor, y:h};
+				pMaxXMaxYDevice = {x:w + w / factor,y: 0};
+			} else if (processNature === 'ZoomY') {
+				pMinXMinYDevice = {x:0, y:h + h / factor};
+				pMaxXMaxYDevice = {x:w,y: -h / factor};
+			}
+
+			var pMinXMinYUser = proj.pixelToUser(pMinXMinYDevice);
+			var pMaxXMaxYUser = proj.pixelToUser(pMaxXMaxYDevice);
+
+			//if (getWindow2D() instanceof Window2D.Linear) {
+				//Window2D.Linear wl = (Window2D.Linear) getWindow2D();
+				if(this.lensType === 'LensXY'){
+					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
+				}
+				else if(this.lensType === 'LensX'){
+					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, proj.getMinY(), proj.getMaxY());
+				}
+				else if(this.lensType === 'LensY'){
+					proj.bound(proj.getMinX(), proj.getMaxX(), pMinXMinYUser.y, pMaxXMaxYUser.y);
+				}
+			//}
+			this.fireLensEvent('zoomOut');
+
+		}
+	});
+
+})();
+(function(){
+	JenScript.ZoomLensSynchronizer = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.ZoomLensSynchronizer,{
+		init: function(config){
+			/** the lens plug ins to synchronize */
+		    this.lensList =[];
+		    /** dispatchingEvent flag */
+		    this.dispathingEvent = false;
+		    
+		    var lenses = config.lenses;
+		    
+		    if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < lenses.length; i++) {
+	            	var that = this;
+	            	lenses[i].addLensListener('zoomIn',function (plugin){that.zoomIn(plugin);},' Lens synchronizer, zoomIn listener');
+	            	lenses[i].addLensListener('zoomOut',function (plugin){that.zoomOut(plugin);},' Lens synchronizer, zoomOut listener');
+	            	lenses[i].addPluginListener('lock',function (plugin){that.pluginSelected(plugin);},'Lens Synchronizer plugin lock listener');
+	            	lenses[i].addPluginListener('unlock',function (plugin){that.pluginSelected(plugin);},'Lens Synchronizer plugin unlock listener');
+	                this.lensList[this.lensList.length] = lenses[i];
+	            }
+	            this.dispathingEvent = false;
+	        }
+		},
+	
+	    pluginSelected : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.lensList.length; i++) {
+					var plugin = this.lensList[i];
+					if (plugin.Id !== source.Id) {
+						//console.log("select synchronized lens");
+	                    plugin.select();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+    
+	    pluginUnlockSelected : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.lensList.length; i++) {
+					var plugin = this.lensList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.unselect();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+   
+	   
+	    zoomIn : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.lensList.length; i++) {
+					var plugin = this.lensList[i];
+	                if (plugin.Id !== source.Id) {
+	                	plugin.zoomIn(source.getProcessNature());
+	                }
+	            }
+	            this.dispathingEvent = false;
+	        }
+	    },
+
+	    zoomOut : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.lensList.length; i++) {
+					var plugin = this.lensList[i];
+					 if (plugin.Id !== source.Id) {
+						 plugin.zoomOut(source.getProcessNature());
+	                }
+	            }
+	            this.dispathingEvent = false;
+	        }
+	    },
+    
+	   
+	});
+})();
+(function(){
+	JenScript.LensPad = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.LensPad, JenScript.AbstractPlusMinusPadWidget);
+	JenScript.Model.addMethods(JenScript.LensPad,{
+		___init: function(config){
+			config = config || {};
+			config.Id = 'lens_pad'+JenScript.sequenceId++;
+			config.width=64;
+			config.height=64;
+			config.xIndex=60;
+			config.yIndex=100;
+			
+			JenScript.AbstractPlusMinusPadWidget.call(this,config);
+			
+			 /** theme color to fill pad base */
+		    this.baseFillColor = JenScript.RosePalette.COALBLACK;
+		    /** theme color to draw pad base */
+		    this.baseStrokeColor = JenScript.RosePalette.MELON;
+		    /** stroke width to draw pad base */
+		    this.baseStrokeWidth = 1;
+		    /** theme color to fill pad control */
+		   // this.controlFillColor = 'rgba(250,0,0,0.4)';
+		    /** theme color to draw pad control */
+		    this.controlStrokeColor = JenScript.RosePalette.AEGEANBLUE;
+		    /** stroke width to draw pad control */
+		    this.controlStrokeWidth =1;
+		    /** button fill color */
+		    this.buttonFillColor = JenScript.RosePalette.EMERALD;
+		    /** button rollover fill color */
+		    this.buttonRolloverFillColor = JenScript.RosePalette.MELON;
+		    /** button stroke color */
+		    this.buttonStrokeColor =  JenScript.RosePalette.FOXGLOWE;
+		    /** button rollover stroke color */
+		    this.buttonRolloverStrokeColor =JenScript.RosePalette.MELON;
+		    /** button stroke */
+		    this.buttonStrokeWidth =1;
+		},
+		
+		
+	    onNorthButtonPress : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().startZoomIn('ZoomY');
+	    },
+	  
+	    onSouthButtonPress : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().startZoomOut('ZoomY');
+	    },
+
+	    onWestButtonPress : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().startZoomOut('ZoomX');
+	    },
+
+	    onEastButtonPress : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().startZoomIn('ZoomX');
+	    },
+	    
+	    onRegister : function(){
+	    	this.attachPluginLockUnlockFactory('Lens Pad widget factory');
+	    }
+	});
+})();
+(function(){
+	JenScript.LensX = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.LensX, JenScript.AbstractPlusMinusBarWidget);
+	JenScript.Model.addMethods(JenScript.LensX,{
+		___init: function(config){
+			config = config || {};
+			config.Id = 'lensX'+JenScript.sequenceId++;
+			config.width=(config.width !== undefined)?config.width : 100;
+			config.height=(config.height !== undefined)?config.height : 16;
+			config.xIndex=(config.xIndex !== undefined)?config.xIndex:3;
+			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
+			config.barOrientation = 'Horizontal';
+			JenScript.AbstractPlusMinusBarWidget.call(this,config);
+			
+		    this.setOrphanLock(true);
+		},
+		
+	    onButton1Press : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().startZoomOut('ZoomX');
+	    },
+	   
+	    onButton2Press : function() {
+	    	if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	    	 this.getHost().startZoomIn('ZoomX');
+	    },
+	    
+	    onRegister : function(){
+	    	this.attachPluginLockUnlockFactory('LensX widget widget factory');
+	    }
+	});
+})();
+(function(){
+	JenScript.LensY = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.LensY, JenScript.AbstractPlusMinusBarWidget);
+	JenScript.Model.addMethods(JenScript.LensY,{
+		___init: function(config){
+			config = config || {};
+			config.Id = 'LensY'+JenScript.sequenceId++;
+			config.width=(config.width !== undefined)?config.width : 16;
+			config.height=(config.height !== undefined)?config.height : 100;
+			config.xIndex=(config.xIndex !== undefined)?config.xIndex:100;
+			config.yIndex=(config.yIndex !== undefined)?config.yIndex:2;
+			config.barOrientation = 'Vertical';
+			JenScript.AbstractPlusMinusBarWidget.call(this,config);
+
+		    this.setOrphanLock(true);
+		},
+		
+	    onButton1Press : function() {
+	        if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	        this.getHost().startZoomIn('ZoomY');
+	    },
+	   
+	    onButton2Press : function() {
+	    	if (!this.getHost().isLockSelected()) {
+	            return;
+	        }
+	    	this.getHost().startZoomOut('ZoomY');
+	    },
+	    
+	    onRegister : function(){
+			this.attachPluginLockUnlockFactory('LensY widget widget factory');
+	    }
+	});
+})();
+(function(){
+	
+	JenScript.ZoomWheelMode = function(mode) {
+		this.mode = mode.toLowerCase();
+		
+		this.isWx= function(){
+			return (this.mode === 'x' || this.mode === 'wx' || this.mode === 'wheelx');
+		};
+		this.isWy= function(){
+			return (this.mode === 'y' || this.mode === 'wy' || this.mode === 'wheely');
+		};
+		this.isWxy= function(){
+			return (this.mode === 'xy' || this.mode === 'wxy' || this.mode === 'wheelxy');
+		};
+	};
+	
+	JenScript.ZoomWheelPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.ZoomWheelPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.ZoomWheelPlugin, {
+		_init : function(config){
+			config = config || {};
+			
+			config.name =  "ZoomWheelPlugin";
+			config.selectable = false;
+			config.priority = 1000;
+			this.mode = (config.mode !== undefined) ? new JenScript.ZoomWheelMode(config.mode) : new JenScript.ZoomWheelMode('xy');
+			
+			/** zoom wheel multiplier, deltaY is always +1,-1, then deltaY is multiply */
+			this.multiplier = (config.multiplier !== undefined) ? config.multiplier : 2;
+			
+			/** zoom wheel factor that get the projection fraction factor to increase/decrease*/
+			this.factor = 60;
+			
+			this.wheelListeners = [];
+			JenScript.Plugin.call(this,config);
+		},
+		
+		addWheelListener : function(actionEvent,listener,name) {
+			var l={action:actionEvent,onEvent:listener,name:name};
+			this.wheelListeners[this.wheelListeners.length] = l;
+		},
+		
+		fireWheelEvent : function(action){
+			for(var i = 0 ;i<this.wheelListeners.length;i++){
+				var l = this.wheelListeners[i];
+				if(l.action === action)
+					l.onEvent(this);
+			}
+		},
+		
+		onPress : function(evt,part,x,y){
+			this.stopWheel = true;
+		},
+		
+		onRelease : function(evt,part,x,y){
+			this.stopWheel = false;
+		},
+		
+		onWheel : function(evt,part,x,y){
+			evt.preventDefault();
+			//console.log('zoomWheel onWheel');
+			
+			var that=this;
+			var temporizeIn = function(i){
+				setTimeout(function(){
+					that.zoomIn();
+				},100*i);
+			};
+			var temporizeOut = function(i){
+				setTimeout(function(){
+					that.zoomOut();
+				},100*i);
+			};
+			
+			var exe = function(rotation){
+				if (rotation < 0) {
+					var count = -rotation;
+					for (var i = 0; i < count; i++) {
+						temporizeIn(i);
+					}
+				} else {
+					var count = rotation;
+					for (var i = 0; i < count; i++) {
+						temporizeOut(i);
+					}
+				}
+			};
+			
+			if(evt.deltaY){
+				exe(evt.deltaY*this.multiplier);
+			}
+		},
+	
+		/**
+		 * bound zoom in
+		 */
+		zoomIn : function() {
+			if(this.stopWheel) return;
+			//console.log("zoom in");
+			var w = this.getProjection().getPixelWidth();
+			var h = this.getProjection().getPixelHeight();
+			var pMinXMinYDevice = undefined;
+			var pMaxXMaxYDevice = undefined;
+			if (this.mode.isWxy()) {
+				pMinXMinYDevice = {x:w / this.factor, y:h - h / this.factor};
+				pMaxXMaxYDevice = {x:w - w / this.factor,y: h / this.factor};
+			} else if (this.mode.isWx()) {
+				pMinXMinYDevice = {x:w / this.factor,y: h};
+				pMaxXMaxYDevice = {x:w - w / this.factor,y: 0};
+			} else if (this.mode.isWy()) {
+				pMinXMinYDevice = {x:0, y:h - h / this.factor};
+				pMaxXMaxYDevice = {x:w, y:h / this.factor};
+			}
+			var pMinXMinYUser = this.getProjection().pixelToUser(pMinXMinYDevice);
+			var pMaxXMaxYUser = this.getProjection().pixelToUser(pMaxXMaxYDevice);
+			//if (getWindow2D() instanceof Window2D.Linear) {
+				//Window2D.Linear wl = (Window2D.Linear) getWindow2D();
+				this.getProjection().bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
+			//}
+				this.fireWheelEvent('zoomIn');
+		},
+
+		/**
+		 * bound zoom out
+		 */
+		 zoomOut : function() {
+			 if(this.stopWheel) return;
+			 //console.log("zoom out");
+			var w = this.getProjection().getPixelWidth();
+			var h = this.getProjection().getPixelHeight();
+			var pMinXMinYDevice = undefined;
+			var pMaxXMaxYDevice = undefined;
+			if (this.mode.isWxy()) {
+				pMinXMinYDevice = {x:-w / this.factor,y: h + h / this.factor};
+				pMaxXMaxYDevice = {x:w + w / this.factor,y: -h / this.factor};
+			} else if (this.mode.isWx()) {
+				pMinXMinYDevice = {x:-w / this.factor, y:h};
+				pMaxXMaxYDevice = {x:w + w / this.factor,y: 0};
+			} else if (this.mode.isWy()) {
+				pMinXMinYDevice = {x:0,y: h + h / this.factor};
+				pMaxXMaxYDevice = {x:w,y: -h / this.factor};
+			}
+			var pMinXMinYUser = this.getProjection().pixelToUser(pMinXMinYDevice);
+			var pMaxXMaxYUser = this.getProjection().pixelToUser(pMaxXMaxYDevice);
+			//if (getWindow2D() instanceof Window2D.Linear) {
+			//	Window2D.Linear wl = (Window2D.Linear) getWindow2D();
+				this.getProjection().bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
+				this.fireWheelEvent('zoomOut');
+			//}
+		}
+	});	
+})();
+(function(){
+	JenScript.ZoomWheelSynchronizer = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.ZoomWheelSynchronizer,{
+		init: function(config){
+			/** the wheel plug ins to synchronize */
+		    this.wheelList =[];
+		    /** dispatchingEvent flag */
+		    this.dispathingEvent = false;
+		    
+		    var wheels = config.wheels;
+		    
+		    if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < wheels.length; i++) {
+	            	var that = this;
+	            	wheels[i].addWheelListener('zoomIn',function (plugin){that.zoomIn(plugin);},' Wheel synchronizer, zoomIn listener');
+	            	wheels[i].addWheelListener('zoomOut',function (plugin){that.zoomOut(plugin);},' Wheel synchronizer, zoomOut listener');
+	            	//wheels[i].addPluginListener('lock',function (plugin){that.pluginSelected(plugin);},'Lens Synchronizer plugin lock listener');
+	            	//wheels[i].addPluginListener('unlock',function (plugin){that.pluginSelected(plugin);},'Lens Synchronizer plugin unlock listener');
+	                this.wheelList[this.wheelList.length] = wheels[i];
+	            }
+	            this.dispathingEvent = false;
+	        }
+		},
+	
+	    pluginSelected : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.wheelList.length; i++) {
+					var plugin = this.wheelList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.select();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+    
+	    pluginUnlockSelected : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.wheelList.length; i++) {
+					var plugin = this.wheelList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.unselect();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+   
+	   
+	    zoomIn : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.wheelList.length; i++) {
+					var plugin = this.wheelList[i];
+	                if (plugin.Id !== source.Id) {
+	                	plugin.zoomIn();
+	                }
+	            }
+	            this.dispathingEvent = false;
+	        }
+	    },
+
+	    zoomOut : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.wheelList.length; i++) {
+					var plugin = this.wheelList[i];
+					 if (plugin.Id !== source.Id) {
+						 plugin.zoomOut();
+	                }
+	            }
+	            this.dispathingEvent = false;
+	        }
+	    },
+    
+	   
+	});
+})();
+(function () {
+    'use strict';
+
+   
+    /*********************************** DEFAULTS ************************************/
+
+    /*
+     * The limit on the value of DECIMAL_PLACES, TO_EXP_NEG, TO_EXP_POS, MIN_EXP,
+     * MAX_EXP, and the argument to toFixed, toPrecision and toExponential, beyond
+     * which an exception is thrown (if ERRORS is true).
+     */
+    var MAX = 1E9;                                  // 0 to 1e+9
+
+    // Limit of magnitude of exponent argument to toPower.
+    var MAX_POWER = 1E6;                             // 1 to 1e+6
+
+    // The maximum number of decimal places for operations involving division.
+    var DECIMAL_PLACES = 20;                         // 0 to MAX
+
+    /*
+     * The rounding mode used when rounding to the above decimal places, and when
+     * using toFixed, toPrecision and toExponential, and round (default value).
+     * UP         0 Away from zero.
+     * DOWN       1 Towards zero.
+     * CEIL       2 Towards +Infinity.
+     * FLOOR      3 Towards -Infinity.
+     * HALF_UP    4 Towards nearest neighbour. If equidistant, up.
+     * HALF_DOWN  5 Towards nearest neighbour. If equidistant, down.
+     * HALF_EVEN  6 Towards nearest neighbour. If equidistant, towards even neighbour.
+     * HALF_CEIL  7 Towards nearest neighbour. If equidistant, towards +Infinity.
+     * HALF_FLOOR 8 Towards nearest neighbour. If equidistant, towards -Infinity.
+     */
+    var ROUNDING_MODE = 4;                           // 0 to 8
+
+    // EXPONENTIAL_AT : [TO_EXP_NEG , TO_EXP_POS]
+
+    // The exponent value at and beneath which toString returns exponential notation.
+    // Number type: -7
+    var TO_EXP_NEG = -7;                            // 0 to -MAX
+
+    // The exponent value at and above which toString returns exponential notation.
+    // Number type: 21
+    var TO_EXP_POS = 21;                             // 0 to MAX
+
+    // RANGE : [MIN_EXP, MAX_EXP]
+
+    // The minimum exponent value, beneath which underflow to zero occurs.
+    // Number type: -324  (5e-324)
+    var MIN_EXP = -MAX;                         // -1 to -MAX
+
+    // The maximum exponent value, above which overflow to Infinity occurs.
+    // Number type:  308  (1.7976931348623157e+308)
+    var MAX_EXP = MAX;                               // 1 to MAX
+
+    // Whether BigNumber Errors are ever thrown.
+    // CHANGE parseInt to parseFloat if changing ERRORS to false.
+    var ERRORS = true;                               // true or false
+    var parse = parseInt;                            // parseInt or parseFloat
+
+
+    var DIGITS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$_';
+    var outOfRange;
+    var id = 0;
+    var isValid = /^-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i;
+    var trim = String.prototype.trim || function(){return this.replace(/^\s+|\s+$/g, '');};
+      
+
+    /*
+     * The exported function.
+     * Create and return a new instance of a BigNumber object.
+     *
+     * n {number|string|BigNumber} A numeric value.
+     * [b] {number} The base of n. Integer, 2 to 64 inclusive.
+     */
+     JenScript.BigNumber  = function(n,b) {
+        var e, i, isNum, digits, valid, orig,
+            x = this;
+
+        // Enable constructor usage without new.
+        if ( !(x instanceof JenScript.BigNumber) ) {
+            return new JenScript.BigNumber(n,b);
+        }
+
+        // Duplicate.
+        if ( n instanceof JenScript.BigNumber ) {
+            id = 0;
+
+            // e is undefined.
+            if ( b !== e ) {
+                n += '';
+            } else {
+                x['s'] = n['s'];
+                x['e'] = n['e'];
+                x['c'] = ( n = n['c'] ) ? n.slice() : n;
+                return;
+            }
+        }
+
+        // If number, check if minus zero.
+        if ( typeof n != 'string' ) {
+            n = ( isNum = typeof n == 'number' ||
+                Object.prototype.toString.call(n) == '[object Number]' ) &&
+                    n === 0 && 1 / n < 0 ? '-0' : n + '';
+        }
+
+        orig = n;
+       
+        if ( b === e && isValid.test(n) ) {
+            // Determine sign.
+            x['s'] = n.charAt(0) == '-' ? ( n = n.slice(1), -1 ) : 1;
+
+        // Either n is not a valid BigNumber or a base has been specified.
+        } else {
+            // Enable exponential notation to be used with base 10 argument.
+            // Ensure return value is rounded to DECIMAL_PLACES as with other bases.
+            if ( b == 10 ) {
+
+                return setMode( n, DECIMAL_PLACES, ROUNDING_MODE );
+            }
+
+            n = trim.call(n).replace( /^\+(?!-)/, '' );
+
+            x['s'] = n.charAt(0) == '-' ? ( n = n.replace( /^-(?!-)/, '' ), -1 ) : 1;
+
+            if ( b != null ) {
+
+                if ( ( b == (b | 0) || !ERRORS ) &&
+                  !( outOfRange = !( b >= 2 && b < 65 ) ) ) {
+
+                    digits = '[' + DIGITS.slice( 0, b = b | 0 ) + ']+';
+
+                    // Before non-decimal number validity test and base conversion
+                    // remove the `.` from e.g. '1.', and replace e.g. '.1' with '0.1'.
+                    n = n.replace( /\.$/, '' ).replace( /^\./, '0.' );
+
+                    // Any number in exponential form will fail due to the e+/-.
+                    if ( valid = new RegExp(
+                      '^' + digits + '(?:\\.' + digits + ')?$', b < 37 ? 'i' : '' ).test(n) ) {
+
+                        if ( isNum ) {
+
+                            if ( n.replace( /^0\.0*|\./, '' ).length > 15 ) {
+
+                                // 'new JenScript.BigNumber() number type has more than 15 significant digits: {n}'
+                                ifExceptionsThrow( orig, 0 );
+                            }
+
+                            // Prevent later check for length on converted number.
+                            isNum = !isNum;
+                        }
+                        n = convert( n, 10, b, x['s'] );
+
+                    } else if ( n != 'Infinity' && n != 'NaN' ) {
+
+                        // 'new JenScript.BigNumber() not a base {b} number: {n}'
+                        ifExceptionsThrow( orig, 1, b );
+                        n = 'NaN';
+                    }
+                } else {
+
+                    // 'new JenScript.BigNumber() base not an integer: {b}'
+                    // 'new JenScript.BigNumber() base out of range: {b}'
+                    ifExceptionsThrow( b, 2 );
+
+                    // Ignore base.
+                    valid = isValid.test(n);
+                }
+            } else {
+                valid = isValid.test(n);
+            }
+
+            if ( !valid ) {
+
+                // Infinity/NaN
+                x['c'] = x['e'] = null;
+
+                // NaN
+                if ( n != 'Infinity' ) {
+
+                    // No exception on NaN.
+                    if ( n != 'NaN' ) {
+
+                        // 'new JenScript.BigNumber() not a number: {n}'
+                        ifExceptionsThrow( orig, 3 );
+                    }
+                    x['s'] = null;
+                }
+                id = 0;
+
+                return;
+            }
+        }
+
+        // Decimal point?
+        if ( ( e = n.indexOf('.') ) > -1 ) {
+            n = n.replace( '.', '' );
+        }
+
+        // Exponential form?
+        if ( ( i = n.search( /e/i ) ) > 0 ) {
+
+            // Determine exponent.
+            if ( e < 0 ) {
+                e = i;
+            }
+            e += +n.slice( i + 1 );
+            n = n.substring( 0, i );
+
+        } else if ( e < 0 ) {
+
+            // Integer.
+            e = n.length;
+        }
+
+        // Determine leading zeros.
+        for ( i = 0; n.charAt(i) == '0'; i++ ) {
+        }
+
+        b = n.length;
+
+        // Disallow numbers with over 15 significant digits if number type.
+        if ( isNum && b > 15 && n.slice(i).length > 15 ) {
+
+            // 'new JenScript.BigNumber() number type has more than 15 significant digits: {n}'
+            ifExceptionsThrow( orig, 0 );
+        }
+        id = 0;
+
+        // Overflow?
+        if ( ( e -= i + 1 ) > MAX_EXP ) {
+
+            // Infinity.
+            x['c'] = x['e'] = null;
+
+        // Zero or underflow?
+        } else if ( i == b || e < MIN_EXP ) {
+
+            // Zero.
+            x['c'] = [ x['e'] = 0 ];
+        } else {
+
+            // Determine trailing zeros.
+            for ( ; n.charAt(--b) == '0'; ) {
+            }
+
+            x['e'] = e;
+            x['c'] = [];
+
+            // Convert string to array of digits (without leading and trailing zeros).
+            for ( e = 0; i <= b; x['c'][e++] = +n.charAt(i++) ) {
+            }
+        }
+    };
+
+
+    // CONSTRUCTOR PROPERTIES/METHODS
+
+   
+    JenScript.BigNumber['ROUND_UP'] = 0;
+    JenScript.BigNumber['ROUND_DOWN'] = 1;
+    JenScript.BigNumber['ROUND_CEIL'] = 2; 
+    JenScript.BigNumber['ROUND_FLOOR'] = 3;
+    JenScript.BigNumber['ROUND_HALF_UP'] = 4;
+    JenScript.BigNumber['ROUND_HALF_DOWN'] = 5;
+    JenScript.BigNumber['ROUND_HALF_EVEN'] = 6;
+    JenScript.BigNumber['ROUND_HALF_CEIL'] = 7;
+    JenScript.BigNumber['ROUND_HALF_FLOOR'] = 8;
+
+
+    /*
+     * Configure infrequently-changing library-wide settings.
+     *
+     * Accept an object or an argument list, with one or many of the following
+     * properties or parameters respectively:
+     * [ DECIMAL_PLACES [, ROUNDING_MODE [, EXPONENTIAL_AT [, RANGE [, ERRORS ]]]]]
+     *
+     * E.g.
+     * BigNumber.config(20, 4) is equivalent to
+     * BigNumber.config({ DECIMAL_PLACES : 20, ROUNDING_MODE : 4 })
+     * Ignore properties/parameters set to null or undefined.
+     *
+     * Return an object with the properties current values.
+     */
+    JenScript.BigNumber['config'] = function () {
+        var v, p,
+            i = 0,
+            r = {},
+            a = arguments,
+            o = a[0],
+            c = 'config',
+            inRange = function ( n, lo, hi ) {
+              return !( ( outOfRange = n < lo || n > hi ) ||
+                parse(n) != n && n !== 0 );
+            },
+            has = o && typeof o == 'object'
+              ? function () {if ( o.hasOwnProperty(p) ) return ( v = o[p] ) != null}
+              : function () {if ( a.length > i ) return ( v = a[i++] ) != null};
+
+        // [DECIMAL_PLACES] {number} Integer, 0 to MAX inclusive.
+        if ( has( p = 'DECIMAL_PLACES' ) ) {
+
+            if ( inRange( v, 0, MAX ) ) {
+                DECIMAL_PLACES = v | 0;
+            } else {
+
+                // 'config() DECIMAL_PLACES not an integer: {v}'
+                // 'config() DECIMAL_PLACES out of range: {v}'
+                ifExceptionsThrow( v, p, c );
+            }
+        }
+        r[p] = DECIMAL_PLACES;
+
+        // [ROUNDING_MODE] {number} Integer, 0 to 8 inclusive.
+        if ( has( p = 'ROUNDING_MODE' ) ) {
+
+            if ( inRange( v, 0, 8 ) ) {
+                ROUNDING_MODE = v | 0;
+            } else {
+
+                // 'config() ROUNDING_MODE not an integer: {v}'
+                // 'config() ROUNDING_MODE out of range: {v}'
+                ifExceptionsThrow( v, p, c );
+            }
+        }
+        r[p] = ROUNDING_MODE;
+
+        /*
+         * [EXPONENTIAL_AT] {number|number[]} Integer, -MAX to MAX inclusive or
+         * [ integer -MAX to 0 inclusive, 0 to MAX inclusive ].
+         */
+        if ( has( p = 'EXPONENTIAL_AT' ) ) {
+
+            if ( inRange( v, -MAX, MAX ) ) {
+                TO_EXP_NEG = -( TO_EXP_POS = ~~( v < 0 ? -v : +v ) );
+            } else if ( !outOfRange && v && inRange( v[0], -MAX, 0 ) &&
+              inRange( v[1], 0, MAX ) ) {
+                TO_EXP_NEG = ~~v[0];
+                TO_EXP_POS = ~~v[1];
+            } else {
+
+                // 'config() EXPONENTIAL_AT not an integer or not [integer, integer]: {v}'
+                // 'config() EXPONENTIAL_AT out of range or not [negative, positive: {v}'
+                ifExceptionsThrow( v, p, c, 1 );
+            }
+        }
+        r[p] = [ TO_EXP_NEG, TO_EXP_POS ];
+
+        /*
+         * [RANGE][ {number|number[]} Non-zero integer, -MAX to MAX inclusive or
+         * [ integer -MAX to -1 inclusive, integer 1 to MAX inclusive ].
+         */
+        if ( has( p = 'RANGE' ) ) {
+
+            if ( inRange( v, -MAX, MAX ) && ~~v ) {
+                MIN_EXP = -( MAX_EXP = ~~( v < 0 ? -v : +v ) );
+            } else if ( !outOfRange && v && inRange( v[0], -MAX, -1 ) &&
+              inRange( v[1], 1, MAX ) ) {
+                MIN_EXP = ~~v[0], MAX_EXP = ~~v[1];
+            } else {
+
+                // 'config() RANGE not a non-zero integer or not [integer, integer]: {v}'
+                // 'config() RANGE out of range or not [negative, positive: {v}'
+                ifExceptionsThrow( v, p, c, 1, 1 );
+            }
+        }
+        r[p] = [ MIN_EXP, MAX_EXP ];
+
+        // [ERRORS] {boolean|number} true, false, 1 or 0.
+        if ( has( p = 'ERRORS' ) ) {
+
+            if ( v === !!v || v === 1 || v === 0 ) {
+                parse = ( outOfRange = id = 0, ERRORS = !!v )
+                  ? parseInt
+                  : parseFloat;
+            } else {
+
+                // 'config() ERRORS not a boolean or binary digit: {v}'
+                ifExceptionsThrow( v, p, c, 0, 0, 1 );
+            }
+        }
+        r[p] = ERRORS;
+
+        return r;
+    };
+
+
+    // Assemble error messages. Throw BigNumber Errors.
+    function ifExceptionsThrow( arg, argName, methodName, isArray, isRange, isErrors) {
+        if ( ERRORS ) {
+            var error,
+                method = ['new JenScript.BigNumber', 'compareTo', 'divide', 'equals', 'gt', 'gte', 'lt',
+                     'lte', 'substract', 'modulo', 'add', 'multiply', 'toFraction'
+                    ][ id ? id < 0 ? -id : id : 1 / id < 0 ? 1 : 0 ] + '()',
+                message = outOfRange ? ' out of range' : ' not a' +
+                  ( isRange ? ' non-zero' : 'n' ) + ' integer';
+
+            message = ( [
+                method + ' number type has more than 15 significant digits',
+                method + ' not a base ' + methodName + ' number',
+                method + ' base' + message,
+                method + ' not a number' ][argName] ||
+                methodName + '() ' + argName + ( isErrors
+                    ? ' not a boolean or binary digit'
+                    : message + ( isArray
+                      ? ' or not [' + ( outOfRange
+                        ? ' negative, positive'
+                        : ' integer, integer' ) + ' ]'
+                      : '' ) ) ) + ': ' + arg;
+
+            outOfRange = id = 0;
+            error = new Error(message);
+            error['name'] = 'JenScript.BigNumber Error';
+
+            throw error;
+        }
+    }
+
+    
+    /*
+     * Convert a numeric string of baseIn to a numeric string of baseOut.
+     */
+    function convert( nStr, baseOut, baseIn, sign ) {
+        var e, dvs, dvd, nArr, fracArr, fracBN;
+
+        // Convert string of base bIn to an array of numbers of baseOut.
+        // Eg. strToArr('255', 10) where baseOut is 16, returns [15, 15].
+        // Eg. strToArr('ff', 16)  where baseOut is 10, returns [2, 5, 5].
+        function strToArr( str, bIn ) {
+            var j,
+                i = 0,
+                strL = str.length,
+                arrL,
+                arr = [0];
+
+            for ( bIn = bIn || baseIn; i < strL; i++ ) {
+
+                for ( arrL = arr.length, j = 0; j < arrL; arr[j] *= bIn, j++ ) {
+                }
+
+                for ( arr[0] += DIGITS.indexOf( str.charAt(i) ), j = 0;
+                      j < arr.length;
+                      j++ ) {
+
+                    if ( arr[j] > baseOut - 1 ) {
+
+                        if ( arr[j + 1] == null ) {
+                            arr[j + 1] = 0;
+                        }
+                        arr[j + 1] += arr[j] / baseOut ^ 0;
+                        arr[j] %= baseOut;
+                    }
+                }
+            }
+
+            return arr.reverse();
+        }
+
+        // Convert array to string.
+        // E.g. arrToStr( [9, 10, 11] ) becomes '9ab' (in bases above 11).
+        function arrToStr( arr ) {
+            var i = 0,
+                arrL = arr.length,
+                str = '';
+
+            for ( ; i < arrL; str += DIGITS.charAt( arr[i++] ) ) {
+            }
+
+            return str;
+        }
+
+        if ( baseIn < 37 ) {
+            nStr = nStr.toLowerCase();
+        }
+
+        /*
+         * If non-integer convert integer part and fraction part separately.
+         * Convert the fraction part as if it is an integer than use division to
+         * reduce it down again to a value less than one.
+         */
+        if ( ( e = nStr.indexOf( '.' ) ) > -1 ) {
+
+            /*
+             * Calculate the power to which to raise the base to get the number
+             * to divide the fraction part by after it has been converted as an
+             * integer to the required base.
+             */
+            e = nStr.length - e - 1;
+
+            // Use toFixed to avoid possible exponential notation.
+            dvs = strToArr( new JenScript.BigNumber(baseIn)['pow'](e)['toF'](), 10 );
+
+            nArr = nStr.split('.');
+
+            // Convert the base of the fraction part (as integer).
+            dvd = strToArr( nArr[1] );
+
+            // Convert the base of the integer part.
+            nArr = strToArr( nArr[0] );
+
+            // Result will be a BigNumber with a value less than 1.
+            fracBN = divideAndRound( dvd, dvs, dvd.length - dvs.length, sign, baseOut,
+              // Is least significant digit of integer part an odd number?
+              nArr[nArr.length - 1] & 1 );
+
+            fracArr = fracBN['c'];
+
+            // e can be <= 0  ( if e == 0, fracArr is [0] or [1] ).
+            if ( e = fracBN['e'] ) {
+
+                // Append zeros according to the exponent of the result.
+                for ( ; ++e; fracArr.unshift(0) ) {
+                }
+
+                // Append the fraction part to the converted integer part.
+                nStr = arrToStr(nArr) + '.' + arrToStr(fracArr);
+
+            // fracArr is [1].
+            // Fraction digits rounded up, so increment last digit of integer part.
+            } else if ( fracArr[0] ) {
+
+                if ( nArr[ e = nArr.length - 1 ] < baseOut - 1 ) {
+                    ++nArr[e];
+                    nStr = arrToStr(nArr);
+                } else {
+                    nStr = new JenScript.BigNumber( arrToStr(nArr),
+                      baseOut ).add(new JenScript.BigNumber(1)).toString(baseOut);
+                }
+
+            // fracArr is [0]. No fraction digits.
+            } else {
+                nStr = arrToStr(nArr);
+            }
+        } else {
+
+            // Simple integer. Convert base.
+            nStr = arrToStr( strToArr(nStr) );
+        }
+
+        return nStr;
+    }
+
+
+    // Perform division in the specified base. Called by div and convert.
+    function divideAndRound( dvd, dvs, exp, s, base, isOdd ) {
+        var dvsL, dvsT, next, cmp, remI,
+            dvsZ = dvs.slice(),
+            dvdI = dvsL = dvs.length,
+            dvdL = dvd.length,
+            rem = dvd.slice( 0, dvsL ),
+            remL = rem.length,
+            quo = new JenScript.BigNumber(1),
+            qc = quo['c'] = [],
+            qi = 0,
+            dig = DECIMAL_PLACES + ( quo['e'] = exp ) + 1;
+
+        quo['s'] = s;
+        s = dig < 0 ? 0 : dig;
+
+        // Add zeros to make remainder as long as divisor.
+        for ( ; remL++ < dvsL; rem.push(0) ) {
+        }
+
+        // Create version of divisor with leading zero.
+        dvsZ.unshift(0);
+
+        do {
+
+            // 'next' is how many times the divisor goes into the current remainder.
+            for ( next = 0; next < base; next++ ) {
+
+                // Compare divisor and remainder.
+                if ( dvsL != ( remL = rem.length ) ) {
+                    cmp = dvsL > remL ? 1 : -1;
+                } else {
+                    for ( remI = -1, cmp = 0; ++remI < dvsL; ) {
+
+                        if ( dvs[remI] != rem[remI] ) {
+                            cmp = dvs[remI] > rem[remI] ? 1 : -1;
+                            break;
+                        }
+                    }
+                }
+
+                // Subtract divisor from remainder (if divisor < remainder).
+                if ( cmp < 0 ) {
+
+                    // Remainder cannot be more than one digit longer than divisor.
+                    // Equalise lengths using divisor with extra leading zero?
+                    for ( dvsT = remL == dvsL ? dvs : dvsZ; remL; ) {
+
+                        if ( rem[--remL] < dvsT[remL] ) {
+
+                            for ( remI = remL;
+                              remI && !rem[--remI];
+                                rem[remI] = base - 1 ) {
+                            }
+                            --rem[remI];
+                            rem[remL] += base;
+                        }
+                        rem[remL] -= dvsT[remL];
+                    }
+                    for ( ; !rem[0]; rem.shift() ) {
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            // Add the 'next' digit to the result array.
+            qc[qi++] = cmp ? next : ++next;
+
+            // Update the remainder.
+            rem[0] && cmp
+              ? ( rem[remL] = dvd[dvdI] || 0 )
+              : ( rem = [ dvd[dvdI] ] );
+
+        } while ( ( dvdI++ < dvdL || rem[0] != null ) && s-- );
+
+        // Leading zero? Do not remove if result is simply zero (qi == 1).
+        if ( !qc[0] && qi != 1 ) {
+
+            // There can't be more than one zero.
+            --quo['e'];
+            qc.shift();
+        }
+
+        // Round?
+        if ( qi > dig ) {
+            rnd( quo, DECIMAL_PLACES, base, isOdd, rem[0] != null );
+        }
+
+        // Overflow?
+        if ( quo['e'] > MAX_EXP ) {
+
+            // Infinity.
+            quo['c'] = quo['e'] = null;
+
+        // Underflow?
+        } else if ( quo['e'] < MIN_EXP ) {
+
+            // Zero.
+            quo['c'] = [quo['e'] = 0];
+        }
+
+        return quo;
+    }
+
+
+    /*
+     * Return a string representing the value of BigNumber n in normal or
+     * exponential notation rounded to the specified decimal places or
+     * significant digits.
+     * Called by toString, toExponential (exp 1), toFixed, and toPrecision (exp 2).
+     * d is the index (with the value in normal notation) of the digit that may be
+     * rounded up.
+     */
+    function format( n, d, exp ) {
+
+        // Initially, i is the number of decimal places required.
+        var i = d - (n = new JenScript.BigNumber(n))['e'],
+            c = n['c'];
+
+        // +-Infinity or NaN?
+        if ( !c ) {
+            return n.toString();
+        }
+
+        // Round?
+        if ( c.length > ++d ) {
+            rnd( n, i, 10 );
+        }
+
+        // Recalculate d if toFixed as n['e'] may have changed if value rounded up.
+        i = c[0] == 0 ? i + 1 : exp ? d : n['e'] + i + 1;
+
+        // Append zeros?
+        for ( ; c.length < i; c.push(0) ) {
+        }
+        i = n['e'];
+
+        /*
+         * toPrecision returns exponential notation if the number of significant
+         * digits specified is less than the number of digits necessary to
+         * represent the integer part of the value in normal notation.
+         */
+        return exp == 1 || exp == 2 && ( --d < i || i <= TO_EXP_NEG )
+
+          // Exponential notation.
+          ? ( n['s'] < 0 && c[0] ? '-' : '' ) + ( c.length > 1
+            ? ( c.splice( 1, 0, '.' ), c.join('') )
+            : c[0] ) + ( i < 0 ? 'e' : 'e+' ) + i
+
+          // Normal notation.
+          : n.toString();
+    }
+
+
+    // Round if necessary.
+    // Called by divideAndRound, format, setMode and sqrt.
+    function rnd( x, dp, base, isOdd, r ) {
+        var xc = x['c'],
+            isNeg = x['s'] < 0,
+            half = base / 2,
+            i = x['e'] + dp + 1,
+
+            // 'next' is the digit after the digit that may be rounded up.
+            next = xc[i],
+
+            /*
+             * 'more' is whether there are digits after 'next'.
+             * E.g.
+             * 0.005 (e = -3) to be rounded to 0 decimal places (dp = 0) gives i = -2
+             * The 'next' digit is zero, and there ARE 'more' digits after it.
+             * 0.5 (e = -1) dp = 0 gives i = 0
+             * The 'next' digit is 5 and there are no 'more' digits after it.
+             */
+            more = r || i < 0 || xc[i + 1] != null;
+
+        r = ROUNDING_MODE < 4
+          ? ( next != null || more ) &&
+            ( ROUNDING_MODE == 0 ||
+               ROUNDING_MODE == 2 && !isNeg ||
+                 ROUNDING_MODE == 3 && isNeg )
+          : next > half || next == half &&
+            ( ROUNDING_MODE == 4 || more ||
+
+              /*
+               * isOdd is used in base conversion and refers to the least significant
+               * digit of the integer part of the value to be converted. The fraction
+               * part is rounded by this method separately from the integer part.
+               */
+              ROUNDING_MODE == 6 && ( xc[i - 1] & 1 || !dp && isOdd ) ||
+                ROUNDING_MODE == 7 && !isNeg ||
+                  ROUNDING_MODE == 8 && isNeg );
+
+        if ( i < 1 || !xc[0] ) {
+            xc.length = 0;
+            xc.push(0);
+
+            if ( r ) {
+
+                // 1, 0.1, 0.01, 0.001, 0.0001 etc.
+                xc[0] = 1;
+                x['e'] = -dp;
+            } else {
+
+                // Zero.
+                x['e'] = 0;
+            }
+
+            return x;
+        }
+
+        // Remove any digits after the required decimal places.
+        xc.length = i--;
+
+        // Round up?
+        if ( r ) {
+
+            // Rounding up may mean the previous digit has to be rounded up and so on.
+            for ( --base; ++xc[i] > base; ) {
+                xc[i] = 0;
+
+                if ( !i-- ) {
+                    ++x['e'];
+                    xc.unshift(1);
+                }
+            }
+        }
+
+        // Remove trailing zeros.
+        for ( i = xc.length; !xc[--i]; xc.pop() ) {
+        }
+
+        return x;
+    }
+
+
+    // Round after setting the appropriate rounding mode.
+    // Handles ceil, floor and round.
+    function setMode( x, dp, rm ) {
+        var r = ROUNDING_MODE;
+
+        ROUNDING_MODE = rm;
+        x = new JenScript.BigNumber(x);
+        x['c'] && rnd( x, dp, 10 );
+        ROUNDING_MODE = r;
+
+        return x;
+    }
+
+
+    // PROTOTYPE/INSTANCE METHODS
+
+
+    /*
+     * Return a new JenScript.BigNumber whose value is the absolute value of this BigNumber.
+     */
+    //P['abs'] = P['absoluteValue'] = function () {
+    JenScript.BigNumber.prototype.abs = function () {
+        var x = new JenScript.BigNumber(this);
+
+        if ( x['s'] < 0 ) {
+            x['s'] = 1;
+        }
+
+        return x;
+    };
+
+
+    /*
+     * Return a new JenScript.BigNumber whose value is the value of this BigNumber
+     * rounded to a whole number in the direction of Infinity.
+     */
+    //P['ceil'] = function () {
+    JenScript.BigNumber.prototype.ceil = function () {
+        return setMode( this, 0, 2 );
+    };
+
+
+    /*
+     * Return
+     * 1 if the value of this BigNumber is greater than the value of BigNumber(y, b),
+     * -1 if the value of this BigNumber is less than the value of BigNumber(y, b),
+     * 0 if they have the same value,
+     * or null if the value of either is NaN.
+     */
+    JenScript.BigNumber.prototype.compareTo = function ( y, b ) {
+        var a,
+            x = this,
+            xc = x['c'],
+            yc = ( id = -id, y = new JenScript.BigNumber( y, b ) )['c'],
+            i = x['s'],
+            j = y['s'],
+            k = x['e'],
+            l = y['e'];
+
+        // Either NaN?
+        if ( !i || !j ) {
+            return null;
+        }
+
+        a = xc && !xc[0], b = yc && !yc[0];
+
+        // Either zero?
+        if ( a || b ) {
+            return a ? b ? 0 : -j : i;
+        }
+
+        // Signs differ?
+        if ( i != j ) {
+            return i;
+        }
+
+        // Either Infinity?
+        if ( a = i < 0, b = k == l, !xc || !yc ) {
+            return b ? 0 : !xc ^ a ? 1 : -1;
+        }
+
+        // Compare exponents.
+        if ( !b ) {
+            return k > l ^ a ? 1 : -1;
+        }
+
+        // Compare digit by digit.
+        for ( i = -1,
+              j = ( k = xc.length ) < ( l = yc.length ) ? k : l;
+              ++i < j; ) {
+
+            if ( xc[i] != yc[i] ) {
+                return xc[i] > yc[i] ^ a ? 1 : -1;
+            }
+        }
+        // Compare lengths.
+        return k == l ? 0 : k > l ^ a ? 1 : -1;
+    };
+
+
+    /*
+     *  n / 0 = I
+     *  n / N = N
+     *  n / I = 0
+     *  0 / n = 0
+     *  0 / 0 = N
+     *  0 / N = N
+     *  0 / I = 0
+     *  N / n = N
+     *  N / 0 = N
+     *  N / N = N
+     *  N / I = N
+     *  I / n = I
+     *  I / 0 = I
+     *  I / N = N
+     *  I / I = N
+     *
+     * Return a new JenScript.BigNumber whose value is the value of this BigNumber
+     * divided by the value of BigNumber(y, b), rounded according to
+     * DECIMAL_PLACES and ROUNDING_MODE.
+     */
+    JenScript.BigNumber.prototype.divide = function ( y, b ) {
+        var xc = this['c'],
+            xe = this['e'],
+            xs = this['s'],
+            yc = ( id = 2, y = new JenScript.BigNumber( y, b ) )['c'],
+            ye = y['e'],
+            ys = y['s'],
+            s = xs == ys ? 1 : -1;
+
+        // Either NaN/Infinity/0?
+        return !xe && ( !xc || !xc[0] ) || !ye && ( !yc || !yc[0] )
+
+          // Either NaN?
+          ? new JenScript.BigNumber( !xs || !ys ||
+
+            // Both 0 or both Infinity?
+            ( xc ? yc && xc[0] == yc[0] : !yc )
+
+              // Return NaN.
+              ? NaN
+
+              // x is 0 or y is Infinity?
+              : xc && xc[0] == 0 || !yc
+
+                // Return +-0.
+                ? s * 0
+
+                // y is 0. Return +-Infinity.
+                : s / 0 )
+
+          : divideAndRound( xc, yc, xe - ye, s, 10 );
+    };
+
+
+    /*
+     * Return true if the value of this BigNumber is equal to the value of
+     * BigNumber(n, b), otherwise returns false.
+     */
+    //P['equals'] = P['eq'] = function ( n, b ) {
+    JenScript.BigNumber.prototype.equals = function ( n, b ){
+        id = 3;
+        return this.compareTo( n, b ) === 0;
+    };
+
+
+    /*
+     * Return a new JenScript.BigNumber whose value is the value of this BigNumber
+     * rounded to a whole number in the direction of -Infinity.
+     */
+    //P['floor'] = function () {
+    JenScript.BigNumber.prototype.floor = function () {
+        return setMode( this, 0, 3 );
+    };
+
+
+    /*
+     * Return true if the value of this BigNumber is greater than the value of
+     * BigNumber(n, b), otherwise returns false.
+     */
+   // P['greaterThan'] = P['gt'] = function ( n, b ) {
+    JenScript.BigNumber.prototype.greaterThan = function ( n, b ) {
+        id = 4;
+        return this.compareTo( n, b ) > 0;
+    };
+
+
+    /*
+     * Return true if the value of this BigNumber is greater than or equal to
+     * the value of BigNumber(n, b), otherwise returns false.
+     */
+    //P['greaterThanOrEqualTo'] = P['gte'] = function ( n, b ) {
+    JenScript.BigNumber.prototype.greaterThanOrEqualTo = function ( n, b ) {
+        id = 5;
+        return ( b = this.compareTo( n, b ) ) == 1 || b === 0;
+    };
+
+
+    /*
+     * Return true if the value of this BigNumber is a finite number, otherwise
+     * returns false.
+     */
+   // P['isFinite'] = P['isF'] = function () {
+    JenScript.BigNumber.prototype.isFinite = function () {
+        return !!this['c'];
+    };
+
+
+    /*
+     * Return true if the value of this BigNumber is NaN, otherwise returns
+     * false.
+     */
+    //P['isNaN'] = function () {
+    JenScript.BigNumber.prototype.isNaN = function () {
+        return !this['s'];
+    };
+
+
+    /*
+     * Return true if the value of this BigNumber is negative, otherwise
+     * returns false.
+     */
+    //P['isNegative'] = P['isNeg'] = function () {
+    JenScript.BigNumber.prototype.isNegative = function () {
+        return this['s'] < 0;
+    };
+
+
+    /*
+     * Return true if the value of this BigNumber is 0 or -0, otherwise returns
+     * false.
+     */
+    //P['isZero'] = P['isZ'] = function () {
+    JenScript.BigNumber.prototype.isZero = function () {
+        return !!this['c'] && this['c'][0] == 0;
+    };
+
+
+    /*
+     * Return true if the value of this BigNumber is less than the value of
+     * BigNumber(n, b), otherwise returns false.
+     */
+    //P['lessThan'] = P['lt'] = function ( n, b ) {
+    JenScript.BigNumber.prototype.lessThan = function ( n, b ) {
+        id = 6;
+        return this.compareTo( n, b ) < 0;
+    };
+
+
+    /*
+     * Return true if the value of this BigNumber is less than or equal to the
+     * value of BigNumber(n, b), otherwise returns false.
+     */
+    //P['lessThanOrEqualTo'] = P['lte'] = function ( n, b ) {
+    JenScript.BigNumber.prototype.lessThanOrEqualTo = function ( n, b ) {
+        id = 7;
+        return ( b = this.compareTo( n, b ) ) == -1 || b === 0;
+    };
+
+
+    /*
+     *  n - 0 = n
+     *  n - N = N
+     *  n - I = -I
+     *  0 - n = -n
+     *  0 - 0 = 0
+     *  0 - N = N
+     *  0 - I = -I
+     *  N - n = N
+     *  N - 0 = N
+     *  N - N = N
+     *  N - I = N
+     *  I - n = I
+     *  I - 0 = I
+     *  I - N = N
+     *  I - I = N
+     *
+     * Return a new JenScript.BigNumber whose value is the value of this BigNumber minus
+     * the value of BigNumber(y, b).
+     */
+    JenScript.BigNumber.prototype.subtract = function ( y, b ) {
+        var d, i, j, xLTy,
+            x = this,
+            a = x['s'];
+
+        b = ( id = 8, y = new JenScript.BigNumber( y, b ) )['s'];
+
+        // Either NaN?
+        if ( !a || !b ) {
+            return new JenScript.BigNumber(NaN);
+        }
+
+        // Signs differ?
+        if ( a != b ) {
+            return y['s'] = -b, x.add(y);
+        }
+
+        var xc = x['c'],
+            xe = x['e'],
+            yc = y['c'],
+            ye = y['e'];
+
+        if ( !xe || !ye ) {
+
+            // Either Infinity?
+            if ( !xc || !yc ) {
+                return xc ? ( y['s'] = -b, y ) : new JenScript.BigNumber( yc ? x : NaN );
+            }
+
+            // Either zero?
+            if ( !xc[0] || !yc[0] ) {
+
+                // y is non-zero?
+                return yc[0]
+                  ? ( y['s'] = -b, y )
+
+                  // x is non-zero?
+                  : new JenScript.BigNumber( xc[0]
+                    ? x
+
+                    // Both are zero.
+                    // IEEE 754 (2008) 6.3: n - n = -0 when rounding to -Infinity
+                    : ROUNDING_MODE == 3 ? -0 : 0 );
+            }
+        }
+
+        // Determine which is the bigger number.
+        // Prepend zeros to equalise exponents.
+        if ( xc = xc.slice(), a = xe - ye ) {
+            d = ( xLTy = a < 0 ) ? ( a = -a, xc ) : ( ye = xe, yc );
+
+            for ( d.reverse(), b = a; b--; d.push(0) ) {
+            }
+            d.reverse();
+        } else {
+
+            // Exponents equal. Check digit by digit.
+            j = ( ( xLTy = xc.length < yc.length ) ? xc : yc ).length;
+
+            for ( a = b = 0; b < j; b++ ) {
+
+                if ( xc[b] != yc[b] ) {
+                    xLTy = xc[b] < yc[b];
+                    break;
+                }
+            }
+        }
+
+        // x < y? Point xc to the array of the bigger number.
+        if ( xLTy ) {
+            d = xc, xc = yc, yc = d;
+            y['s'] = -y['s'];
+        }
+
+        /*
+         * Append zeros to xc if shorter. No need to add zeros to yc if shorter
+         * as subtraction only needs to start at yc.length.
+         */
+        if ( ( b = -( ( j = xc.length ) - yc.length ) ) > 0 ) {
+
+            for ( ; b--; xc[j++] = 0 ) {
+            }
+        }
+
+        // Subtract yc from xc.
+        for ( b = yc.length; b > a; ){
+
+            if ( xc[--b] < yc[b] ) {
+
+                for ( i = b; i && !xc[--i]; xc[i] = 9 ) {
+                }
+                --xc[i];
+                xc[b] += 10;
+            }
+            xc[b] -= yc[b];
+        }
+
+        // Remove trailing zeros.
+        for ( ; xc[--j] == 0; xc.pop() ) {
+        }
+
+        // Remove leading zeros and adjust exponent accordingly.
+        for ( ; xc[0] == 0; xc.shift(), --ye ) {
+        }
+
+        /*
+         * No need to check for Infinity as +x - +y != Infinity && -x - -y != Infinity
+         * when neither x or y are Infinity.
+         */
+
+        // Underflow?
+        if ( ye < MIN_EXP || !xc[0] ) {
+
+            /*
+             * Following IEEE 754 (2008) 6.3,
+             * n - n = +0  but  n - n = -0 when rounding towards -Infinity.
+             */
+            if ( !xc[0] ) {
+                y['s'] = ROUNDING_MODE == 3 ? -1 : 1;
+            }
+
+            // Result is zero.
+            xc = [ye = 0];
+        }
+
+        return y['c'] = xc, y['e'] = ye, y;
+    };
+
+
+    /*
+     *   n % 0 =  N
+     *   n % N =  N
+     *   0 % n =  0
+     *  -0 % n = -0
+     *   0 % 0 =  N
+     *   0 % N =  N
+     *   N % n =  N
+     *   N % 0 =  N
+     *   N % N =  N
+     *
+     * Return a new JenScript.BigNumber whose value is the value of this BigNumber modulo
+     * the value of BigNumber(y, b).
+     */
+    JenScript.BigNumber.prototype.modulo = function ( y, b ) {
+        var x = this,
+            xc = x['c'],
+            yc = ( id = 9, y = new JenScript.BigNumber( y, b ) )['c'],
+            i = x['s'],
+            j = y['s'];
+
+        // Is x or y NaN, or y zero?
+        b = !i || !j || yc && !yc[0];
+
+        if ( b || xc && !xc[0] ) {
+            return new JenScript.BigNumber( b ? NaN : x );
+        }
+
+        x['s'] = y['s'] = 1;
+        b = y.compareTo(x) == 1;
+        x['s'] = i, y['s'] = j;
+
+        return b
+          ? new JenScript.BigNumber(x)
+          : ( i = DECIMAL_PLACES, j = ROUNDING_MODE,
+            DECIMAL_PLACES = 0, ROUNDING_MODE = 1,
+              x = x.divide(y),
+                DECIMAL_PLACES = i, ROUNDING_MODE = j,
+                  this.subtract( x.multiply(y) ) );
+    };
+
+
+    /*
+     * Return a new JenScript.BigNumber whose value is the value of this BigNumber
+     * negated, i.e. multiplied by -1.
+     */
+    JenScript.BigNumber.prototype.negated = function () {
+        var x = new JenScript.BigNumber(this);
+
+        return x['s'] = -x['s'] || null, x;
+    };
+
+
+    /*
+     *  n + 0 = n
+     *  n + N = N
+     *  n + I = I
+     *  0 + n = n
+     *  0 + 0 = 0
+     *  0 + N = N
+     *  0 + I = I
+     *  N + n = N
+     *  N + 0 = N
+     *  N + N = N
+     *  N + I = N
+     *  I + n = I
+     *  I + 0 = I
+     *  I + N = N
+     *  I + I = I
+     *
+     * Return a new JenScript.BigNumber whose value is the value of this BigNumber plus
+     * the value of BigNumber(y, b).
+     */
+    JenScript.BigNumber.prototype.add = function ( y, b ) {
+        var d,
+            x = this,
+            a = x['s'];
+
+        b = ( id = 10, y = new JenScript.BigNumber( y, b ) )['s'];
+
+        // Either NaN?
+        if ( !a || !b ) {
+            return new JenScript.BigNumber(NaN);
+        }
+
+        // Signs differ?
+        if ( a != b ) {
+            return y['s'] = -b, x.subtract(y);
+        }
+
+        var xe = x['e'],
+            xc = x['c'],
+            ye = y['e'],
+            yc = y['c'];
+
+        if ( !xe || !ye ) {
+
+            // Either Infinity?
+            if ( !xc || !yc ) {
+
+                // Return +-Infinity.
+                return new JenScript.BigNumber( a / 0 );
+            }
+
+            // Either zero?
+            if ( !xc[0] || !yc[0] ) {
+
+                // y is non-zero?
+                return yc[0]
+                  ? y
+
+                  // x is non-zero?
+                  : new JenScript.BigNumber( xc[0]
+                    ? x
+
+                    // Both are zero. Return zero.
+                    : a * 0 );
+            }
+        }
+
+        // Prepend zeros to equalise exponents.
+        // Note: Faster to use reverse then do unshifts.
+        if ( xc = xc.slice(), a = xe - ye ) {
+            d = a > 0 ? ( ye = xe, yc ) : ( a = -a, xc );
+
+            for ( d.reverse(); a--; d.push(0) ) {
+            }
+            d.reverse();
+        }
+
+        // Point xc to the longer array.
+        if ( xc.length - yc.length < 0 ) {
+            d = yc, yc = xc, xc = d;
+        }
+
+        /*
+         * Only start adding at yc.length - 1 as the
+         * further digits of xc can be left as they are.
+         */
+        for ( a = yc.length, b = 0; a;
+             b = ( xc[--a] = xc[a] + yc[a] + b ) / 10 ^ 0, xc[a] %= 10 ) {
+        }
+
+        // No need to check for zero, as +x + +y != 0 && -x + -y != 0
+
+        if ( b ) {
+            xc.unshift(b);
+
+            // Overflow? (MAX_EXP + 1 possible)
+            if ( ++ye > MAX_EXP ) {
+
+                // Infinity.
+                xc = ye = null;
+            }
+        }
+
+         // Remove trailing zeros.
+        for ( a = xc.length; xc[--a] == 0; xc.pop() ) {
+        }
+
+        return y['c'] = xc, y['e'] = ye, y;
+    };
+
+
+    /*
+     * Return a BigNumber whose value is the value of this BigNumber raised to
+     * the power e. If e is negative round according to DECIMAL_PLACES and
+     * ROUNDING_MODE.
+     *
+     * e {number} Integer, -MAX_POWER to MAX_POWER inclusive.
+     */
+    JenScript.BigNumber.prototype.toPower = function (e) {
+
+        // e to integer, avoiding NaN or Infinity becoming 0.
+        var i = e * 0 == 0 ? e | 0 : e,
+            x = new JenScript.BigNumber(this),
+            y = new JenScript.BigNumber(1);
+
+        // Use Math.pow?
+        // Pass +-Infinity for out of range exponents.
+        if ( ( ( ( outOfRange = e < -MAX_POWER || e > MAX_POWER ) &&
+          (i = e * 1 / 0) ) ||
+
+             /*
+              * Any exponent that fails the parse becomes NaN.
+              *
+              * Include 'e !== 0' because on Opera -0 == parseFloat(-0) is false,
+              * despite -0 === parseFloat(-0) && -0 == parseFloat('-0') is true.
+              */
+             parse(e) != e && e !== 0 && !(i = NaN) ) &&
+
+              // 'pow() exponent not an integer: {e}'
+              // 'pow() exponent out of range: {e}'
+              !ifExceptionsThrow( e, 'exponent', 'pow' ) ||
+
+                // Pass zero to Math.pow, as any value to the power zero is 1.
+                !i ) {
+
+            // i is +-Infinity, NaN or 0.
+            return new JenScript.BigNumber( Math.pow( x.toString(), i ) );
+        }
+
+        for ( i = i < 0 ? -i : i; ; ) {
+
+            if ( i & 1 ) {
+                y = y.multiply(x);
+            }
+            i >>= 1;
+
+            if ( !i ) {
+                break;
+            }
+            x = x.multiply(x);
+        }
+
+        return e < 0 ? (new JenScript.BigNumber(1)).divide(y) : y;
+    };
+
+
+    /*
+     * Return a new JenScript.BigNumber whose value is the value of this BigNumber
+     * rounded to a maximum of dp decimal places using rounding mode rm, or to
+     * 0 and ROUNDING_MODE respectively if omitted.
+     *
+     * [dp] {number} Integer, 0 to MAX inclusive.
+     * [rm] {number} Integer, 0 to 8 inclusive.
+     */
+    JenScript.BigNumber.prototype.round = function (dp,rm) {
+
+        dp = dp == null || ( ( ( outOfRange = dp < 0 || dp > MAX ) ||
+          parse(dp) != dp ) &&
+
+            // 'round() decimal places out of range: {dp}'
+            // 'round() decimal places not an integer: {dp}'
+            !ifExceptionsThrow( dp, 'decimal places', 'round' ) )
+              ? 0
+              : dp | 0;
+
+        rm = rm == null || ( ( ( outOfRange = rm < 0 || rm > 8 ) ||
+
+          // Include '&& rm !== 0' because with Opera -0 == parseFloat(-0) is false.
+          parse(rm) != rm && rm !== 0 ) &&
+
+            // 'round() mode not an integer: {rm}'
+            // 'round() mode out of range: {rm}'
+            !ifExceptionsThrow( rm, 'mode', 'round' ) )
+              ? ROUNDING_MODE
+              : rm | 0;
+
+        return setMode( this, dp, rm );
+    };
+
+
+    /*
+     *  sqrt(-n) =  N
+     *  sqrt( N) =  N
+     *  sqrt(-I) =  N
+     *  sqrt( I) =  I
+     *  sqrt( 0) =  0
+     *  sqrt(-0) = -0
+     *
+     * Return a new JenScript.BigNumber whose value is the square root of the value of
+     * this BigNumber, rounded according to DECIMAL_PLACES and ROUNDING_MODE.
+     */
+    JenScript.BigNumber.prototype.squareRoot = function () {
+        var n, r, re, t,
+            x = this,
+            c = x['c'],
+            s = x['s'],
+            e = x['e'],
+            dp = DECIMAL_PLACES,
+            rm = ROUNDING_MODE,
+            half = new JenScript.BigNumber('0.5');
+
+        // Negative/NaN/Infinity/zero?
+        if ( s !== 1 || !c || !c[0] ) {
+
+            return new JenScript.BigNumber( !s || s < 0 && ( !c || c[0] )
+              ? NaN
+              : c ? x : 1 / 0 );
+        }
+
+        // Initial estimate.
+        s = Math.sqrt( x.toString() );
+        ROUNDING_MODE = 1;
+
+        /*
+          Math.sqrt underflow/overflow?
+          Pass x to Math.sqrt as integer, then adjust the exponent of the result.
+         */
+        if ( s == 0 || s == 1 / 0 ) {
+            n = c.join('');
+
+            if ( !( n.length + e & 1 ) ) {
+                n += '0';
+            }
+            r = new JenScript.BigNumber( Math.sqrt(n) + '' );
+
+            // r may still not be finite.
+            if ( !r['c'] ) {
+                r['c'] = [1];
+            }
+            r['e'] = ( ( ( e + 1 ) / 2 ) | 0 ) - ( e < 0 || e & 1 );
+        } else {
+            r = new JenScript.BigNumber( n = s.toString() );
+        }
+        re = r['e'];
+        s = re + ( DECIMAL_PLACES += 4 );
+
+        if ( s < 3 ) {
+            s = 0;
+        }
+        e = s;
+
+        // Newton-Raphson iteration.
+        for ( ; ; ) {
+            t = r;
+            r = half.multiply( t.add( x.divide(t) ) );
+
+            if ( t['c'].slice( 0, s ).join('') === r['c'].slice( 0, s ).join('') ) {
+                c = r['c'];
+
+                /*
+                  The exponent of r may here be one less than the final result
+                  exponent (re), e.g 0.0009999 (e-4) --> 0.001 (e-3), so adjust
+                  s so the rounding digits are indexed correctly.
+                 */
+                s = s - ( n && r['e'] < re );
+
+                /*
+                  The 4th rounding digit may be in error by -1 so if the 4 rounding
+                  digits are 9999 or 4999 (i.e. approaching a rounding boundary)
+                  continue the iteration.
+                 */
+                if ( c[s] == 9 && c[s - 1] == 9 && c[s - 2] == 9 &&
+                        ( c[s - 3] == 9 || n && c[s - 3] == 4 ) ) {
+
+                    /*
+                      If 9999 on first run through, check to see if rounding up
+                      gives the exact result as the nines may infinitely repeat.
+                     */
+                    if ( n && c[s - 3] == 9 ) {
+                        t = r.round( dp, 0 );
+
+                        if ( t.multiply(t).equals(x) ) {
+                            ROUNDING_MODE = rm;
+                            DECIMAL_PLACES = dp;
+
+                            return t;
+                        }
+                    }
+                    DECIMAL_PLACES += 4;
+                    s += 4;
+                    n = '';
+                } else {
+
+                    /*
+                      If the rounding digits are null, 0000 or 5000, check for an
+                      exact result. If not, then there are further digits so
+                      increment the 1st rounding digit to ensure correct rounding.
+                     */
+                    if ( !c[e] && !c[e - 1] && !c[e - 2] &&
+                            ( !c[e - 3] || c[e - 3] == 5 ) ) {
+
+                        // Truncate to the first rounding digit.
+                        if ( c.length > e - 2 ) {
+                            c.length = e - 2;
+                        }
+
+                        if ( !r.multiply(r).equals(x) ) {
+
+                            while ( c.length < e - 3 ) {
+                                c.push(0);
+                            }
+                            c[e - 3]++;
+                        }
+                    }
+                    ROUNDING_MODE = rm;
+                    rnd( r, DECIMAL_PLACES = dp, 10 );
+
+                    return r;
+                }
+            }
+        }
+    };
+
+
+    /*
+     *  n * 0 = 0
+     *  n * N = N
+     *  n * I = I
+     *  0 * n = 0
+     *  0 * 0 = 0
+     *  0 * N = N
+     *  0 * I = N
+     *  N * n = N
+     *  N * 0 = N
+     *  N * N = N
+     *  N * I = N
+     *  I * n = I
+     *  I * 0 = N
+     *  I * N = N
+     *  I * I = I
+     *
+     * Return a new JenScript.BigNumber whose value is the value of this BigNumber times
+     * the value of BigNumber(y, b).
+     */
+    JenScript.BigNumber.prototype.multiply = function (y,b) {
+        var c,
+            x = this,
+            xc = x['c'],
+            yc = ( id = 11, y = new JenScript.BigNumber( y, b ) )['c'],
+            i = x['e'],
+            j = y['e'],
+            a = x['s'];
+
+        y['s'] = a == ( b = y['s'] ) ? 1 : -1;
+
+        // Either NaN/Infinity/0?
+        if ( !i && ( !xc || !xc[0] ) || !j && ( !yc || !yc[0] ) ) {
+
+            // Either NaN?
+            return new JenScript.BigNumber( !a || !b ||
+
+              // x is 0 and y is Infinity  or  y is 0 and x is Infinity?
+              xc && !xc[0] && !yc || yc && !yc[0] && !xc
+
+                // Return NaN.
+                ? NaN
+
+                // Either Infinity?
+                : !xc || !yc
+
+                  // Return +-Infinity.
+                  ? y['s'] / 0
+
+                  // x or y is 0. Return +-0.
+                  : y['s'] * 0 );
+        }
+        y['e'] = i + j;
+
+        if ( ( a = xc.length ) < ( b = yc.length ) ) {
+            c = xc, xc = yc, yc = c, j = a, a = b, b = j;
+        }
+
+        for ( j = a + b, c = []; j--; c.push(0) ) {
+        }
+
+        // Multiply!
+        for ( i = b - 1; i > -1; i-- ) {
+
+            for ( b = 0, j = a + i;
+                  j > i;
+                  b = c[j] + yc[i] * xc[j - i - 1] + b,
+                  c[j--] = b % 10 | 0,
+                  b = b / 10 | 0 ) {
+            }
+
+            if ( b ) {
+                c[j] = ( c[j] + b ) % 10;
+            }
+        }
+
+        b && ++y['e'];
+
+        // Remove any leading zero.
+        !c[0] && c.shift();
+
+        // Remove trailing zeros.
+        for ( j = c.length; !c[--j]; c.pop() ) {
+        }
+
+        // No zero check needed as only x * 0 == 0 etc.
+
+        // Overflow?
+        y['c'] = y['e'] > MAX_EXP
+
+          // Infinity.
+          ? ( y['e'] = null )
+
+          // Underflow?
+          : y['e'] < MIN_EXP
+
+            // Zero.
+            ? [ y['e'] = 0 ]
+
+            // Neither.
+            : c;
+
+        return y;
+    };
+
+
+    /*
+     * Return a string representing the value of this BigNumber in exponential
+     * notation to dp fixed decimal places and rounded using ROUNDING_MODE if
+     * necessary.
+     *
+     * [dp] {number} Integer, 0 to MAX inclusive.
+     */
+    JenScript.BigNumber.prototype.toExponential = function (dp) {
+
+        return format( this,
+          ( dp == null || ( ( outOfRange = dp < 0 || dp > MAX ) ||
+
+            /*
+             * Include '&& dp !== 0' because with Opera -0 == parseFloat(-0) is
+             * false, despite -0 == parseFloat('-0') && 0 == -0 being true.
+             */
+            parse(dp) != dp && dp !== 0 ) &&
+
+              // 'toE() decimal places not an integer: {dp}'
+              // 'toE() decimal places out of range: {dp}'
+              !ifExceptionsThrow( dp, 'decimal places', 'toE' ) ) && this['c']
+                ? this['c'].length - 1
+                : dp | 0, 1 );
+    };
+
+
+    /*
+     * Return a string representing the value of this BigNumber in normal
+     * notation to dp fixed decimal places and rounded using ROUNDING_MODE if
+     * necessary.
+     *
+     * Note: as with JavaScript's number type, (-0).toFixed(0) is '0',
+     * but e.g. (-0.00001).toFixed(0) is '-0'.
+     *
+     * [dp] {number} Integer, 0 to MAX inclusive.
+     */
+    JenScript.BigNumber.prototype.toFixed = function (dp) {
+        var n, str, d,
+            x = this;
+
+        if ( !( dp == null || ( ( outOfRange = dp < 0 || dp > MAX ) ||
+            parse(dp) != dp && dp !== 0 ) &&
+
+            // 'toF() decimal places not an integer: {dp}'
+            // 'toF() decimal places out of range: {dp}'
+            !ifExceptionsThrow( dp, 'decimal places', 'toF' ) ) ) {
+              d = x['e'] + ( dp | 0 );
+        }
+
+        n = TO_EXP_NEG, dp = TO_EXP_POS;
+        TO_EXP_NEG = -( TO_EXP_POS = 1 / 0 );
+
+        // Note: str is initially undefined.
+        if ( d == str ) {
+            str = x.toString();
+        } else {
+            str = format( x, d );
+
+            // (-0).toFixed() is '0', but (-0.1).toFixed() is '-0'.
+            // (-0).toFixed(1) is '0.0', but (-0.01).toFixed(1) is '-0.0'.
+            if ( x['s'] < 0 && x['c'] ) {
+
+                // As e.g. -0 toFixed(3), will wrongly be returned as -0.000 from toString.
+                if ( !x['c'][0] ) {
+                    str = str.replace(/^-/, '');
+
+                // As e.g. -0.5 if rounded to -0 will cause toString to omit the minus sign.
+                } else if ( str.indexOf('-') < 0 ) {
+                    str = '-' + str;
+                }
+            }
+        }
+        TO_EXP_NEG = n, TO_EXP_POS = dp;
+
+        return str;
+    };
+
+
+    /*
+     * Return a string array representing the value of this BigNumber as a
+     * simple fraction with an integer numerator and an integer denominator.
+     * The denominator will be a positive non-zero value less than or equal to
+     * the specified maximum denominator. If a maximum denominator is not
+     * specified, the denominator will be the lowest value necessary to
+     * represent the number exactly.
+     *
+     * [maxD] {number|string|BigNumber} Integer >= 1 and < Infinity.
+     */
+    JenScript.BigNumber.prototype.toFraction = function (maxD) {
+        var q, frac, n0, d0, d2, n, e,
+            n1 = d0 = new JenScript.BigNumber(1),
+            d1 = n0 = new JenScript.BigNumber('0'),
+            x = this,
+            xc = x['c'],
+            exp = MAX_EXP,
+            dp = DECIMAL_PLACES,
+            rm = ROUNDING_MODE,
+            d = new JenScript.BigNumber(1);
+
+        // NaN, Infinity.
+        if ( !xc ) {
+            return x.toString();
+        }
+
+        e = d['e'] = xc.length - x['e'] - 1;
+
+        // If max denominator is undefined or null...
+        if ( maxD == null ||
+
+             // or NaN...
+             ( !( id = 12, n = new JenScript.BigNumber(maxD) )['s'] ||
+
+               // or less than 1, or Infinity...
+               ( outOfRange = n.compareTo(n1) < 0 || !n['c'] ) ||
+
+                 // or not an integer...
+                 ( ERRORS && n['e'] < n['c'].length - 1 ) ) &&
+
+                   // 'toFr() max denominator not an integer: {maxD}'
+                   // 'toFr() max denominator out of range: {maxD}'
+                   !ifExceptionsThrow( maxD, 'max denominator', 'toFr' ) ||
+
+                     // or greater than the maxD needed to specify the value exactly...
+                     ( maxD = n ).compareTo(d) > 0 ) {
+
+            // d is e.g. 10, 100, 1000, 10000... , n1 is 1.
+            maxD = e > 0 ? d : n1;
+        }
+
+        MAX_EXP = 1 / 0;
+        n = new JenScript.BigNumber( xc.join('') );
+
+        for ( DECIMAL_PLACES = 0, ROUNDING_MODE = 1; ; )  {
+            q = n.divide(d);
+            d2 = d0.add( q.multiply(d1) );
+
+            if ( d2.compareTo(maxD) == 1 ) {
+                break;
+            }
+
+            d0 = d1, d1 = d2;
+
+            n1 = n0.add( q.multiply( d2 = n1 ) );
+            n0 = d2;
+
+            d = n.subtract( q.multiply( d2 = d ) );
+            n = d2;
+        }
+
+        d2 = maxD.subtract(d0).divide(d1);
+        n0 = n0.add( d2.multiply(n1) );
+        d0 = d0.add( d2.multiply(d1) );
+
+        n0['s'] = n1['s'] = x['s'];
+
+        DECIMAL_PLACES = e * 2;
+        ROUNDING_MODE = rm;
+
+        // Determine which fraction is closer to x, n0 / d0 or n1 / d1?
+        frac = n1.divide(d1).subtract(x).abs().compareTo(
+          n0.divide(d0).subtract(x).abs() ) < 1
+          ? [ n1.toString(), d1.toString() ]
+          : [ n0.toString(), d0.toString() ];
+
+        return MAX_EXP = exp, DECIMAL_PLACES = dp, frac;
+    };
+
+
+    /*
+     * Return a string representing the value of this BigNumber to sd significant
+     * digits and rounded using ROUNDING_MODE if necessary.
+     * If sd is less than the number of digits necessary to represent the integer
+     * part of the value in normal notation, then use exponential notation.
+     *
+     * sd {number} Integer, 1 to MAX inclusive.
+     */
+    JenScript.BigNumber.prototype.toPrecision = function (sd) {
+
+        /*
+         * ERRORS true: Throw if sd not undefined, null or an integer in range.
+         * ERRORS false: Ignore sd if not a number or not in range.
+         * Truncate non-integers.
+         */
+        return sd == null || ( ( ( outOfRange = sd < 1 || sd > MAX ) ||
+          parse(sd) != sd ) &&
+
+            // 'toP() precision not an integer: {sd}'
+            // 'toP() precision out of range: {sd}'
+            !ifExceptionsThrow( sd, 'precision', 'toP' ) )
+              ? this.toString()
+              : format( this, --sd | 0, 2 );
+    };
+
+
+    /*
+     * Return a string representing the value of this BigNumber in base b, or
+     * base 10 if b is omitted. If a base is specified, including base 10,
+     * round according to DECIMAL_PLACES and ROUNDING_MODE.
+     * If a base is not specified, and this BigNumber has a positive exponent
+     * that is equal to or greater than TO_EXP_POS, or a negative exponent equal
+     * to or less than TO_EXP_NEG, return exponential notation.
+     *
+     * [b] {number} Integer, 2 to 64 inclusive.
+     */
+    JenScript.BigNumber.prototype.toString = function (b) {
+        var u, str, strL,
+            x = this,
+            xe = x['e'];
+
+        // Infinity or NaN?
+        if ( xe === null ) {
+            str = x['s'] ? 'Infinity' : 'NaN';
+
+        // Exponential format?
+        } else if ( b === u && ( xe <= TO_EXP_NEG || xe >= TO_EXP_POS ) ) {
+            return format( x, x['c'].length - 1, 1 );
+        } else {
+            str = x['c'].join('');
+
+            // Negative exponent?
+            if ( xe < 0 ) {
+
+                // Prepend zeros.
+                for ( ; ++xe; str = '0' + str ) {
+                }
+                str = '0.' + str;
+
+            // Positive exponent?
+            } else if ( strL = str.length, xe > 0 ) {
+
+                if ( ++xe > strL ) {
+
+                    // Append zeros.
+                    for ( xe -= strL; xe-- ; str += '0' ) {
+                    }
+                } else if ( xe < strL ) {
+                    str = str.slice( 0, xe ) + '.' + str.slice(xe);
+                }
+
+            // Exponent zero.
+            } else {
+                if ( u = str.charAt(0), strL > 1 ) {
+                    str = u + '.' + str.slice(1);
+
+                // Avoid '-0'
+                } else if ( u == '0' ) {
+                    return u;
+                }
+            }
+
+            if ( b != null ) {
+
+                if ( !( outOfRange = !( b >= 2 && b < 65 ) ) &&
+                  ( b == (b | 0) || !ERRORS ) ) {
+                    str = convert( str, b | 0, 10, x['s'] );
+
+                    // Avoid '-0'
+                    if ( str == '0' ) {
+                        return str;
+                    }
+                } else {
+
+                    // 'toS() base not an integer: {b}'
+                    // 'toS() base out of range: {b}'
+                    ifExceptionsThrow( b, 'base', 'toString' );
+                }
+            }
+
+        }
+
+        return x['s'] < 0 ? '-' + str : str;
+    };
+
+
+    /*
+     * Return the value of this BigNumber converted to a number primitive.
+     *
+     */
+    JenScript.BigNumber.prototype.toNumber = function () {
+        var x = this;
+
+        // Ensure zero has correct sign.
+        return +x || ( x['s'] ? 0 * x['s'] : NaN );
+    };
+
+    /*
+     * Return as toString, but do not accept a base argument.
+     */
+    JenScript.BigNumber.prototype.valueOf = function () {
+    	return this.toString();
+    };
+
+
+})();
+(function(){
+	JenScript.MetricsType = {
+			XMetrics : 'XMetrics',
+			YMetrics : 'YMetrics',
+	};
+	JenScript.Axis = {
+			AxisSouth : 'AxisSouth',
+			AxisEast  : 'AxisEast',
+			AxisWest  : 'AxisWest',
+			AxisNorth : 'AxisNorth',
+	};
+	JenScript.DeviceAxis = {
+			AxisX : 'AxisX',
+			AxisY : 'AxisY',
+	};
+	
+	JenScript.Metrics = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.Metrics, {
+		
+	 init : function(config){
+			config=config||{};
+			/**Id*/
+			this.Id='metrics'+JenScript.sequenceId++;
+			/**metric type*/
+			this.metricsType = config.metricsType;
+			/** device value */
+			this.deviceValue;
+		    /** user value */
+			this.userValue;
+		    /** metrics marker color */
+			this.metricsMarkerColor;
+		    /** metrics label color */
+			this.metricsLabelColor;
+		    /** metrics format */
+			this.format;
+		    /** metrics label */
+			this.metricsLabel;
+			/** lock marker flag */
+		    this.lockMarker;
+		    /** lock label */
+		    this.lockLabel;
+		    /** visible flag */
+		    this.visible = true;
+			
+		    this.rotate = false;
+			//this.gravity ='Neutral';
+			this.markerLocation;
+			this.markerPosition;
+			
+	 },
+	 
+	 getTickMarkerSize : function(){
+		 if(this.minor)
+	    	return this.metricsPlugin.minor.tickMarkerSize;
+		 if(this.median)
+		    return this.metricsPlugin.median.tickMarkerSize;
+		 return this.metricsPlugin.major.tickMarkerSize;
+	 },
+	 getTickMarkerColor : function(){
+		 if(this.minor)
+	    	return this.metricsPlugin.minor.tickMarkerColor;
+		 if(this.median)
+		    return this.metricsPlugin.median.tickMarkerColor;
+		 return this.metricsPlugin.major.tickMarkerColor;
+	 },
+	 getTickMarkerStroke : function(){
+		 if(this.minor)
+	    	return this.metricsPlugin.minor.tickMarkerStroke;
+		 if(this.median)
+		    return this.metricsPlugin.median.tickMarkerStroke;
+		 return this.metricsPlugin.major.tickMarkerColor;
+	 },
+	 getTickTextColor : function(){
+		 if(this.minor)
+	    	return this.metricsPlugin.minor.tickTextColor;
+		 if(this.median)
+		    return this.metricsPlugin.median.tickTextColor;
+		 return this.metricsPlugin.major.tickTextColor;
+	 },
+	 getTickTextFontSize : function(){
+		 if(this.minor)
+	    	return 0;
+		 if(this.median)
+		    return this.metricsPlugin.median.tickTextFontSize;
+		 return this.metricsPlugin.major.tickTextFontSize;
+	 },
+	 getTickTextOffset : function(){
+		 if(this.minor)
+	    	return 0;
+		 if(this.median)
+		    return this.metricsPlugin.median.tickTextOffset;
+		 return this.metricsPlugin.major.tickTextOffset;
+	 },
+	 
+	 setDeviceValue : function(value){
+	    	this.deviceValue=value;
+	 },
+	 
+	 setUserValue : function(value){
+	    	this.userValue=value;
+	 },
+	
+	 getDeviceValue : function(){
+	    	return this.deviceValue;
+	 },
+	 getUserValue : function(){
+	    	return this.userValue;
+	 },
+		
+//	  setGravity : function(gravity){
+//	    	this.gravity=gravity;
+//	  },
+//	  getGravity : function(){
+//	    	return this.gravity;
+//	  },
+	  
+	  setRotate : function(rotate){
+	    	this.rotate=rotate;
+	  },
+	  isRotate : function(){
+	    	return this.rotate;
+	  },
+	  
+	  setMarkerLocation : function(markerLocation){
+	    	this.markerLocation=markerLocation;
+	  },
+	  getMarkerLocation : function(){
+	    	return this.markerLocation;
+	  },
+	  
+	  setMarkerPosition : function(markerPosition){
+	    	this.markerPosition=markerPosition;
+	  },
+	  getMarkerPosition : function(){
+	    	return this.markerPosition;
+	  },
+	  
+	  setMetricsType : function(metricsType){
+	    	this.metricsType=metricsType;
+	  },
+	  getMetricsType : function(){
+	    	return this.metricsType;
+	  },
+	  
+	  getMetricsMarkerColor : function() {
+        return this.metricsMarkerColor;
+	  },
+	    
+	  setMetricsMarkerColor :  function(metricsMarkerColor) {
+	        this.metricsMarkerColor = metricsMarkerColor;
+	  },
+	  
+	});
+	
+	
+	//
+	// TIMING METRICS
+	//
+	
+	/**
+	 * time metrics point extends metrics with date time
+	 */
+	JenScript.TimePointMetrics = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.TimePointMetrics, JenScript.Metrics);
+	JenScript.Model.addMethods(JenScript.TimePointMetrics, {
+		/**
+		 * init time metrics point
+		 */
+		_init : function(config){
+			config = config ||{};
+			JenScript.Metrics.call(this,config);
+			this.time = config.time;
+		},
+		
+		/**
+		 * get time metrics
+		 * @returns {Object} time
+		 */
+		getTime : function(){
+			return this.time;
+		},
+		
+		/**
+		 * set time metrics
+		 * @param {Object} time
+		 */
+		setTime : function(time){
+			this.time = time;
+		},
+	});
+	
+	
+	/**
+	 * time duration metrics point extends metrics with 2 date time and 2 metrics reference
+	 */
+	JenScript.TimeDurationMetrics = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.TimeDurationMetrics, JenScript.Metrics);
+	JenScript.Model.addMethods(JenScript.TimeDurationMetrics, {
+		/**
+		 * init duration time metrics point
+		 */
+		_init : function(config){
+			config = config ||{};
+			JenScript.Metrics.call(this,config);
+			this.timeStart;
+			this.timeEnd;
+			this.metricsStart;
+			this.metricsEnd;
+		},
+		
+		 /**
+         * @return the metricsStart
+         */
+        getMetricsStart : function() {
+            return this.metricsStart;
+        },
+
+        /**
+         * @param metricsStart
+         *            the metricsStart to set
+         */
+        setMetricsStart : function(metricsStart) {
+            this.metricsStart = metricsStart;
+        },
+
+        /**
+         * @return the metricsEnd
+         */
+        getMetricsEnd : function() {
+            return this.metricsEnd;
+        },
+
+        /**
+         * @param metricsEnd
+         *            the metricsEnd to set
+         */
+        setMetricsEnd : function(metricsEnd) {
+            this.metricsEnd = metricsEnd;
+        },
+
+        /**
+         * @return the timeStart
+         */
+        getTimeCenter : function() {
+            var diff = this.timeEnd.getTime() - this.timeStart.getTime();
+            var centerTime = this.timeStart.getTime() + diff / 2;
+            return new Date(centerTime);
+        },
+
+        /**
+         * @return the timeStart
+         */
+        getTimeStart : function() {
+            return this.timeStart;
+        },
+
+        /**
+         * @param timeStart
+         *            the timeStart to set
+         */
+        setTimeStart : function(timeStart) {
+            this.timeStart = timeStart;
+        },
+
+        /**
+         * @return the timeEnd
+         */
+        getTimeEnd : function() {
+            return this.timeEnd;
+        },
+
+        /**
+         * @param timeEnd
+         *            the timeEnd to set
+         */
+        setTimeEnd : function(timeEnd) {
+            this.timeEnd = timeEnd;
+        },
+
+	});
+	
+	
+})();
+(function(){
+
+	/**
+	 * Metrics painter takes the responsibility to paint metrics
+	 */
+	JenScript.MetricsPainter = function(){
+		this.axisBaseLine;
+	};
+	JenScript.Model.addMethods(JenScript.MetricsPainter, {
+		
+		setMetricsPlugin : function(metricsPlugin){
+			this.metricsPlugin=metricsPlugin;
+		},
+		
+		getMetricsPlugin : function(){
+			return this.metricsPlugin;
+		},
+		
+		 /**
+	     * paint metrics base line
+	     * @param {Object} g2d the graphics context
+	     * @param {Object} start  the start point of the axis base line
+	     * @param {Object}end  the end point of the axis base line
+	     * @param {String} axisBaseColor axis base color
+	     */
+	    doPaintLineMetrics : function(g2d,part,start,end,axisBaseColor,axisBaseLineStrokeWidth){
+	    	var axisBaseLine = new JenScript.SVGElement().name('line')
+								 .attr('id','metricsaxisline'+JenScript.sequenceId++)
+								 .attr('x1',start.x)
+								 .attr('y1',start.y)
+								 .attr('x2',end.x)
+								 .attr('y2',end.y)
+								 .attr('style','stroke:'+axisBaseColor+';stroke-width:'+axisBaseLineStrokeWidth);
+			
+	    	
+	    	g2d.insertSVG(axisBaseLine.buildHTML());
+	    },
+	    
+	    /**
+	     * paint metric tick marker
+	     * @param {Object} g2d the graphics context
+	     * @param {Object} metrics the metrics to paint
+	     */
+	    paintMetricsTickMarker : function(g2d,part,metric) {
+	    	var tickMarkerSize = metric.getTickMarkerSize();
+	    	var tickMarkerStroke = metric.getTickMarkerStroke();
+	    	var tickMarkerColor = metric.getTickMarkerColor();
+	        var start=undefined;
+	        var end=undefined;
+	        var prefix=undefined;
+	        var position = metric.getMarkerLocation();
+            if (metric.getMarkerPosition() === 'S') {
+            	prefix = 'southtick';
+            	start = {x:position.x,y:position.y + 2};
+            	end= {x:position.x,y:position.y + tickMarkerSize + 2};
+            }
+            if (metric.getMarkerPosition() == 'N') {
+            	prefix = 'northtick';
+            	start = {x:position.x,y:position.y - 2};
+            	end= {x:position.x,y:position.y - tickMarkerSize - 2};
+            }
+            if (metric.getMarkerPosition() == 'W') {
+            	prefix = 'westtick';
+            	start = {x:position.x- tickMarkerSize - 2,y:position.y};
+            	end= {x:position.x-2,y:position.y};
+
+            }
+            if (metric.getMarkerPosition() == 'E') {
+            	prefix = 'easttick';
+            	start = {x:position.x+ 2,y:position.y};
+            	end= {x:position.x + tickMarkerSize + 2,y:position.y};
+            }
+	        var tick = new JenScript.SVGElement().name('line')
+								 .attr('id',prefix+JenScript.sequenceId++)
+								 .attr('x1',start.x)
+								 .attr('y1',start.y)
+								 .attr('x2',end.x)
+								 .attr('y2',end.y)
+								 .attr('stroke',tickMarkerColor)
+								 .attr('stroke-width',tickMarkerStroke);
+					
+	       
+	        g2d.insertSVG(tick.buildHTML());
+	    },
+	    
+	    
+	    /**
+	     * paint south metric label
+	     * @param {Object} g2d the graphics context
+	     * @param {Object} metrics the metrics to paint
+	     */
+	   paintSouthMetricsLabel : function (g2d,metric){
+	        var loc = metric.getMarkerLocation();
+	        var tickMarkerSize = metric.getTickMarkerSize();
+	    	var tickTextColor = metric.getTickTextColor();
+	    	var tickTextFontSize = metric.getTickTextFontSize();
+	    	var tickTextOffset = metric.getTickTextOffset();
+	    	
+	        var text = new JenScript.SVGElement().name('text')
+												.attr('id',"southmetrics"+JenScript.sequenceId++)
+												.attr('x',loc.x+'px')
+												.attr('y',(loc.y+tickMarkerSize +tickTextFontSize+tickTextOffset+ 2)+'px')
+												.attr('font-size',tickTextFontSize)
+												.attr('fill',tickTextColor)
+												.attr('text-anchor','middle')
+												.textContent(metric.format());
+			
+	        var label = text.buildHTML();
+	        g2d.insertSVG(label);
+	        
+//	        var svgRect = label.getBBox();
+//		       console.log("south label bbox : "+svgRect.x+","+svgRect.y+","+svgRect.width+","+svgRect.height);
+//		       var box = new JenScript.SVGRect().origin(svgRect.x,svgRect.y)
+//								.size(svgRect.width,svgRect.height)
+//								.strokeWidth(1)
+//								.stroke('pink')
+//								.fillNone()
+//								.strokeOpacity(0.8)
+//								.toSVG();
+//			
+//		       g2d.insertSVG(box);
+	    },
+	    
+	    /**
+	     * paint north metric label
+	     * @param {Object} g2d the graphics context
+	     * @param {Object} metrics the metrics to paint
+	     */
+		paintNorthMetricsLabel : function (g2d,metric){
+			   var loc = metric.getMarkerLocation();
+		       var tickMarkerSize = metric.getTickMarkerSize();
+		       var tickTextColor = metric.getTickTextColor();
+		       var tickTextFontSize = metric.getTickTextFontSize();
+		       var tickTextOffset = metric.getTickTextOffset();
+		       var text = new JenScript.SVGElement().name('text')
+												.attr('id',"northmetrics"+JenScript.sequenceId++)
+												.attr('x',loc.x+'px')
+												.attr('y',(loc.y-tickMarkerSize-tickTextOffset - 4)+'px')
+												.attr('font-size',tickTextFontSize)
+												.attr('fill',tickTextColor)
+												.attr('text-anchor','middle')
+												.textContent(metric.format());
+
+		       g2d.insertSVG(text.buildHTML());
+		    },
+		    
+		    /**
+		     * paint west metric label
+		     * @param {Object} g2d the graphics context
+		     * @param {Object} metrics the metrics to paint
+		     */
+		    paintWestMetricsLabel : function (g2d,metric){
+		    	
+		    	
+		    	if(metric.isRotate()){
+		    		 	var loc = metric.getMarkerLocation();
+				        var tickMarkerSize = metric.getTickMarkerSize();
+				    	var tickTextColor = metric.getTickTextColor();
+				    	var tickTextFontSize = metric.getTickTextFontSize();
+				    	var tickTextOffset = metric.getTickTextOffset();
+				    	var Id = "metrics"+JenScript.sequenceId++;
+				        var text = new JenScript.SVGElement().name('text')
+															.attr('id',Id)
+															.attr('x',loc.x+'px')
+															.attr('y',loc.y+'px')
+															.attr('font-size',tickTextFontSize)
+															.attr('fill',tickTextColor)
+															.attr('text-anchor','middle')
+															.attr('transform','translate('+(-tickMarkerSize-tickTextOffset-6)+',0) rotate(-90,'+loc.x+','+loc.y+')')
+															.textContent(metric.format());
+				        
+				       var label= text.buildHTML();
+				       g2d.insertSVG(label);
+				       
+				       var bb = this.transformedBoundingBox(label);
+				       if(bb.y < 0 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()){
+//					       var box = new JenScript.SVGRect().origin(bb.x,bb.y)
+//											.size(bb.width,bb.height)
+//											.strokeWidth(1)
+//											.stroke('red')
+//											.fillNone()
+//											.strokeOpacity(1)
+//											.toSVG();
+//					       g2d.insertSVG(box);
+					       g2d.deleteGraphicsElement(Id);
+				       }
+		    	}else{
+		    		var loc = metric.getMarkerLocation();
+			        var tickMarkerSize = metric.getTickMarkerSize();
+			    	var tickTextColor = metric.getTickTextColor();
+			    	var tickTextFontSize = metric.getTickTextFontSize();
+			    	 var tickTextOffset = metric.getTickTextOffset();
+			    	var Id = "metrics"+JenScript.sequenceId++;
+			        var text = new JenScript.SVGElement().name('text')
+														.attr('id',Id)
+														.attr('x',loc.x+'px')
+														.attr('y',loc.y+'px')
+														.attr('font-size',tickTextFontSize)
+														.attr('fill',tickTextColor)
+														.attr('text-anchor','end')
+														.attr('transform','translate('+(-tickMarkerSize-tickTextOffset-6)+','+tickTextFontSize/2+')')
+														.textContent(metric.format());
+			        
+			       // console.log("metrics marker size : "+tickMarkerSize+" for metrics value : "+metric.format());
+			        
+			       var label= text.buildHTML();
+			       g2d.insertSVG(label);
+			       
+			       var bb = this.transformedBoundingBox(label);
+			       if(bb.y < -1 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()+1){
+//				       var box = new JenScript.SVGRect().origin(bb.x,bb.y)
+//										.size(bb.width,bb.height)
+//										.strokeWidth(1)
+//										.stroke('red')
+//										.fillNone()
+//										.strokeOpacity(1)
+//										.toSVG();
+//				       g2d.insertSVG(box);
+				       g2d.deleteGraphicsElement(Id);
+			       }
+		    	}
+		       
+		       	
+		    },
+		    
+		    
+		 // Calculate the bounding box of an element with respect to its parent element
+		 transformedBoundingBox : function(el){
+		      var bb  = el.getBBox(),
+		          svg = el.ownerSVGElement,
+		          m   = el.getTransformToElement(el.parentNode);
+		      var pts = [
+		        svg.createSVGPoint(), svg.createSVGPoint(),
+		        svg.createSVGPoint(), svg.createSVGPoint()
+		      ];
+		      pts[0].x=bb.x;          pts[0].y=bb.y;
+		      pts[1].x=bb.x+bb.width; pts[1].y=bb.y;
+		      pts[2].x=bb.x+bb.width; pts[2].y=bb.y+bb.height;
+		      pts[3].x=bb.x;          pts[3].y=bb.y+bb.height;
+
+		      var xMin=Infinity,xMax=-Infinity,yMin=Infinity,yMax=-Infinity;
+		      pts.forEach(function(pt){
+		        pt = pt.matrixTransform(m);
+		        xMin = Math.min(xMin,pt.x);
+		        xMax = Math.max(xMax,pt.x);
+		        yMin = Math.min(yMin,pt.y);
+		        yMax = Math.max(yMax,pt.y);
+		      });
+
+		     // bb.x = xMin; bb.width  = xMax-xMin;
+		      //bb.y = yMin; bb.height = yMax-yMin;
+		      
+		        /**
+			     * create new bow object
+			     * (IE, BUG)
+			     */
+			    return {x: xMin, y: yMin, width: (xMax-xMin), height: (yMax-yMin)};
+			    
+		    },
+		    
+		    /**
+		     * paint east metric label
+		     * @param {Object} g2d the graphics context
+		     * @param {Object} metrics the metrics to paint
+		     */
+		    paintEastMetricsLabel : function (g2d,metric){
+		    	if(metric.isRotate()){
+		    		   var loc = metric.getMarkerLocation();
+				       var tickMarkerSize = metric.getTickMarkerSize();
+				       var tickTextColor = metric.getTickTextColor();
+				       var tickTextFontSize = metric.getTickTextFontSize();
+				       var tickTextOffset = metric.getTickTextOffset();
+				       var Id = "metrics"+JenScript.sequenceId++;
+				       var text = new JenScript.SVGElement().name('text')
+				        									.attr('id',Id)
+				        									.attr('x',loc.x)
+				        									.attr('y',loc.y)
+				        									.attr('font-size',tickTextFontSize)
+															.attr('fill',tickTextColor)
+				        									.attr('text-anchor','middle')
+				        									.attr('transform','translate('+(tickMarkerSize+tickTextOffset-6)+',0) rotate(90,'+(loc.x)+','+loc.y+')')
+				        									.textContent(metric.format());
+				        									
+				        									
+				       g2d.insertSVG(text.buildHTML());
+				       
+				       var bb = this.transformedBoundingBox(label);
+				       if(bb.y < 0 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()){
+//					       var box = new JenScript.SVGRect().origin(bb.x,bb.y)
+//											.size(bb.width,bb.height)
+//											.strokeWidth(1)
+//											.stroke('red')
+//											.fillNone()
+//											.strokeOpacity(1)
+//											.toSVG();
+//					       g2d.insertSVG(box);
+					       g2d.deleteGraphicsElement(Id);
+				       }
+				       
+		    	}else{
+		    		var loc = metric.getMarkerLocation();
+			        var tickMarkerSize = metric.getTickMarkerSize();
+			    	var tickTextColor = metric.getTickTextColor();
+			    	var tickTextFontSize = metric.getTickTextFontSize();
+			    	var tickTextOffset = metric.getTickTextOffset();
+			    	var Id = "metrics"+JenScript.sequenceId++;
+			        var text = new JenScript.SVGElement().name('text')
+														.attr('id',Id)
+														.attr('x',loc.x+'px')
+														.attr('y',loc.y+'px')
+														.attr('font-size',tickTextFontSize)
+														.attr('fill',tickTextColor)
+														.attr('text-anchor','start')
+														.attr('transform','translate('+(tickMarkerSize+tickTextOffset)+','+tickTextFontSize/2+')')
+														.textContent(metric.format());
+			        
+			       // console.log("metrics marker size : "+tickMarkerSize+" for metrics value : "+metric.format());
+			        
+			       var label= text.buildHTML();
+			       g2d.insertSVG(label);
+			       
+			       var bb = this.transformedBoundingBox(label);
+			       if(bb.y < -1 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()+1){
+//				       var box = new JenScript.SVGRect().origin(bb.x,bb.y)
+//										.size(bb.width,bb.height)
+//										.strokeWidth(1)
+//										.stroke('red')
+//										.fillNone()
+//										.strokeOpacity(1)
+//										.toSVG();
+//				       g2d.insertSVG(box);
+				       g2d.deleteGraphicsElement(Id);
+			       }
+		    	}
+			
+		    },
+	    
+	    /**
+	     * paint metrics tick labels
+	     * @param {Object} g2d the graphics context
+	     * @param {Object} metrics the metrics to paint
+	     */
+	    paintMetricsTickLabel : function(g2d,part,metric) {
+	    	if(metric.minor === true) return;
+            if (metric.getMarkerPosition() === 'S') {
+               this.paintSouthMetricsLabel(g2d, metric);
+            }
+            if (metric.getMarkerPosition() === 'N') {
+               this.paintNorthMetricsLabel(g2d, metric);
+            }
+            if (metric.getMarkerPosition() === 'W') {
+               this.paintWestMetricsLabel(g2d, metric);
+            }
+            if (metric.getMarkerPosition() === 'E') {
+               this.paintEastMetricsLabel(g2d, metric);
+            }
+	    },
+
+	    /**
+	     * paint metrics
+	     * @param {Object} g2d the graphics context
+	     * @param {Object} metrics the metrics to paint
+	     */
+	    doPaintMetrics :  function(g2d,part,metrics){
+	        for (var i = 0; i < metrics.length; i++) {
+	            var metric = metrics[i];
+	            if (!metric.visible) {
+	                continue;
+	            }
+	            this.paintMetricsTickMarker(g2d, part,metric);
+	            this.paintMetricsTickLabel(g2d,part, metric);
+	        }
+	        
+	    }
+	});
+})();
+(function(){
+	JenScript.MetricsPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MetricsPlugin, JenScript.Plugin);
+
+	JenScript.Model.addMethods(JenScript.MetricsPlugin, {
+		_init : function(config){
+			config = config ||{};
+			
+			/** the metrics manager */
+			this.metricsManager = config.manager;
+			
+			/**metrics formater*/
+			this.metricsFormat = config.metricsFormat;
+			
+			/**TODO, get only non undefined values and not all block*/
+			this.minor =  {tickMarkerSize : 2,tickMarkerColor:'rgb(230, 193, 153)',tickMarkerStroke:0.8,tickTextOffset : 0};
+			this.median = {tickMarkerSize : 4,tickMarkerColor:'rgb(230, 193, 153)',tickMarkerStroke:1.2,tickTextColor:'rgb(230, 193, 153)',tickTextFontSize:10,tickTextOffset : 0};
+			this.major =  {tickMarkerSize : 6,tickMarkerColor:'rgb(37, 38, 41)',tickMarkerStroke:1.6,tickTextColor:'rgb(37, 38, 41)',tickTextFontSize:12,tickTextOffset : 0};
+			
+			if(config.minor !== undefined){
+				this.minor.tickMarkerSize = (config.minor.tickMarkerSize !== undefined) ? config.minor.tickMarkerSize : 2;
+				this.minor.tickMarkerColor = (config.minor.tickMarkerColor !== undefined) ? config.minor.tickMarkerColor : 'rgb(230, 193, 153)';
+				this.minor.tickMarkerStroke = (config.minor.tickMarkerStroke !== undefined) ? config.minor.tickMarkerStroke : 0.8;
+			}
+			if(config.median !== undefined){
+				this.median.tickMarkerSize 	= (config.median.tickMarkerSize !== undefined) ? config.median.tickMarkerSize : 4;
+				this.median.tickMarkerColor 	= (config.median.tickMarkerColor !== undefined) ? config.median.tickMarkerColor : 'rgb(230, 193, 153)';
+				this.median.tickMarkerStroke = (config.median.tickMarkerStroke !== undefined) ? config.median.tickMarkerStroke : 1;
+				this.median.tickTextColor 	= (config.median.tickTextColor !== undefined) ? config.median.tickTextColor : 'rgb(230, 193, 153)';
+				this.median.tickTextFontSize = (config.median.tickTextFontSize !== undefined) ? config.median.tickTextFontSize : 10;
+				this.median.tickTextOffset 	= (config.median.tickTextOffset !== undefined) ? config.median.tickTextOffset : 0;
+			}
+			if(config.major !== undefined){
+				this.major.tickMarkerSize 	= (config.major.tickMarkerSize !== undefined) ? config.major.tickMarkerSize : 6;
+				this.major.tickMarkerColor 	= (config.major.tickMarkerColor !== undefined) ? config.major.tickMarkerColor : 'rgb(37, 38, 41)';
+				this.major.tickMarkerStroke 	= (config.major.tickMarkerStroke !== undefined) ? config.major.tickMarkerStroke : 1.8;
+				this.major.tickTextColor 	= (config.major.tickTextColor !== undefined) ? config.major.tickTextColor : 'rgb(37, 38, 41)';
+				this.major.tickTextFontSize 	= (config.major.tickTextFontSize !== undefined) ? config.major.tickTextFontSize : 12;
+				this.major.tickTextOffset 	= (config.major.tickTextOffset !== undefined) ? config.major.tickTextOffset : 0;
+			}
+			
+			this.gravity =  (config.gravity !== undefined)? config.gravity : 'natural';
+			JenScript.Plugin.call(this,config);
+		},
+		
+		setGravity  : function(gravity){
+			this.gravity = gravity;
+		},
+		
+		getGravity  : function(){
+			return this.gravity;
+		},
+		
+		setMetricsManager  : function(metricsManager){
+			this.metricsManager = metricsManager;
+		},
+		
+		getMetricsManager  : function(){
+			return this.metricsManager;
+		},
+		
+		setTickMarkerSize  : function(type,size){
+			this[type].tickMarkerSize = size;
+		},
+		
+		setTickMarkerColor  : function(type,color){
+			this[type].tickMarkerColor = color;
+		},
+		
+		setTickMarkerStrokeWidth  : function(type,width){
+			this[type].tickMarkerStroke = width;
+		},
+		
+		setTickTextColor  : function(type,color){
+			this[type].tickTextColor = color;
+		},
+		
+		setTickTextFontSize  : function(type,width){
+			this[type].tickTextFontSize = width;
+		},
+		setTickTextOffset  : function(type,offset){
+			this[type].tickTextOffset = offset;
+		},
+		
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},that.toString());
+		},
+	});	
+})();
+(function(){
+	JenScript.AxisMetricsPlugin = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.AxisMetricsPlugin, JenScript.MetricsPlugin);
+
+	JenScript.Model.addMethods(JenScript.AxisMetricsPlugin, {
+		__init : function(config){
+			config = config ||{};
+			
+			/** the metrics painter */
+			this.metricsPainter = new JenScript.MetricsPainter();
+			
+			/** the accessible zone */
+			this.axis = config.axis;
+
+			/** the axis spacing */
+			this.axisSpacing = (config.axisSpacing !== undefined)?config.axisSpacing:0;
+
+			/** paint flag axis base line, default is false */
+			this.axisBaseLine =  (config.axisBaseLine !== undefined)?config.axisBaseLine:false;
+			
+			/** color axis base line, default is black */
+			this.axisBaseLineColor =  (config.axisBaseLineColor !== undefined)?config.axisBaseLineColor:'black';
+			
+			/** stroke axis base line, default is 0.8 */
+			this.axisBaseLineStrokeWidth =  (config.axisBaseLineStrokeWidth !== undefined)?config.axisBaseLineStrokeWidth: 0.8;
+			
+			JenScript.MetricsPlugin.call(this,config);
+		},
+		
+		toString : function(){
+			return  this.name+' '+this.Id+' '+this.axis;
+		},
+		
+		isAccessible : function(viewPart) {
+			//console.log('isAccessible: '+viewPart+' '+this.axis);
+			if (this.axis === JenScript.Axis.AxisSouth && viewPart !== JenScript.ViewPart.South) {
+				return false;
+			}
+			if (this.axis == JenScript.Axis.AxisNorth && viewPart !== JenScript.ViewPart.North) {
+				return false;
+			}
+			if (this.axis === JenScript.Axis.AxisWest && viewPart !== JenScript.ViewPart.West) {
+				return false;
+			}
+			if (this.axis === JenScript.Axis.AxisEast && viewPart !== JenScript.ViewPart.East) {
+				return false;
+			}
+			if (viewPart == JenScript.ViewPart.Device) {
+				return false;
+			}
+			return true;
+		},
+		
+		_paintAxisBaseLine : function(view,g2d,viewPart) {
+			if (this.axisBaseLine) {
+				var axisStartLocation={};
+				var axisEndLocation={};
+				if (viewPart === JenScript.ViewPart.South) {
+					var component = view.getComponent(JenScript.ViewPart.South);
+					axisStartLocation = {x: view.getPlaceHolderAxisWest(), y:this.axisSpacing};
+					axisEndLocation ={x:component.getWidth() - view.getPlaceHolderAxisEast(),y: this.axisSpacing};
+				}
+				if (viewPart === JenScript.ViewPart.West) {
+					var component = view.getComponent(JenScript.ViewPart.West);
+					axisStartLocation = {x:component.getWidth() - 1 - this.axisSpacing,y: 0};
+					axisEndLocation = {x:component.getWidth() - 1 - this.axisSpacing, y:component.getHeight()};
+				}
+				if (viewPart === JenScript.ViewPart.East) {
+					var component = view.getComponent(JenScript.ViewPart.East);
+					axisStartLocation = {x:this.axisSpacing, y:0};
+					axisEndLocation = {x:this.axisSpacing, y:component.getHeight()};
+				}
+				if (viewPart === JenScript.ViewPart.North) {
+					var component = view.getComponent(JenScript.ViewPart.North);
+					axisStartLocation = {x:view.getPlaceHolderAxisWest(),y: component.getHeight() - 1 - this.axisSpacing};
+					axisEndLocation = {x:component.getWidth() - view.getPlaceHolderAxisEast(),y: component.getHeight() - 1 - this.axisSpacing};
+				}
+				this.metricsPainter.doPaintLineMetrics(g2d,viewPart, axisStartLocation, axisEndLocation, this.axisBaseLineColor,this.axisBaseLineStrokeWidth);
+			}
+		},
+		
+		_paintAxisMetrics : function(view,g2d,viewPart) {
+			
+			var metrics = [];
+			metrics = this.metricsManager.getDeviceMetrics();
+
+			if(metrics === undefined) return;
+			
+			metrics.sort(function(m1, m2) {
+				var val1 = m1.userValue;
+				var val2 = m2.userValue;
+				return ((val1 < val2) ? -1 : ((val1 > val2) ? 1 : 0));
+			});
+			for (var i = 0; i < metrics.length; i++) {
+				var m = metrics[i];
+				m.metricsPlugin = this;
+				if (this.getGravity() === 'rotate') {
+					m.setRotate(true);
+				}else{
+					m.setRotate(false);
+				}
+				
+				var markerLocation = {};
+				if (viewPart === JenScript.ViewPart.South) {
+					markerLocation = {x:view.getPlaceHolderAxisWest() + m.getDeviceValue(),y: this.axisSpacing};
+					m.setMarkerLocation(markerLocation);
+					m.setMarkerPosition('S');
+				}
+				if (viewPart === JenScript.ViewPart.West) {
+					var component = view.getComponent(JenScript.ViewPart.West);
+					markerLocation = {x:component.getWidth() - 1 - this.axisSpacing,y: m.getDeviceValue()};
+					m.setMarkerLocation(markerLocation);
+					m.setMarkerPosition('W');
+				}
+				if (viewPart === JenScript.ViewPart.East) {
+					markerLocation = {x:this.axisSpacing,y: m.getDeviceValue()};
+					m.setMarkerLocation(markerLocation);
+					m.setMarkerPosition('E');
+				}
+				if (viewPart === JenScript.ViewPart.North) {
+					var component = view.getComponent(JenScript.ViewPart.North);
+					markerLocation = {x:view.getPlaceHolderAxisWest() + m.getDeviceValue(),y: component.getHeight() - 1 - this.axisSpacing};
+					m.setMarkerLocation(markerLocation);
+					m.setMarkerPosition('N');
+				}
+			}
+			this.metricsPainter.doPaintMetrics(g2d,viewPart, metrics);
+		},
+		
+		/**
+		 * assign manager type x or y given by given axis.
+		 */
+		_assignType : function() {
+			if (this.axis == JenScript.Axis.AxisSouth || this.axis == JenScript.Axis.AxisNorth) {
+				this.metricsManager.setMetricsType(JenScript.MetricsType.XMetrics);
+			}
+			if (this.axis == JenScript.Axis.AxisEast || this.axis == JenScript.Axis.AxisWest) {
+				this.metricsManager.setMetricsType(JenScript.MetricsType.YMetrics);
+			}
+		},
+
+		/**
+		 * Paints metrics.
+		 */
+		_paintMetrics : function(view, g2d,viewPart) {
+			if (!this.isAccessible(viewPart)) {
+				return;
+			}
+			this.metricsManager.setMetricsPlugin(this);
+			this.metricsPainter.setMetricsPlugin(this);
+			this._assignType();
+			this._paintAxisMetrics(view, g2d, viewPart);
+			this._paintAxisBaseLine(view, g2d, viewPart);
+		},
+		
+		paintPlugin : function(g2d, part) {
+			this._paintMetrics(this.getProjection().getView(),g2d,part);
+		},
+
+	});
+	
+
+	
+})();
+(function(){
+	JenScript.DeviceMetricsPlugin = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.DeviceMetricsPlugin, JenScript.MetricsPlugin);
+
+	JenScript.Model.addMethods(JenScript.DeviceMetricsPlugin, {
+		__init : function(config){
+			config = config ||{};
+			
+			/** the metrics painter */
+			this.metricsPainter = new JenScript.MetricsPainter();
+			
+			/** axis base line at the constant x or y value */
+			this.baseLine = config.baseLine;
+
+			/** device axis x or y */
+			this.deviceAxis = config.deviceAxis;
+
+			/** marker position */
+			this.deviceMarkerPosition;
+
+			/** paint base line flag */
+			this.paintLine = true;
+			
+			/** color axis base line, default is red */
+			this.axisBaseLineColor = 'red';
+			
+			/** stroke axis base line, default is 0.8 */
+			this.axisBaseLineStrokeWidth = 0.8;
+			
+			JenScript.MetricsPlugin.call(this,config);
+		},
+		
+		setBaseLine  : function(baseLine){
+			this.baseLine = baseLine;
+		},
+		
+		getBaseLine  : function(){
+			return this.baseLine;
+		},
+		
+		setDeviceAxis  : function(deviceAxis){
+			this.deviceAxis = deviceAxis;
+		},
+		
+		getDeviceAxis  : function(){
+			return this.deviceAxis;
+		},
+		
+		setDeviceMarkerPosition  : function(deviceMarkerPosition){
+			this.deviceMarkerPosition = deviceMarkerPosition;
+		},
+		
+		getDeviceMarkerPosition  : function(){
+			return this.deviceMarkerPosition;
+		},
+		
+		setPaintLine  : function(paintLine){
+			this.paintLine = paintLine;
+		},
+		
+		isPaintLine  : function(){
+			return this.paintLine;
+		},
+		
+		/**
+		 * assign manager type x or y given by given axis.
+		 */
+		_assignType : function() {
+			if (this.deviceAxis === JenScript.DeviceAxis.AxisX ) {
+				this.metricsManager.setMetricsType(JenScript.MetricsType.XMetrics);
+			}
+			if (this.deviceAxis === JenScript.DeviceAxis.AxisY) {
+				this.metricsManager.setMetricsType(JenScript.MetricsType.YMetrics);
+			}
+		},
+		
+		/**
+		 * true if the device part context, false otherwise
+		 */
+		isAccessible : function(viewPart) {
+			if (viewPart === JenScript.ViewPart.Device) {
+				return true;
+			}
+			return false;
+		},
+		
+		/**
+		 * paint X metrics for the given parameters
+		 * 
+		 * @param v2d
+		 * @param g2d
+		 */
+		_paintMetricsX : function(view,part,g2d,metricsX,baseLine,offsetPixel) {
+			//alert("this getProj "+this.getProjection());
+			//alert("this getProj "+this.getProjection().userToPixel(new JenScript.Point2D(0, this.baseLine)));
+			var deviceBaseLine = this.getProjection().userToPixel(new JenScript.Point2D(0, this.baseLine));
+			//alert("deviceBaseLine : "+deviceBaseLine)
+			for (var i = 0; i< metricsX.length;i++) {
+				var m = metricsX[i];
+				
+				m.metricsPlugin = this;
+//				if (MarkerPosition.isXCompatible(this.deviceMarkerPosition)) {
+//					m.setMarkerPosition(this.deviceMarkerPosition);
+//				} else {
+					m.setMarkerPosition('S');
+				//}
+//				m.setLockMarker(true);
+//				if (offsetPixel > 0) {
+//					m.setLockMarker(false);
+//				}
+				var p = undefined;
+				if (m.getMarkerPosition() === 'S') {
+					p = new JenScript.Point2D(m.getDeviceValue(), deviceBaseLine.y + offsetPixel);
+				}
+				if (m.getMarkerPosition() === 'N') {
+					p = new JenScript.Point2D(m.getDeviceValue(), deviceBaseLine.y - offsetPixel);
+				}
+				m.setMarkerLocation(p);
+			}
+			this.metricsPainter.doPaintMetrics(g2d,part,metricsX);
+		},
+
+		/**
+		 * paint the base line for x metrics
+		 * 
+		 * @param v2d
+		 * @param g2d
+		 */
+		_paintMetricsXBaseLine : function(view,part,g2d,baseLine) {
+			var deviceBaseLine = this.getProjection().userToPixel(new JenScript.Point2D(0, baseLine));
+			this.metricsPainter.doPaintLineMetrics(g2d,part, new JenScript.Point2D(0, deviceBaseLine.y), new JenScript.Point2D(this.getProjection().getView().getDevice().getWidth(), deviceBaseLine.y), this.axisBaseLineColor,this.axisBaseLineStrokeWidth);
+		},
+
+		_paintMetricsY : function(view,part,g2d,metricsY,baseLine,offsetPixel) {
+			var deviceBaseLine = this.getProjection().userToPixel(new JenScript.Point2D(baseLine, 0));
+			for (var i = 0; i< metricsY.length;i++) {
+				var m = metricsY[i];
+				m.metricsPlugin = this;
+				
+				var p = undefined;
+				p = new JenScript.Point2D(deviceBaseLine.x, m.getDeviceValue());
+				m.setMarkerLocation(p);
+				//if (MarkerPosition.isYCompatible(deviceMarkerPosition)) {
+				//	m.setMarkerPosition(deviceMarkerPosition);
+				//} else {
+					m.setMarkerPosition('W');
+				//}
+			}
+			this.metricsPainter.doPaintMetrics(g2d,part,metricsY);
+		},
+
+		/**
+		 * paint the base line for y metrics
+		 * 
+		 * @param v2d
+		 * @param g2d
+		 */
+		_paintMetricsYBaseLine : function(view,part,g2d,baseLine) {
+			var deviceBaseLine = this.getProjection().userToPixel(new JenScript.Point2D(baseLine, 0));
+			this.metricsPainter.doPaintLineMetrics(g2d,part,new JenScript.Point2D(deviceBaseLine.x, 0), new JenScript.Point2D(deviceBaseLine.x, this.getProjection().getView().getDevice().getHeight()), this.axisBaseLineColor,this.axisBaseLineStrokeWidth);
+		},
+
+		/**
+		 * Paints metrics.
+		 */
+		_paintMetrics : function(view,g2d,viewPart) {
+			if (!this.isAccessible(viewPart)) {
+				return;
+			}
+			this.metricsManager.setMetricsPlugin(this);
+			this.metricsPainter.setMetricsPlugin(this);
+			this._assignType();
+			var metrics = this.metricsManager.getDeviceMetrics();
+			if (this.deviceAxis === JenScript.DeviceAxis.AxisX) {
+				this._paintMetricsX(view,viewPart, g2d, metrics, this.baseLine, 0);
+				if (this.isPaintLine()) {
+					this._paintMetricsXBaseLine(view,viewPart, g2d, this.baseLine);
+				}
+			}
+			if (this.deviceAxis == JenScript.DeviceAxis.AxisY) {
+				this._paintMetricsY(view,viewPart,g2d,metrics,this.baseLine, 0);
+				if (this.isPaintLine()) {
+					this._paintMetricsYBaseLine(view,viewPart,g2d,this.baseLine);
+				}
+			}
+		},
+		
+		/**
+		 * paint device metrics plugin
+		 */
+		paintPlugin : function(g2d, part) {
+			this._paintMetrics(this.getProjection().getView(),g2d,part);
+		},
+	});
+	
+})();
+(function(){
+	JenScript.MetricsManager = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.MetricsManager, {
+		init : function(config){
+			config = config ||{};
+			this.metricsType;
+			this.metricsPlugin;
+		},
+		
+		setMetricsPlugin : function(metricsPlugin){
+			this.metricsPlugin=metricsPlugin;
+		},
+		getMetricsPlugin : function(){
+			return this.metricsPlugin;
+		},
+		
+		setMetricsType : function(metricsType){
+			this.metricsType=metricsType;
+		},
+		getMetricsType : function(){
+			return this.metricsType;
+		},
+		
+		getProjection : function(){
+			return this.metricsPlugin.getProjection();
+		},
+		
+		getDeviceMetrics : function(){
+			return [];
+		}
+	});
+})();
+(function(){
+	//
+	// MODELED METRICS
+	//
+	/**
+	 * metrics model takes the responsibility to create metrics based on multiplier exponent model
+	 */
+	JenScript.MetricsModel = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.MetricsModel, {
+		/**
+		 * init metrics model
+		 */
+		init : function(config){
+			config = config||{};
+	        /**model exponent*/
+	        this.exponent = config.exponent;
+	        /** metrics factor */
+	        this.factor = config.factor;
+	        /** metrics manager */
+	        this.metricsManager;
+	        /** the start reference to generate metrics */
+	        this.ref;
+	        /** the max value to attempt */
+	        this.maxValue;
+	        /** pixel label holder */
+	        this.pixelLabelHolder;
+	        /** metrics label color */
+	        this.metricsLabelColor;
+	        /** metrics marker color */
+	        this.metricsMarkerColor;
+	        /** minimal tag for this domain */
+	        this.solveType = 'major';
+		},
+		
+		/**
+		 * get metrics manager of this model
+		 * @returns {Object} metrics manager
+		 */
+		getMetricsManager : function(){
+			return this.metricsManager;
+		},
+		
+		/**
+		 * set metrics manager of this model
+		 * @param {Object} metrics manager
+		 */
+		setMetricsManager : function(metricsManager){
+			this.metricsManager = metricsManager;
+		},
+		
+		/**
+         * generates median metrics for this model
+         * @return metrics
+         */
+        generateMedianMetrics : function() {
+        	this.solveType = 'median';
+        	this.solve();
+        	var originFactor = this.factor;
+        	this.factor = this.factor.multiply(0.5);
+        	var that = this;
+        	var formater = function(){
+            	if(that.exponent < 0){
+            		if(new JenScript.BigNumber("0").equals(this.userValue))return '0';
+    	        	return this.userValue.toFixed(Math.abs(that.exponent)+1);
+    	        }
+    	        else{
+    	        	return this.userValue;
+    	        }
+            };
+        	var metrics = this.generateMetrics();
+        	for(var i = 0;i<metrics.length;i++){
+        		metrics[i].median = formater;
+        		metrics[i].format = formater;
+        	}
+        	this.factor = originFactor;
+        	return metrics;
+        },
+		
+		/**
+         * generates all metrics for this model
+         * @return {Object} metrics array
+         */
+        generateMetrics : function() {
+        	this.solveType = 'major';
+        	this.solve();
+        	var metrics = [];
+            var flag = true;
+            var metricsValue = this.ref;
+            var that = this;
+            var formater = function(){
+            	if(that.exponent < 0){
+    	        	if(new JenScript.BigNumber("0").equals(this.userValue))return '0';
+            		return this.userValue.toFixed(Math.abs(that.exponent));
+    	        }
+    	        else{
+    	        	return this.userValue;
+    	        }
+            };
+            var m0 = this.getMetricsManager().generateMetrics(metricsValue.toNumber(), this);
+            if (m0 !== undefined) {
+                metrics[metrics.length]=m0;
+                m0.major = true;
+                m0.format = formater;
+            }
+            while(flag){
+            	metricsValue = metricsValue.add(this.factor);
+            	 var m = this.getMetricsManager().generateMetrics(metricsValue.toNumber(), this);
+                 if (m !== undefined) {
+                	 m.major = true;
+                	 m.format = formater;
+                     metrics[metrics.length]=m;
+                 }
+                 if(metricsValue.greaterThanOrEqualTo(this.maxValue))
+                	 flag = false;
+            }
+            return metrics;
+        },
+		
+        /**
+         * solve this model according with given model parameters
+         */
+        solve : function (){
+        	var proj = this.metricsManager.getProjection();
+            if (this.getMetricsManager().getMetricsType() === JenScript.MetricsType.XMetrics) {
+            	this.userSize = new JenScript.BigNumber(proj.getUserWidth()+'');
+            	JenScript.BigNumber.config({ ROUNDING_MODE : JenScript.BigNumber.ROUND_CEIL });
+                var bd1 = new JenScript.BigNumber(proj.getMinX()+'').divide(this.factor);
+                var bi1 = new JenScript.BigNumber(bd1.toFixed(0));
+                this.ref = new JenScript.BigNumber(bi1).multiply(this.factor);
+                this.ref = this.ref.subtract(this.factor);
+                if(this.ref.equals(0)){
+                	this.ref = this.ref.subtract(this.factor);
+                }
+                this.pixelSize = new JenScript.BigNumber(proj.getPixelWidth()+'');
+                this.maxValue = new JenScript.BigNumber(proj.getMaxX()+'');
+            }
+            else if (this.getMetricsManager().getMetricsType() === JenScript.MetricsType.YMetrics) {
+            	this.userSize = new JenScript.BigNumber(proj.getUserHeight()+'');
+            	JenScript.BigNumber.config({ ROUNDING_MODE : JenScript.BigNumber.ROUND_CEIL });
+                var bd1 = new JenScript.BigNumber(proj.getMinY()+'').divide(this.factor);
+                var bi1 = new JenScript.BigNumber(bd1.toFixed(0));
+                this.ref = new JenScript.BigNumber(bi1).multiply(this.factor);
+                this.ref = this.ref.subtract(this.factor);
+                
+                if(this.ref.equals(0)){
+                	this.ref = this.ref.subtract(this.factor);
+                }
+                this.pixelSize = new JenScript.BigNumber(proj.getPixelHeight()+'');
+                this.maxValue = new JenScript.BigNumber(proj.getMaxY()+'');
+            }
+            JenScript.BigNumber.config({ ROUNDING_MODE : JenScript.BigNumber.ROUND_HALF_EVEN });
+            var s = (this.ref.toNumber()+'').length;
+            if(this.solveType === 'major')
+            	this.pixelLabelHolder = 3/4*s*this.metricsManager.metricsPlugin.median.tickTextFontSize;
+            else if(this.solveType === 'median')
+            	this.pixelLabelHolder = 3/4*s*this.metricsManager.metricsPlugin.median.tickTextFontSize;
+            else if(this.solveType === 'minor')
+            	this.pixelLabelHolder = 8;
+        },
+        
+    
+        
+		 /**
+         * return true if this model is applicable, false otherwise
+         * @return {Boolean} true if this model is applicable, false otherwise
+         */
+        isValid : function() {
+            this.solve();
+            var compare = (this.userSize.divide(this.factor)).multiply(new JenScript.BigNumber(this.pixelLabelHolder)).compareTo(this.pixelSize);
+            return (compare === -1) ? true: false;
+        }
+	});
+})();
+(function(){
+
+	
+	 
+	/**
+	 * modeled metrics manager generate metrics based on exponent models
+	 */
+	JenScript.MetricsManagerModeled = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MetricsManagerModeled, JenScript.MetricsManager);
+	JenScript.Model.addMethods(JenScript.MetricsManagerModeled, {
+		/**
+		 * init modeled metrics manager
+		 */
+		_init : function(config){
+			config = config ||{};
+			JenScript.MetricsManager.call(this,config);
+			this.metricsModels = [];
+		},
+		
+		/**
+	     * create symmetric list model for given exponent (from -exponent to +exponent list model)
+	     * @param {Object} exp  the reference exponent model
+	     * @return {Object} a new collection of exponent model from -exp to +exp
+	     */
+	    createSymmetricListModel : function(exp) {
+	        var models =[];
+	        for (var i = -exp; i <= exp; i++) {
+	            var m = this.createExponentModel(i);
+	            models[models.length]=m;
+	        }
+	        return models;
+	    },
+		
+	    /**
+	     * create standard exponent model {@link MetricsModel} with the given exponent
+	     * @param {Object} exp  the reference exponent model
+	     * @return {Object} a new exponent model
+	     */
+	    createExponentModel : function(exp) {
+	        var model = undefined;
+	        var mutPattern = '';
+	        if (exp < 0) {
+	            mutPattern = mutPattern+"0.";
+	            for (var j = 1; j < Math.abs(exp); j++) {
+	                mutPattern = mutPattern+"0";
+	            }
+	            mutPattern = mutPattern+"1";
+	            var multiplier = mutPattern;
+	            model = new JenScript.MetricsModel({exponent : exp,factor :new JenScript.BigNumber(multiplier)});
+
+	        }
+	        else if (exp > 0) {
+	            mutPattern = mutPattern +"1";
+	            for (var j = 1; j <= Math.abs(exp); j++) {
+	            	mutPattern = mutPattern+"0";
+	            }
+	            var multiplier = mutPattern;
+	            model = new JenScript.MetricsModel({exponent : exp,factor:new JenScript.BigNumber(multiplier)});
+
+	        }
+	        else if (exp == 0) {
+	            model = new JenScript.MetricsModel({exponent : 0,factor : new JenScript.BigNumber("1")});
+	        }
+	        return model;
+	    },
+		
+		
+		
+	    /**
+	     * register the given model
+	     * @param {Object} model
+	     */
+	    registerMetricsModel :  function(model) {
+	    	model.setMetricsManager(this);
+	    	this.metricsModels[this.metricsModels.length] = model;
+	        this.metricsModels.sort(function(m1,m2){
+	        	return m1.factor.compareTo(m2.factor);
+	        });
+	    },
+
+	    /**
+	     * register the given model array
+	     * @param {Object} models array
+	     */
+	    registerMetricsModels : function(models) {
+	        for (var i = 0; i < models.length; i++) {
+	            this.registerMetricsModel(models[i]);
+	        }
+	    },
+	    
+	    /**
+	     * get all generated metrics based on the registered exponent model
+	     */
+	    getDeviceMetrics : function(){
+	    	var m1=[];
+	    	var m2=[];
+	    	var m3=[];
+			for (var m = 0; m < this.metricsModels.length; m++) {
+				var valid = this.metricsModels[m].isValid();
+				if(valid){
+					//console.log("Apply exponent model: "+this.metricsModels[m].exponent);
+					m1 = this.metricsModels[m].generateMetrics();
+					var filterm1 = function(mf){
+						 for (var f = 0; f < m1.length; f++) {
+							 if(mf.userValue === m1[f].userValue)
+								 return true;
+						 }
+						 return false;
+					 };
+					
+					 if(m1.length < 4){
+						var mf2 = this.metricsModels[m].generateMedianMetrics();
+						for (var a = 0; a < mf2.length; a++) {
+							if(!filterm1(mf2[a])){
+								//mf2[a].median = true;
+								m2[m2.length] = mf2[a];
+							}
+						}
+					 }
+					 var filterm2 = function(mf){
+						 for (var f = 0; f < m2.length; f++) {
+							 if(mf.userValue === m2[f].userValue)
+								 return true;
+						 }
+						 return false;
+					 };
+					 
+					 var subModel = this.createExponentModel((this.metricsModels[m].exponent-1));
+					 subModel.setMetricsManager(this);
+					 subModel.solveType = 'minor';
+					 if(subModel.isValid()){
+						var subMetrics = subModel.generateMetrics();
+						for (var i = 0; i < subMetrics.length; i++) {
+							if(!filterm1(subMetrics[i]) && !filterm2(subMetrics[i])){
+								subMetrics[i].minor = true;
+								m3[m3.length] = subMetrics[i];
+							}
+						}
+					 }
+					 return [].concat(m1,m2,m3);
+				}
+			}
+	    },
+
+	    /**
+	     * generat metrics for the given value
+	     * @param  {Number} userValue the user value for this metrics
+	     * @param  {Number} model the given exponent model
+	     * @return {Object} return new metrics
+	     */
+	    generateMetrics : function (userValue, model) {
+	        var metrics = new JenScript.Metrics({metricsType:this.getMetricsType()});
+	        var proj = this.getProjection();
+	        var deviceValue = 0;
+	        var maxPixelValue = 0;
+	        if (this.getMetricsType() === JenScript.MetricsType.XMetrics) {
+	            deviceValue = proj.userToPixelX(userValue);
+	            maxPixelValue = proj.getPixelWidth();
+	        }
+	        else if (this.getMetricsType() === JenScript.MetricsType.YMetrics) {
+	            deviceValue = proj.userToPixelY(userValue);
+	            maxPixelValue = proj.getPixelHeight();
+	        }
+
+	        if (deviceValue < 0 || deviceValue > maxPixelValue) {
+	            return undefined;
+	        }
+
+	        metrics.setDeviceValue(deviceValue);
+	        metrics.setUserValue(userValue);
+	        
+//	        console.log("generate 1 metric for value label: "+metrics.label+" with type : "+this.getMetricsType() +" with model exponent :"+model.exponent);
+//	        metrics.setLockLabel(isLockLabel());
+//	        metrics.setLockMarker(isLockMarker());
+
+	        return metrics;
+	    }
+	});
+})();
+(function(){
+
+	/**
+	 * time metrics model takes the responsibility to create time metrics based on time model
+	 */
+	JenScript.TimeModel = function(config) {
+		//TimeModel
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.TimeModel, {
+		/**
+		 * init metrics model
+		 */
+		init : function(config){
+			config = config||{};
+	        /**model exponent*/
+	        this.millis = config.millis;
+	        /** metrics manager */
+	        this.metricsManager;
+	        /** the model name  */
+	        this.name = config.name;
+	        /** the model family name */
+	        this.familyName = config.familyName;
+	        /** pixel label holder */
+	        this.pixelLabelHolder = (config.pixelLabelHolder !== undefined )?config.pixelLabelHolder : 18;
+	        /**minimal*/
+	        this.minimal = (config.minimal !== undefined)?config.minimal : false;
+	        /**unit*/
+	        this.unit;
+	        /**user formater*/
+	        this.format = config.format;
+		},
+		
+		/**
+         * @param 
+         */
+        setFormat : function(format) {
+             this.format = format;
+        },
+        
+        /**
+         * @return the format
+         */
+        getFormat : function() {
+            return this.format;
+        },
+		
+		/**
+         * @return the millis
+         */
+        getMillis : function() {
+            return this.millis;
+        },
+		
+		/**
+		 * get metrics manager of this model
+		 * @returns {Object} metrics manager
+		 */
+		getMetricsManager : function(){
+			return this.metricsManager;
+		},
+		
+		/**
+		 * set metrics manager of this model
+		 * @param {Object} metrics manager
+		 */
+		setMetricsManager : function(metricsManager){
+			this.metricsManager = metricsManager;
+		},
+		
+		/**
+		 * override this method to provide metrics for this model 
+		 */
+		generateMetrics : function() {return[];},
+		
+		
+		/**
+		 * override this method to provide minify of this model 
+		 */
+		getMinify : function() {
+			var conf = {};
+    		conf.millis =  this.millis;
+    		conf.name = this.name+ ' minified';
+    		conf.familyName = this.familyName;
+    		conf.unit = this.unit;
+    		conf.pixelLabelHolder = 4;
+    		conf.minimal = true;
+    		var minifyModel = new JenScript.TimeModel(conf);
+    		minifyModel.generateMetrics = this.generateMetrics;
+			return minifyModel;
+		},
+		
+	});
+})();
+(function(){
+	/**
+	 * abstract minute model based on time model
+	 */
+	JenScript.MinuteModel = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MinuteModel, JenScript.TimeModel);
+	JenScript.Model.addMethods(JenScript.MinuteModel, {
+		/**
+		 * init minute model
+		 */
+		_init : function(config){
+			config = config ||{};
+			config.familyName = 'Minute Model';
+			config.unit = 'minute';
+			this.minuteMultiplier=config.minuteMultiplier;
+			config.millis = 1000*60*this.minuteMultiplier;
+			JenScript.TimeModel.call(this,config);
+		},
+		
+//		getMinify : function() {
+//			var conf = {};
+//    		conf.millis =  this.millis;
+//    		conf.name = this.name+ ' minified';
+//    		conf.familyName = this.familyName;
+//    		conf.unit = this.unit;
+//    		conf.pixelLabelHolder = 4;
+//    		conf.minimal = true;
+//    		conf.minuteMultiplier = this.minuteMultiplier;
+//			return new JenScript.MinuteModel(conf);
+//		},
+		
+        generateMetrics : function() {
+            var proj = this.getMetricsManager().getTimingProjection();
+            var cal = new Date(proj.getMinDate());
+            var ref = new Date(cal.getFullYear(),cal.getMonth(),cal.getDate(),cal.getHours(),0,0,0);
+            //console.log("generic call generate metrics for model : "+this.name);
+            //console.log("minute multiplier def : : "+this.minuteMultiplier);
+            var points = this.getMetricsManager().generateMinutesPoint(ref,(proj.durationMinutes()+cal.getMinutes()),this.minuteMultiplier,this);
+            for (var p = 0; p < points.length; p++) {
+            	if(this.format){
+            		var that = this;
+                	if(!this.minimal){
+                		points[p].format = function (){
+                    		return that.format(this.getTime());
+                    	};
+                	}else{
+                		points[p].format = function (){
+    	            		return '';
+    	            	};
+                	}
+            	}else{
+            		if(!this.minimal){
+            			points[p].format = function (){
+                    		return this.getTime().getMinutes();
+                    	};
+                	}else{
+                		points[p].format = function (){
+    	            		return '';
+    	            	};
+                	}
+            	}
+			}
+            return points;
+        }
+	});
+	
+
+	/**
+	 * one 1 minute model based on time model
+	 */
+	JenScript.Minute1Model = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Minute1Model, JenScript.MinuteModel);
+	JenScript.Model.addMethods(JenScript.Minute1Model, {
+		/**
+		 * init 1 minute model
+		 */
+		__init : function(config){
+			config = config ||{};
+			config.minuteMultiplier = 1;
+			config.name = '1 minute model';
+			JenScript.MinuteModel.call(this,config);
+		},
+	});
+	
+	
+	/**
+	 * 10 minutes model based on time model
+	 */
+	JenScript.Minute10Model = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Minute10Model, JenScript.MinuteModel);
+	JenScript.Model.addMethods(JenScript.Minute10Model, {
+		/**
+		 * init 10 minutes model
+		 */
+		__init : function(config){
+			config = config ||{};
+			config.minuteMultiplier = 10;
+			config.name = '10 minute model';
+			JenScript.MinuteModel.call(this,config);
+		},
+		
+	});
+	
+	
+	/**
+	 * 15 minutes model based on time model
+	 */
+	JenScript.Minute15Model = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Minute15Model, JenScript.MinuteModel);
+	JenScript.Model.addMethods(JenScript.Minute15Model, {
+		/**
+		 * init 15 minutes model
+		 */
+		__init : function(config){
+			config = config ||{};
+			config.minuteMultiplier = 15;
+			config.name = '15 minute model';
+			JenScript.MinuteModel.call(this,config);
+		},
+		
+	});
+	
+	
+	/**
+	 * 20 minutes model based on time model
+	 */
+	JenScript.Minute20Model = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Minute20Model, JenScript.MinuteModel);
+	JenScript.Model.addMethods(JenScript.Minute20Model, {
+		/**
+		 * init 20 minutes model
+		 */
+		__init : function(config){
+			config = config ||{};
+			config.minuteMultiplier = 20;
+			config.name = '20 minute model';
+			JenScript.MinuteModel.call(this,config);
+		},
+		
+	});
+	
+	
+	/**
+	 * one hour model based on time model
+	 */
+	JenScript.HourModel = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.HourModel, JenScript.TimeModel);
+	JenScript.Model.addMethods(JenScript.HourModel, {
+		/**
+		 * init minute model
+		 */
+		_init : function(config){
+			config = config ||{};
+			config.millis = 1000*60*60;
+			config.name = 'one hour';
+			config.familyName = 'hour model';
+			config.unit = 'hour';
+			JenScript.TimeModel.call(this,config);
+		},
+		
+        generateMetrics : function() {
+            var time = this.getMetricsManager().getTimingProjection();
+            var cal = new Date(time.getMinDate());
+            var ref = new Date(cal.getFullYear(),cal.getMonth(),cal.getDate(),cal.getHours(),0,0,0);
+            var points = this.getMetricsManager().generateHoursPoint(ref,time.durationHours(),1,this);
+            for (var p = 0; p < points.length; p++) {
+            	if(this.format){
+            		var that = this;
+                	if(!this.minimal){
+    	            	points[p].format = function (){
+    	            		return that.format(this.getTime());
+    	            	};
+                	}else{
+                		points[p].format = function (){
+    	            		return '';
+    	            	};
+                	}
+            	}else{
+            		if(!this.minimal){
+    	            	points[p].format = function (){
+    	            		return this.getTime().getHours();
+    	            	};
+                	}else{
+                		points[p].format = function (){
+    	            		return '';
+    	            	};
+                	}
+            	}
+            	
+			}
+            return points;
+        }
+	});
+	
+	
+	/**
+	 * one day model based on time model
+	 */
+	JenScript.DayModel = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.DayModel, JenScript.TimeModel);
+	JenScript.Model.addMethods(JenScript.DayModel, {
+		/**
+		 * init day model
+		 */
+		_init : function(config){
+			config = config ||{};
+			config.millis = 1000*60*60*24;
+			config.name = 'one day';
+			config.familyName = 'day model';
+			config.unit = 'day';
+			config.pixelLabelHolder = (config.pixelLabelHolder !== undefined)?config.pixelLabelHolder : 30;
+			JenScript.TimeModel.call(this,config);
+		},
+		
+        generateMetrics : function() {
+            var time = this.getMetricsManager().getTimingProjection();
+            var cal = new Date(time.getMinDate());
+            var ref = new Date(cal.getFullYear(),cal.getMonth(),cal.getDate(),12,0,0);
+            var points = this.getMetricsManager().generateDaysPoint(ref,time.durationDays(),1,this);
+            for (var p = 0; p < points.length; p++) {
+            	if(this.format){
+            		var that = this;
+                	if(!this.minimal){
+    	            	points[p].format = function (){
+    	            		return that.format(this.getTime());
+    	            	};
+                	}else{
+                		points[p].format = function (){
+    	            		return '';
+    	            	};
+                	}
+            	}else{
+            		if(!this.minimal){
+            			points[p].format = function (){
+                    		var shortMonthNames = [ "Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.",
+                    		                   "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec." ];
+                    		
+                    		return shortMonthNames[this.getTime().getMonth()]+','+this.getTime().getDate();
+                    	};
+                	}else{
+                		points[p].format = function (){
+    	            		return '';
+    	            	};
+                	}
+            		
+            	}
+            	
+			}
+            return points;
+        }
+	});
+	
+	
+
+	/**
+	 * one month model based on time model
+	 */
+	JenScript.MonthModel = function(config) {
+		//MonthModel
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MonthModel, JenScript.TimeModel);
+	JenScript.Model.addMethods(JenScript.MonthModel, {
+		/**
+		 * init month model
+		 */
+		_init : function(config){
+			config = config ||{};
+			config.millis =  1000 * 60*60*24*7*4;
+			config.name = 'one month';
+			config.familyName = 'month model';
+			config.unit = 'month';
+			config.pixelLabelHolder = (config.pixelLabelHolder !== undefined)?config.pixelLabelHolder : 40;
+			JenScript.TimeModel.call(this,config);
+		},
+		
+        generateMetrics : function() {
+            var time = this.getMetricsManager().getTimingProjection();
+            var cal = new Date(time.getMinDate());
+            var ref = new Date(cal.getFullYear(),cal.getMonth(),1,0,0,0);//first day of month
+            var points = this.getMetricsManager().generateMonthsPoint(ref,time.durationMonth(),1,this);
+            for (var p = 0; p < points.length; p++) {
+            	if(this.format){
+            		var that = this;
+                	if(!this.minimal){
+                		points[p].format = function (){
+                    		return that.format(this.getTime());
+                    	};
+                	}else{
+                		points[p].format = function (){
+    	            		return '';
+    	            	};
+                	}
+            	}else{
+            		if(!this.minimal){
+            			points[p].format = function (){
+            				var shortMonthNames = [ "Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.",
+                         		                   "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec." ];
+                         		
+                         		return shortMonthNames[this.getTime().getMonth()]+' '+this.getTime().getFullYear();
+                    	};
+                	}else{
+                		points[p].format = function (){
+    	            		return '';
+    	            	};
+                	}
+            	}
+			}
+            return points;
+        }
+	});
+	
+	
+	/**
+	 * one year model based on time model
+	 */
+	JenScript.YearModelOLD = function(config) {
+		//YearModel
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.YearModelOLD, JenScript.TimeModel);
+	JenScript.Model.addMethods(JenScript.YearModelOLD, {
+		/**
+		 * init year model
+		 */
+		_init : function(config){
+			config = config ||{};
+			config.millis =  1000*60*60*24*31*12;
+			config.name = 'one year';
+			config.familyName = 'year model';
+			config.unit = 'year';
+			config.pixelLabelHolder = (config.pixelLabelHolder !== undefined)?config.pixelLabelHolder : 30;
+			JenScript.TimeModel.call(this,config);
+		},
+		
+        generateMetrics : function() {
+            var time = this.getMetricsManager().getTimingProjection();
+            var cal = new Date(time.getMinDate());
+            var ref = new Date(cal.getFullYear(),0,1,0,0,0);//first day of year
+            var points = this.getMetricsManager().generateMonthsPoint(ref,time.durationMonth(),12,this);
+            for (var p = 0; p < points.length; p++) {
+            	if(this.format){
+            		var that = this;
+                	if(!this.minimal){
+                		points[p].format = function (){
+                    		return that.format(this.getTime());
+                    	};
+                	}else{
+                		points[p].format = function (){
+    	            		return '';
+    	            	};
+                	}
+            	}else{
+            		if(!this.minimal){
+            			points[p].format = function (){
+                    		return this.getTime().getFullYear();
+                    	};
+                	}else{
+                		points[p].format = function (){
+    	            		return '';
+    	            	};
+                	}
+            	}
+			}
+            return points;
+        }
+	});
+	
+	
+	/**
+	 * one year model based on time model
+	 */
+	JenScript.YearModel = function(config) {
+		//YearModel
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.YearModel, JenScript.TimeModel);
+	JenScript.Model.addMethods(JenScript.YearModel, {
+		/**
+		 * init year model
+		 */
+		_init : function(config){
+			config = config ||{};
+			this.yearMultiplier = (config.yearMultiplier !== undefined)?config.yearMultiplier:1;
+			config.millis =  1000*60*60*24*365*this.yearMultiplier;
+			config.name = 'one year';
+			config.familyName = 'year model';
+			config.unit = 'year';
+			config.pixelLabelHolder = (config.pixelLabelHolder !== undefined)?config.pixelLabelHolder : 30;
+			JenScript.TimeModel.call(this,config);
+		},
+		
+        generateMetrics : function() {
+            var time = this.getMetricsManager().getTimingProjection();
+            var cal = new Date(time.getMinDate());
+            var ref = new Date(cal.getFullYear(),0,1,0,0,0);//first day of year
+            var points = this.getMetricsManager().generateYearsPoint(ref,time.durationYear(),this.yearMultiplier,this);
+            for (var p = 0; p < points.length; p++) {
+            	if(this.format){
+            		var that = this;
+                	if(!this.minimal){
+                		points[p].format = function (){
+                    		return that.format(this.getTime());
+                    	};
+                	}else{
+                		points[p].format = function (){
+    	            		return '';
+    	            	};
+                	}
+            	}else{
+            		if(!this.minimal){
+            			points[p].format = function (){
+                    		return this.getTime().getFullYear();
+                    	};
+                	}else{
+                		points[p].format = function (){
+    	            		return '';
+    	            	};
+                	}
+            	}
+			}
+            return points;
+        }
+	});
+	
+})();
+(function(){
+
+	
+	/**
+	 * modeled metrics manager generate metrics based on exponent models
+	 */
+	JenScript.TimeMetricsManager = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.TimeMetricsManager, JenScript.MetricsManager);
+	JenScript.Model.addMethods(JenScript.TimeMetricsManager, {
+		/**
+		 * init modeled metrics manager
+		 */
+		_init : function(config){
+			config = config ||{};
+			JenScript.MetricsManager.call(this,config);
+			this.timingModels = [];
+			
+			if(config.models !== undefined){
+				for (var m = 0; m < config.models.length; m++) {
+					var model = config.models[m];
+					this.registerModel(model);
+				}
+			}
+		},
+		
+		/**
+		 * register time model
+		 */
+		registerModel : function(model){
+			model.setMetricsManager(this);
+			this.timingModels[this.timingModels.length] = model;
+		},
+		
+		/**
+	     * get the applicable sequence metrics timing according to managers timing models
+	     * 
+	     * @return timing sequence
+	     */
+	    getTimingSequence : function() {
+	    	var sequence = [];
+	        var timeProjection = this.getTimingProjection();
+	        this.timingModels.sort(function (tm1, tm2) {
+	        	 if (tm1.getMillis() > tm2.getMillis()) {
+	                 return 1;
+	             }
+	             else if (tm1.getMillis() > tm2.getMillis()) {
+	                 return -1;
+	             }
+	             else {
+	                   return 0;
+	             }
+	        });
+	        //console.log("count timing models : "+this.timingModels.length);
+	        for (var m = 0; m < this.timingModels.length; m++) {
+	        	var  timingModel = this.timingModels[m];
+	        	//console.log("check timing model : "+timingModel.name+" with pixel holder: "+timingModel.pixelLabelHolder);
+	        	var projTimeMillis = timeProjection.durationMillis();
+	        	var modelTimeMillis = timingModel.getMillis();
+	        	
+	        	//in normal mode ?
+	        	if ((projTimeMillis / modelTimeMillis) * timingModel.pixelLabelHolder < timeProjection.getTimeDurationPixel()) {
+	        		//console.log("accept model : "+timingModel.name);
+	            	sequence[sequence.length] = timingModel;
+	            }//in minimal with 4 pixel holder ?
+	        	else if ((projTimeMillis / modelTimeMillis) * 4 < timeProjection.getTimeDurationPixel()) {
+	        		//console.log("accept minified model : "+timingModel.name);
+	        		var minifyModel = timingModel.getMinify();
+	            	sequence[sequence.length] = minifyModel;
+	            }else{
+	            	//console.log("non accept model : "+timingModel.name);
+	            }
+	        	if(sequence.length >= 3) return sequence;
+	        }
+	        return sequence;
+	    },
+		
+		
+		 /**
+	     * get all generated metrics based on the registered exponent model
+	     */
+	    getDeviceMetrics : function(){
+	    	
+	    	var models = this.getTimingSequence();
+	    	//console.log("getDeviceMetrics with timing sequence model count "+models.length);
+	    	var metrics = [];
+	    	var sequenceCount = models.length;
+	    	
+	    	var perfomFilter = function(met){
+	    		var filteredMetrics = [];
+	    		//console.log("compare for total metrics : "+metrics.length);
+	    		for (var m = 0; m < metrics.length; m++) {
+	    			//console.log("compare = "+metrics[m].userValue+" with "+met.userValue);
+					if(metrics[m].userValue === met.userValue){
+						//console.log('remove metrics : '+metrics[m].userValue+" ,"+metrics[m].format());
+					}
+					else{
+						filteredMetrics[filteredMetrics.length] = metrics[m];
+					}
+				}
+	    		metrics = filteredMetrics;
+	    	};
+	    	
+	    	var makeMinor = function (metrics){
+	    		for (var gm = 0; gm < metrics.length; gm++) {
+	    			var met = metrics[gm];
+	    			met.minor=true;met.median=false;met.major=false;
+	    		}
+	    	};
+	    	var makeMedian = function (metrics){
+	    		for (var gm = 0; gm < metrics.length; gm++) {
+	    			var met = metrics[gm];
+	    			met.minor=false;met.median=true;met.major=false;
+	    		}
+	    	};
+	    	var makeMajor = function (metrics){
+	    		for (var gm = 0; gm < metrics.length; gm++) {
+	    			var met = metrics[gm];
+	    			met.minor=false;met.median=false;met.major=true;
+	    		}
+	    	};
+	    	if(sequenceCount === 1){
+	    		//console.log('sequence strategy : 1 '+models[0].name);
+	    		models[0].setMetricsManager(this);
+	    		var metrics1 = models[0].generateMetrics();
+	    		if(models[0].minimal)
+	    			makeMinor(metrics1);
+	    		else
+	    			makeMajor(metrics1);
+	    		metrics = metrics.concat(metrics1);
+	    	}
+	    	else if(sequenceCount === 2){
+	    		//console.log('sequence strategy : 2 '+models[0].name);
+	    		models[0].setMetricsManager(this);
+	    		models[1].setMetricsManager(this);
+	    		var metrics1 = models[0].generateMetrics();
+	    		var metrics2 = models[1].generateMetrics();
+	    		if(models[0].minimal){
+	    			makeMinor(metrics1);
+	    			makeMajor(metrics2);
+	    		}else{
+	    			makeMedian(metrics1);
+	    			makeMajor(metrics2);
+	    		}
+	    		
+	    		metrics = metrics.concat(metrics1);
+	    		for (var i = 0; i < metrics2.length; i++) {
+					var m = metrics2[i];
+					perfomFilter(m);
+				}
+	    		metrics = metrics.concat(metrics2);
+	    	}
+	    	else if(sequenceCount === 3){
+	    		//console.log('sequence strategy : 3 '+models[0].name);
+	    		
+	    		models[0].setMetricsManager(this);
+	    		models[1].setMetricsManager(this);
+	    		models[2].setMetricsManager(this);
+	    		
+	    		var metrics1 = models[0].generateMetrics();
+	    		var metrics2 = models[1].generateMetrics();
+	    		var metrics3 = models[2].generateMetrics();
+	    		
+	    		//console.log("models generation ok");
+	    		
+	    		makeMinor(metrics1);
+	    		metrics = metrics.concat(metrics1);
+	    		//console.log("minor generation ok : "+metrics.length);
+	    		
+	    		makeMedian(metrics2);
+//	    		for (var i = 0; i < metrics2.length; i++) {
+//					var m = metrics2[i];
+//					//perfomFilter(m);
+//				}
+	    		metrics = metrics.concat(metrics2);
+	    		//console.log("median generation ok : "+metrics.length);
+	    		
+	    		makeMajor(metrics3);
+	    		//console.log("major m3 size : "+metrics3.length);
+	    		for (var j = 0; j < metrics3.length; j++) {
+					var m = metrics3[j];
+					//console.log('compare m3 : '+m.format());
+					perfomFilter(m);
+				}
+	    		//console.log("median after filter ok : "+metrics.length);
+	    		
+	    		metrics = metrics.concat(metrics3);
+	    		//console.log("major generation ok : "+metrics.length);
+	    		
+	    	}
+	    	return metrics;
+	    },
+
+		
+		/**
+	     * get the window worker
+	     * 
+	     * @return time window
+	     */
+	    getTimingProjection : function() {
+	        var proj = this.getProjection();
+	        if (proj instanceof JenScript.LinearProjection) {
+	            if (this.getMetricsType() === JenScript.MetricsType.XMetrics) {
+	            	
+	                var timeX = new JenScript.TimeXProjection(
+	                					{
+	                						minXDate : new Date(proj.getMinX()),
+	                                        maxXDate : new Date(proj.getMaxX()),
+	                                        minY : proj.getMinY(),
+	                                        maxY : proj.getMaxY()
+	                                    }
+	                );
+	                timeX.setView(proj.getView());
+	                return timeX;
+	            }
+	            else if (this.getMetricsType() == JenScript.MetricsType.YMetrics) {
+	            	var timeY =  new JenScript.TimeYProjection(
+	            				{
+	            					minX : proj.getMinX(),
+	            					maxX : proj.getMaxX(),
+	            					minYDate : new Date(proj.getMinY()),
+	                                maxYDate : new Date(proj.getMaxY())                   
+	            				}		
+	            	);
+	                timeY.setView(proj.getView());
+	                return timeY;
+	            }
+	        }
+	        else if (proj instanceof JenScript.TimeXProjection || proj instanceof JenScript.TimeYProjection) {
+	        	//alert('proj instance time');
+	            return  proj;
+	        }
+	        return undefined;
+	    },
+	    
+	    /**
+	     * generate a metrics for the given calendar
+	     * 
+	     * @param time
+	     *            the time for this metrics
+	     * @return metrics
+	     */
+	    generateMetricsPoint : function(time,model) {
+	        var metrics = new JenScript.TimePointMetrics({metricsType:this.getMetricsType()});
+	        metrics.setTime(time);
+	        var userValue = time.getTime();
+	        var timingWindow = this.getTimingProjection();
+	        var deviceValue = timingWindow.timeToPixel(time);
+	        var max = timingWindow.getTimeDurationPixel();
+	        if (deviceValue < 0 || deviceValue > max){
+	            return undefined;
+	        }
+	        metrics.setDeviceValue(deviceValue);
+	        metrics.setUserValue(userValue);
+	        return metrics;
+	    },
+
+	    /**
+	     * generate metrics duration for the given start and end time
+	     * 
+	     * @param startTime
+	     *            the start time of the duration
+	     * @param endTime
+	     *            the end time of the duration
+	     * @return time duration
+	     */
+	    generateMetricsDuration : function(startTime,endTime,model) {
+	        var pointStart = this.generateMetricsPoint(startTime, model);
+	        var pointEnd = this.generateMetricsPoint(endTime, model);
+
+	        var centerMillis = startTime.getTime() + (endTime.getTime() - startTime.getTime()) / 2;
+	       
+	        var middleTime = new Date(centerMillis);
+
+	        var durationMetrics = new JenScript.TimeDurationMetrics(this.getMetricsType());
+	        var userValue = middleTime.getTime();
+	        var timingWindow = getTimingProjection();
+	        var deviceValue = timingWindow.timeToPixel(middleTime);
+	        var max = timingWindow.getTimeDurationPixel();
+
+	        if (deviceValue < 0 || deviceValue > max)
+	            return null;
+
+	        durationMetrics.setDeviceValue(deviceValue);
+	        durationMetrics.setUserValue(userValue);
+	       
+	        durationMetrics.setMetricsStart(pointStart);
+	        durationMetrics.setMetricsEnd(pointEnd);
+	        durationMetrics.setTimeStart(startTime.getTime());
+	        durationMetrics.setTimeEnd(endTime.getTime());
+
+	        return durationMetrics;
+	    },
+
+
+	    /**
+	     * generate seconds from reference for the given duration and seconds increment
+	     * 
+	     * @param ref
+	     * @param duration
+	     * @param secondIncrement
+	     * @return seconds metrics
+	     */
+	    generateSecondsPoint : function(ref,duration,secondIncrement,model) {
+	    	var seconds = [];
+	        for (var i = 0; i <= parseInt(duration) + 1; i = i + secondIncrement) {
+	            var c = new Date(ref.getFullYear(),ref.getMonth(),ref.getDate(),ref.getHours(),ref.getMinutes(),ref.getSeconds()+i,0);
+	            var m = this.generateMetricsPoint(c,model);
+	            if (m != undefined) {
+	            	seconds[seconds.length] = m;
+	            }
+	        }
+	        return seconds;
+	    },
+
+	    /**
+	     * generate minutes from reference for the given duration and minute increment
+	     * 
+	     * @param ref
+	     * @param durationMinutes
+	     * @param minuteIncrement
+	     * @return minutes metrics
+	     */
+	    generateMinutesPoint : function(ref,durationMinutes,minuteIncrement,model) {
+	    	//console.log('>>> generate minute points for model : '+model.name+' with ref :  '+ref +' and duration minutes : '+durationMinutes);
+	    	var minutes = [];
+	        for (var i = 0; i <= (parseInt(durationMinutes)); i = i + minuteIncrement) {
+	            var c = new Date(ref.getFullYear(),ref.getMonth(),ref.getDate(),ref.getHours(),(ref.getMinutes()+i),0,0);
+	            var m = this.generateMetricsPoint(c,model);
+	            if (m !== undefined) {
+	                minutes[minutes.length] = m;
+	            }
+	        }
+	        return minutes;
+	    },
+
+	  
+	    /**
+	     *  generate hours from reference for the given duration and hours increment
+	     * @param ref
+	     * @param durationHours
+	     * @param hoursIncrement
+	     * @param model
+	     * @return time point metrics collection
+	     */
+	    generateHoursPoint : function(ref,durationHours,hoursIncrement,model) {
+	    	var hours = [];
+	        for (var i = 0; i <= parseInt(durationHours) + 1; i = i + hoursIncrement) {
+	            var c = new Date(ref.getFullYear(),ref.getMonth(),ref.getDate(),ref.getHours()+i,ref.getMinutes(),0,0);
+	            var m = this.generateMetricsPoint(c,model);
+	            if (m != undefined) {
+	            	hours[hours.length] = m;
+	            }
+	        }
+	        return hours;
+	    },
+
+	    /**
+	     * generate days from reference for the given duration and days increment
+	     * 
+	     * @param ref
+	     * @param durationDays
+	     * @param daysIncrement
+	     * @return days metrics
+	     */
+	    generateDaysPoint : function(ref,durationDays,daysIncrement,model) {
+	        var days = [];
+	        for (var i = 0; i <= parseInt(durationDays) + 1; i = i + daysIncrement) {
+	            var c = new Date(ref.getFullYear(),ref.getMonth(),ref.getDate()+i,ref.getHours(),0,0,0);
+	            var m = this.generateMetricsPoint(c,model);
+	            if (m != undefined) {
+	            	days[days.length] = m;
+	            }
+	        }
+	        return days;
+	    },
+
+	    /**
+	     * generate months from reference for the given duration and months increment
+	     * 
+	     * @param ref
+	     * @param durationMonth
+	     * @param monthsIncrement
+	     * @return months metrics
+	     */
+	    generateMonthsPoint : function(ref,durationMonth,monthsIncrement,model) {
+	        var days = [];
+	        for (var i = 0; i <= parseInt(durationMonth) + 12 + 1; i = i + monthsIncrement) {
+	        	var c = new Date(ref.getFullYear(),ref.getMonth()+i,1,0,0,0);
+	            var m = this.generateMetricsPoint(c, model);
+	            if (m != undefined) {
+	            	days[days.length] = m;
+	            }
+	        }
+	        return days;
+	    },
+	    
+	    /**
+	     * generate years from reference for the given duration and months increment
+	     * 
+	     * @param ref
+	     * @param durationYears
+	     * @param yearsIncrement
+	     * @return years metrics
+	     */
+	    generateYearsPoint : function(ref,durationYears,yearsIncrement,model) {
+	        var years = [];
+	        for (var i = 0; i <= parseInt(durationYears); i = i + yearsIncrement) {
+	        	var c = new Date(ref.getFullYear()+i,0,1,0,0,0);
+	            var m = this.generateMetricsPoint(c, model);
+	            if (m != undefined) {
+	            	years[years.length] = m;
+	            }
+	        }
+	        return years;
+	    },
+	});
+})();
+(function(){
+
+	JenScript.MetricsManagerStatic = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MetricsManagerStatic, JenScript.MetricsManager);
+	JenScript.Model.addMethods(JenScript.MetricsManagerStatic, {
+		_init : function(config){
+			config = config ||{};
+			this.metricsCount = config.metricsCount;
+			JenScript.MetricsManager.call(this,config);
+		},
+		
+		getDeviceMetrics : function(){
+			var metrics = [];
+	        var proj = this.getProjection();
+	        var userWidth = proj.getUserWidth();
+	        var userHeight = proj.getUserHeight();
+	        if (this.getMetricsType() === JenScript.MetricsType.XMetrics) {
+	            var userMetricsX;
+	            for (var i = 0; i < this.metricsCount; i++) {
+	                userMetricsX = proj.getMinX() + i * userWidth /(this.metricsCount - 1);
+	                var pixelMetricsX = proj.userToPixelX(userMetricsX);
+	                var m = new JenScript.Metrics({metricsType:JenScript.MetricsType.XMetrics});
+	                m.setDeviceValue(pixelMetricsX);
+	                m.setUserValue(userMetricsX);
+ 	                m.format = function(){
+	                	return this.userValue;
+	                };
+	                metrics[metrics.length]=m;
+	            }
+
+	        }
+	        else if (this.getMetricsType()  === JenScript.MetricsType.YMetrics) {
+	            var userMetricsY;
+	            for (var i = 0; i < this.metricsCount; i++) {
+	                userMetricsY = proj.getMinY() + i * userHeight / (this.metricsCount - 1);
+	                var pixelMetricsY = proj.userToPixelY(userMetricsY);
+	                var m = new JenScript.Metrics({metricsType:JenScript.MetricsType.YMetrics});
+	                m.setDeviceValue(pixelMetricsY);
+	                m.setUserValue(userMetricsY);
+	                m.format = function(){
+	                	return this.userValue;
+	                };
+	                metrics[metrics.length]=m;
+	            }
+
+	        }
+			return metrics;
+		}
+	});
+
+})();
+(function(){
+
+	JenScript.MetricsManagerFree = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MetricsManagerFree, JenScript.MetricsManager);
+	JenScript.Model.addMethods(JenScript.MetricsManagerFree, {
+		_init : function(config){
+			config = config ||{};
+			this.inputMetrics = [];
+			JenScript.MetricsManager.call(this,config);
+		},
+		
+		/**
+		 * add metrics with specified parameter
+		 * 
+		 * @param {Number} value
+		 *          metric value
+		 * @param {String} label
+		 * 			metric label
+		 */
+		addMetrics : function(value,label) {
+		    this.inputMetrics.push({value : value, label : label});
+		},
+		
+		getDeviceMetrics : function(){
+			var metrics = [];
+	        var proj = this.getProjection();
+	        var userWidth = proj.getUserWidth();
+	        var userHeight = proj.getUserHeight();
+	        
+	        if (this.getMetricsType() === JenScript.MetricsType.XMetrics) {
+	        	for (var i = 0; i < this.inputMetrics.length; i++) {
+	                var t = this.inputMetrics[i];
+	                var userMetricsX = t.value;
+	                if (userMetricsX >= proj.getMinX() && userMetricsX <= proj.getMaxX()) {
+	                    var pd = proj.userToPixelX(userMetricsX);
+	                    var m = new JenScript.Metrics({metricsType:JenScript.MetricsType.XMetrics});
+	                   
+	                    m.setDeviceValue(pd);
+	                    m.setUserValue(userMetricsX);
+	                    m.label = t.label;
+	                    if(t.label === undefined)
+		                    m.format = function(){
+			                	return this.userValue;
+			                };
+		                else
+		                	m.format = function(){
+		                		return this.label;
+		                	};
+		                metrics[metrics.length]=m; 
+	                }
+	            }
+	        }
+	        else if (this.getMetricsType()  === JenScript.MetricsType.YMetrics) {
+	        	  for (var i = 0; i < this.inputMetrics.length; i++) {
+	                  var t = this.inputMetrics[i];
+	                  var userMetricsY = t.value;
+	                  if (userMetricsY > proj.getMinY() && userMetricsY < proj.getMaxY()) {
+	                      var pd = proj.userToPixelY(userMetricsY);
+	                      var m = new JenScript.Metrics({metricsType:JenScript.MetricsType.YMetrics});
+	                      m.setDeviceValue(pd);
+	                      m.setUserValue(userMetricsY);
+	                      m.label = t.label;
+	                      if(t.label === undefined)
+			                    m.format = function(){
+				                	return this.userValue;
+				                };
+			                else
+			                	m.format = function(){
+			                		return this.label;
+			                	};
+			              metrics[metrics.length]=m; 
+	                  }
+	        	  }
+	        }
+	        return metrics;
+	}
+});
+
+})();
+(function(){
+
+	JenScript.MetricsManagerFlow = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MetricsManagerFlow, JenScript.MetricsManager);
+	JenScript.Model.addMethods(JenScript.MetricsManagerFlow, {
+		_init : function(config){
+			config = config ||{};
+			this.flowStart = config.flowStart;
+		    this.flowEnd = config.flowEnd;
+		    this.flowInterval = config.flowInterval;
+			this.inputMetrics = [];
+			JenScript.MetricsManager.call(this,config);
+		},
+		
+		getDeviceMetrics : function(){
+			var metrics = [];
+	        var proj = this.getProjection();
+	        var userWidth = proj.getUserWidth();
+	        var userHeight = proj.getUserHeight();
+	        
+
+	        if(this.flowEnd <= this.flowStart)
+	        	throw new Error("metrics flow end should be greater than metrics flow start");
+	        
+	        var start    = new JenScript.BigNumber(this.flowStart+"");
+	        var end      = new JenScript.BigNumber(this.flowEnd+"");
+	        var interval = new JenScript.BigNumber(this.flowInterval+"");
+	        var flag = true;
+	        var count = 0;
+	        while(flag){
+	        	var increment = new JenScript.BigNumber(count);
+	        	var u = start.add(increment.multiply(interval));
+	        	var uv = u.toNumber();
+		        if (this.getMetricsType() === JenScript.MetricsType.XMetrics) {
+	        		 var dx = proj.userToPixelX(uv);
+	                 var m = new JenScript.Metrics({metricsType:JenScript.MetricsType.XMetrics});
+	                 m.setDeviceValue(dx);
+	                 m.setUserValue(uv);
+	                 //m.setUserValueAsBigDecimal(mv);
+	                 //m.setMetricsLabel(format(mv));
+	                 m.format = function(){
+		                	return this.userValue;
+		             };
+	                 if (uv >= proj.getMinX()  && uv <= proj.getMaxX()) {
+	                	 metrics.push(m);
+	                 }
+	        	}
+	        	else if (this.getMetricsType() === JenScript.MetricsType.YMetrics) {
+	        		 var dy = proj.userToPixelY(uv);
+	                 var m = new JenScript.Metrics({metricsType:JenScript.MetricsType.YMetrics});
+	                 m.setDeviceValue(dy);
+	                 m.setUserValue(uv);
+	                 //metrics.setUserValueAsBigDecimal(m);
+	                 //metrics.setMetricsLabel(format(m));
+	                 m.format = function(){
+		                	return this.userValue;
+		             };
+	                 if (uv >= proj.getMinY()  && uv <= proj.getMaxY()) {
+	                	 metrics.push(m);
+	                 }
+	        	}
+	        	
+	        	if(uv > end.toNumber())
+	        		flag = false;
+	        	
+	        	count++;
+	        }
+	        
+	        return metrics;
+	}
+});
+
+})();
+(function(){
+	//Modeled metrics based on exponent model
+	JenScript.AxisMetricsModeled = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.AxisMetricsModeled, JenScript.AxisMetricsPlugin);
+
+	JenScript.Model.addMethods(JenScript.AxisMetricsModeled, {
+		___init : function(config){
+			config = config ||{};
+			var manager = new JenScript.MetricsManagerModeled(config);
+			var models = manager.createSymmetricListModel(20);
+			manager.registerMetricsModels(models);
+			config.manager = manager;
+			config.name='AxisMetricsModeled';
+			JenScript.AxisMetricsPlugin.call(this,config);
+		},
+	});
+})();
+(function(){
+	JenScript.AxisMetricsStatic = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.AxisMetricsStatic, JenScript.AxisMetricsPlugin);
+
+	JenScript.Model.addMethods(JenScript.AxisMetricsStatic, {
+		___init : function(config){
+			config = config ||{};
+			var manager = new JenScript.MetricsManagerStatic(config);
+			config.manager = manager;
+			JenScript.AxisMetricsPlugin.call(this,config);
+		},
+	});
+})();
+(function(){
+	//Timing metrics based on time model
+	JenScript.AxisMetricsTiming = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.AxisMetricsTiming, JenScript.AxisMetricsPlugin);
+
+	JenScript.Model.addMethods(JenScript.AxisMetricsTiming, {
+		___init : function(config){
+			config = config ||{};
+			var manager = new JenScript.TimeMetricsManager(config);
+			config.manager = manager;
+			config.name='AxisMetricsTiming';
+			JenScript.AxisMetricsPlugin.call(this,config);
+		},
+	});
+})();
+(function(){
+	//Modeled metrics based on manual free model
+	JenScript.AxisMetricsFree = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.AxisMetricsFree, JenScript.AxisMetricsPlugin);
+
+	JenScript.Model.addMethods(JenScript.AxisMetricsFree, {
+		___init : function(config){
+			config = config ||{};
+			var manager = new JenScript.MetricsManagerFree(config);
+			config.manager = manager;
+			config.name='AxisMetricsFree';
+			JenScript.AxisMetricsPlugin.call(this,config);
+		},
+		
+		addMetrics : function(value,label){
+			this.getMetricsManager().addMetrics(value,label);
+		},
+		
+	});
+})();
+(function(){
+	//Modeled metrics based on flow model
+	JenScript.AxisMetricsFlow = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.AxisMetricsFlow, JenScript.AxisMetricsPlugin);
+
+	JenScript.Model.addMethods(JenScript.AxisMetricsFlow, {
+		___init : function(config){
+			config = config ||{};
+			var manager = new JenScript.MetricsManagerFlow(config);
+			config.manager = manager;
+			config.name='AxisMetricsFlow';
+			JenScript.AxisMetricsPlugin.call(this,config);
+		},
+		
+	});
+})();
+(function(){
+	//Modeled metrics based on exponent model
+	JenScript.DeviceMetricsModeled = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.DeviceMetricsModeled, JenScript.DeviceMetricsPlugin);
+
+	JenScript.Model.addMethods(JenScript.DeviceMetricsModeled, {
+		___init : function(config){
+			config = config ||{};
+			var manager = new JenScript.MetricsManagerModeled(config);
+			var models = manager.createSymmetricListModel(20);
+			manager.registerMetricsModels(models);
+			config.manager = manager;
+			config.name='DeviceMetrics';
+			JenScript.DeviceMetricsPlugin.call(this,config);
+		},
+	});
+})();
+(function(){
+	JenScript.Grid = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.Grid, {
+		
+	 init : function(config){
+			config=config||{};
+			
+			/** device value */
+			this.deviceValue;
+		    /** user value */
+			this.userValue;
+		    /** grid marker color */
+			this.metricsMarkerColor;
+		    /** grid label color */
+			this.metricsLabelColor;
+		    /** grid format */
+			this.format;
+		    /** grid label */
+			this.gridLabel;
+			/** lock marker flag */
+		    this.lockMarker;
+		    /** lock label */
+		    this.lockLabel;
+		    /** visible flag */
+		    this.visible = true;
+	 },
+	 
+	 setDeviceValue : function(value){
+	    	this.deviceValue=value;
+	 },
+	 
+	 setUserValue : function(value){
+	    	this.userValue=value;
+	 },
+	 
+	 getDeviceValue : function(){
+	    	return this.deviceValue;
+	 },
+	 getUserValue : function(){
+	    	return this.userValue;
+	 },
+	});
+})();
+(function(){
+	
+	
+	
+	JenScript.AbstractGridPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.AbstractGridPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.AbstractGridPlugin, {
+		_init : function(config){
+			config = config ||{};
+			config.name = (config.name !== undefined)?config.name : 'AbstractGridPlugin';
+			config.priority = -10000;
+			this.gridOrientation = config.gridOrientation;
+			this.gridColor = config.gridColor;
+			this.gridWidth =(config.gridWidth !== undefined)?config.gridWidth : 1;
+			this.gridOpacity =(config.gridOpacity !== undefined)?config.gridOpacity : 1;
+			JenScript.Plugin.call(this,config);
+		},
+		
+		
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},that.toString());
+		},
+		
+		/**
+		 * provides method override to get grids manager that generates grids
+		 */
+		getGridManager : function(){
+			throw new Error('Abstract, grid manager should be supplied.');
+		},
+		
+		paintGrids : function(g2d,grids) {
+			for (var i = 0; i < grids.length; i++) {
+                var grid = grids[i];
+                var gd = grid.deviceValue;
+                var or = this.gridOrientation;
+                var color = (this.gridColor !== undefined)?this.gridColor:this.getProjection().themeColor;
+                var x1 = (or === 'Vertical')?gd:0;
+                var y1 = (or === 'Vertical')?0:gd;
+                var x2 = (or === 'Vertical')?gd:this.getProjection().getPixelWidth();
+                var y2 = (or === 'Vertical')?this.getProjection().getPixelHeight():gd;
+                var gridLine = new JenScript.SVGLine().Id('grid'+JenScript.sequenceId++).from(x1,y1).to(x2,y2).stroke(color).strokeWidth(this.gridWidth).strokeOpacity(this.gridOpacity).fillNone();
+                g2d.insertSVG(gridLine.toSVG());
+			}
+	    },
+		
+		paintPlugin : function(g2d,part) {
+	        if (part != JenScript.ViewPart.Device) {
+	            return;
+	        }
+	        this.getGridManager().setGridsPlugin(this);
+	        var grids = this.getGridManager().getGrids();
+	        this.paintGrids(g2d,grids);
+	    },
+	});
+	
+})();
+(function(){
+
+	JenScript.GridManager = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.GridManager, {
+		init : function(config){
+			config = config ||{};
+		},
+		
+		getOrientation : function(){
+			return this.getGridsPlugin().gridOrientation;
+		},
+		
+		setGridsPlugin : function(metricsPlugin){
+			this.gridsPlugin=metricsPlugin;
+		},
+		getGridsPlugin : function(){
+			return this.gridsPlugin;
+		},
+		getProjection : function(){
+			return this.getGridsPlugin().getProjection();
+		},
+		getGrids : function(){}
+	});
+})();
+(function(){
+
+	/**
+	 * metrics model takes the responsibility to create metrics based on multiplier exponent model
+	 */
+	JenScript.GridsExponentModel = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.GridsExponentModel, {
+		/**
+		 * init grids exponent model
+		 */
+		init : function(config){
+			config = config||{};
+	        /**model exponent*/
+	        this.exponent = config.exponent;
+	        /** grids factor */
+	        this.factor = config.factor;
+	        /** grids manager */
+	        this.gridsManager;
+	        /** the start reference to generate metrics */
+	        this.ref;
+	        /** the max value to attempt */
+	        this.maxValue;
+	        /** pixel label holder */
+	        this.pixelLabelHolder;
+	        this.solveType = 'major';
+		},
+		
+		/**
+		 * get grids manager of this model
+		 * @returns {Object} grids manager
+		 */
+		getGridsManager : function(){
+			return this.gridsManager;
+		},
+		
+		/**
+		 * set grids manager of this model
+		 * @param {Object} grids manager
+		 */
+		setGridsManager : function(gridsManager){
+			this.gridsManager = gridsManager;
+		},
+		
+		/**
+         * generates median grids for this model
+         * @return median grids
+         */
+        generateMedianGrids : function() {
+        	this.solveType = 'median';
+        	this.solve();
+        	var originFactor = this.factor;
+        	this.factor = this.factor.multiply(0.5);
+        	var that = this;
+        	var formater = function(){
+            	if(that.exponent < 0){
+            		if(new JenScript.BigNumber("0").equals(this.userValue))return '0';
+    	        	return this.userValue.toFixed(Math.abs(that.exponent)+1);
+    	        }
+    	        else{
+    	        	return this.userValue;
+    	        }
+            };
+        	var grids = this.generateGrids();
+        	for(var i = 0;i<grids.length;i++){
+        		grids[i].median = true;
+        		grids[i].format = formater;
+        	}
+        	this.factor = originFactor;
+        	return grids;
+        },
+		
+		/**
+         * generates all grids for this model
+         * @return {Object} grids array
+         */
+        generateGrids : function() {
+        	this.solveType = 'major';
+        	this.solve();
+        	var grids = [];
+            var flag = true;
+            var metricsValue = this.ref;
+            var that = this;
+            var formater = function(){
+            	if(that.exponent < 0){
+    	        	if(new JenScript.BigNumber("0").equals(this.userValue))return '0';
+            		return this.userValue.toFixed(Math.abs(that.exponent));
+    	        }
+    	        else{
+    	        	return this.userValue;
+    	        }
+            };
+            var m0 = this.getGridsManager().generateGrid(metricsValue.toNumber(), this);
+            if (m0 !== undefined) {
+            	grids[grids.length]=m0;
+                m0.major = true;
+                m0.format = formater;
+            }
+            while(flag){
+            	metricsValue = metricsValue.add(this.factor);
+            	 var m = this.getGridsManager().generateGrid(metricsValue.toNumber(), this);
+                 if (m !== undefined) {
+                	 m.major = true;
+                	 m.format = formater;
+                	 //console.log("grid model generate grid : "+metricsValue);
+                	 grids[grids.length]=m;
+                 }
+                 if(metricsValue.greaterThanOrEqualTo(this.maxValue))
+                	 flag = false;
+            }
+            return grids;
+        },
+		
+        /**
+         * solve this model according with given model parameters
+         */
+        solve : function (){
+        	var proj = this.getGridsManager().getProjection();
+            if (this.getGridsManager().getOrientation() === 'Vertical') {
+            	this.userSize = new JenScript.BigNumber(proj.getUserWidth()+'');
+            	JenScript.BigNumber.config({ ROUNDING_MODE : JenScript.BigNumber.ROUND_CEIL });
+                var bd1 = new JenScript.BigNumber(proj.getMinX()+'').divide(this.factor);
+                var bi1 = new JenScript.BigNumber(bd1.toFixed(0));
+                this.ref = new JenScript.BigNumber(bi1).multiply(this.factor);
+                this.ref = this.ref.subtract(this.factor);
+                if(this.ref.equals(0)){
+                	this.ref = this.ref.subtract(this.factor);
+                }
+                this.pixelSize = new JenScript.BigNumber(proj.getPixelWidth()+'');
+                this.maxValue = new JenScript.BigNumber(proj.getMaxX()+'');
+            }
+            else if (this.getGridsManager().getOrientation() === 'Horizontal') {
+            	this.userSize = new JenScript.BigNumber(proj.getUserHeight()+'');
+            	JenScript.BigNumber.config({ ROUNDING_MODE : JenScript.BigNumber.ROUND_CEIL });
+                var bd1 = new JenScript.BigNumber(proj.getMinY()+'').divide(this.factor);
+                var bi1 = new JenScript.BigNumber(bd1.toFixed(0));
+                this.ref = new JenScript.BigNumber(bi1).multiply(this.factor);
+                this.ref = this.ref.subtract(this.factor);
+                
+                if(this.ref.equals(0)){
+                	this.ref = this.ref.subtract(this.factor);
+                }
+                this.pixelSize = new JenScript.BigNumber(proj.getPixelHeight()+'');
+                this.maxValue = new JenScript.BigNumber(proj.getMaxY()+'');
+            }
+            JenScript.BigNumber.config({ ROUNDING_MODE : JenScript.BigNumber.ROUND_HALF_EVEN });
+            if(this.solveType === 'major')
+            	this.pixelLabelHolder = 80;
+            else if(this.solveType === 'median')
+            	this.pixelLabelHolder = 60;
+            else if(this.solveType === 'minor')
+            	this.pixelLabelHolder = 8;
+        },
+        
+    
+        
+		 /**
+         * return true if this model is applicable, false otherwise
+         * @return {Boolean} true if this model is applicable, false otherwise
+         */
+        isValid : function() {
+            this.solve();
+            var compare = (this.userSize.divide(this.factor)).multiply(new JenScript.BigNumber(this.pixelLabelHolder)).compareTo(this.pixelSize);
+            return (compare === -1) ? true: false;
+        }
+	});
+	
+	
+	JenScript.GridManagerModeled = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.GridManagerModeled, JenScript.GridManager);
+	JenScript.Model.addMethods(JenScript.GridManagerModeled, {
+		_init : function(config){
+			config = config ||{};
+			JenScript.GridManager.call(this,config);
+			this.gridsModels =[];
+		},
+		
+		/**
+	     * create symmetric list model for given exponent (from -exponent to +exponent list model)
+	     * @param {Object} exp  the reference exponent model
+	     * @return {Object} a new collection of exponent model from -exp to +exp
+	     */
+	    createSymmetricListModel : function(exp) {
+	        var models =[];
+	        for (var i = -exp; i <= exp; i++) {
+	            var m = this.createExponentModel(i);
+	            models[models.length]=m;
+	        }
+	        return models;
+	    },
+		
+	    /**
+	     * create standard exponent model with the given exponent
+	     * @param {Object} exp  the reference exponent model
+	     * @return {Object} a new exponent model
+	     */
+	    createExponentModel : function(exp) {
+	        var model = undefined;
+	        var mutPattern = '';
+	        if (exp < 0) {
+	            mutPattern = mutPattern+"0.";
+	            for (var j = 1; j < Math.abs(exp); j++) {
+	                mutPattern = mutPattern+"0";
+	            }
+	            mutPattern = mutPattern+"1";
+	            var multiplier = mutPattern;
+	            model = new JenScript.GridsExponentModel({exponent : exp,factor :new JenScript.BigNumber(multiplier)});
+
+	        }
+	        else if (exp > 0) {
+	            mutPattern = mutPattern +"1";
+	            for (var j = 1; j <= Math.abs(exp); j++) {
+	            	mutPattern = mutPattern+"0";
+	            }
+	            var multiplier = mutPattern;
+	            model = new JenScript.GridsExponentModel({exponent : exp,factor:new JenScript.BigNumber(multiplier)});
+
+	        }
+	        else if (exp == 0) {
+	            model = new JenScript.GridsExponentModel({exponent : 0,factor : new JenScript.BigNumber("1")});
+	        }
+	        return model;
+	    },
+		
+		
+		
+	    /**
+	     * register the given model
+	     * @param {Object} model
+	     */
+	    registerGridModel :  function(model) {
+	    	model.setGridsManager(this);
+	    	this.gridsModels[this.gridsModels.length] = model;
+	        this.gridsModels.sort(function(m1,m2){
+	        	return m1.factor.compareTo(m2.factor);
+	        });
+	    },
+
+	    /**
+	     * register the given model array
+	     * @param {Object} models array
+	     */
+	    registerGridModels : function(models) {
+	        for (var i = 0; i < models.length; i++) {
+	            this.registerGridModel(models[i]);
+	        }
+	    },
+	    
+	    /**
+	     * get all generated grids based on the registered exponent model
+	     */
+	    getGrids : function(){
+	    	var m1=[];
+	    	var m2=[];
+			for (var m = 0; m < this.gridsModels.length; m++) {
+				var valid = this.gridsModels[m].isValid();
+				if(valid){
+					//console.log("Apply exponent model: "+this.metricsModels[m].exponent);
+					m1 = this.gridsModels[m].generateGrids();
+					var filterm1 = function(mf){
+						 for (var f = 0; f < m1.length; f++) {
+							 if(mf.userValue === m1[f].userValue)
+								 return true;
+						 }
+						 return false;
+					 };
+					
+					 if(m1.length < 4){
+						var mf2 = this.gridsModels[m].generateMedianGrids();
+						for (var a = 0; a < mf2.length; a++) {
+							if(!filterm1(mf2[a])){
+								m2[m2.length] = mf2[a];
+							}
+						}
+					 }
+					 return [].concat(m1,m2);
+				}
+			}
+	    },
+		
+
+	    /**
+	     * generate grid for the given value
+	     * @param  {Number} userValue the user value for this grid
+	     * @param  {Number} model the given exponent model
+	     * @return {Object} return new grid
+	     */
+	    generateGrid : function (userValue, model) {
+	        var grid = new JenScript.Grid();
+	        var proj = this.getProjection();
+	        var deviceValue = 0;
+	        var maxPixelValue = 0;
+	        if (this.getOrientation() === 'Vertical') {
+	            deviceValue = proj.userToPixelX(userValue);
+	            maxPixelValue = proj.getPixelWidth();
+	        }
+	        else if (this.getOrientation() === 'Horizontal') {
+	            deviceValue = proj.userToPixelY(userValue);
+	            maxPixelValue = proj.getPixelHeight();
+	        }
+	        if (deviceValue < 0 || deviceValue > maxPixelValue) {
+	            return undefined;
+	        }
+	        grid.setDeviceValue(deviceValue);
+	        grid.setUserValue(userValue);
+	        return grid;
+	    }
+	});
+})();
+(function(){
+	
+	JenScript.GridModeledPlugin = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.GridModeledPlugin, JenScript.AbstractGridPlugin);
+	JenScript.Model.addMethods(JenScript.GridModeledPlugin, {
+		__init : function(config){
+			config = config ||{};
+			config.name ='GridModeledPlugin';
+			this.gridManager = new JenScript.GridManagerModeled(config);
+			var models = this.gridManager.createSymmetricListModel(20);
+			this.gridManager.registerGridModels(models);
+			JenScript.AbstractGridPlugin.call(this,config);
+		},
+		
+		getGridManager : function(){
+			return this.gridManager;
+		},
+		
+	});
+	
+})();
+
+
+(function(){
+	JenScript.SymbolFiller =  {
+			/**
+		     * create glue component for the specified symbol raw type
+		     * 
+		     * @return glue component
+		     */
+		    createGlue : function() {
+		        try {
+		            var glue = new JenScript.SymbolComponent({});
+		            glue.setName("SymbolComponent.Glue");
+		            glue.setFillerType('Glue');
+		            glue.setOpaque(false);
+		            glue.setFiller(true);
+		            return glue;
+		        }
+		        catch(e) {
+		        	console.log('error : '+e);
+		        }
+		        return undefined;
+		    },
+
+		    createStrut : function(thickness) {
+		        try {
+		            var strut = new JenScript.SymbolComponent({});
+		            strut.setName("SymbolComponent.Strut." + strut);
+		            strut.setOpaque(false);
+		            strut.setThickness(thickness);
+		            strut.setFillerType('Strut');
+		            strut.setFiller(true);
+		            return strut;
+		        }
+		        catch(e) {
+		        	console.log('error : '+e);
+		        }
+		        return undefined;
+		    }
+	};
+	
+	JenScript.SymbolComponent = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.SymbolComponent,{
+		
+		init : function(config){
+			config = config || {};
+			this.Id = 'Symbol'+JenScript.sequenceId++;
+			/** filler flag */
+		    this.isFiller = false;
+		    /** filler type */
+		    this.fillerType; //Glue, Strut
+		    /** symbol host layer */
+		    this.layer;
+		    /** bar nature */
+		    this.nature;
+		    /** bar opaque */
+		    this.opaque;
+		    /** bar thickness, default is 20 */
+		    this.thickness = (config.thickness !== undefined)?config.thickness : 0;
+		    /** bar theme color */
+			this.themeColor = (config.themeColor !== undefined)?config.themeColor : 'gray';
+		    /** bar name */
+		    this.name = config.name;
+		    /** bar host */
+		    this.host;
+		    /** enter flag */
+		    this.lockEnter = false;
+		    /** visible flag */
+		    this.visible = true;
+		    this.opacity =(config.opacity !== undefined)?config.opacity : 1;
+		    /** user object */
+		    this.userObject = config.userObject;
+		    /**symbol bound*/
+		    this.bound2D;
+		},
+		
+
+		/**
+		 * get theme color
+		 * 
+		 * @return theme color
+		 */
+		getThemeColor : function() {
+			return this.themeColor;
+		},
+
+		/**
+		 * set the theme color
+		 * 
+		 * @param themeColor
+		 *            the theme color to set
+		 */
+		setThemeColor : function(themeColor) {
+			this.themeColor = themeColor;
+		},
+		
+		toString : function (){
+			return "SymbolComponent:"+this.Id;
+		},
+		
+		equals : function(o){
+			if(o === undefined) return false;
+			if(o.Id === undefined) return false;
+			return (o.Id === this.Id);
+		},
+		/**
+	     * get the host layer for this symbol
+	     * 
+	     * @return the layer
+	     */
+	    getLayer : function(){
+	        return this.layer;
+	    },
+
+	    /**
+	     * set the host layer for this symbol
+	     * 
+	     * @param layer
+	     *            the layer to set
+	     */
+	    setLayer : function(layer) {
+	        this.layer = layer;
+	    },
+	    
+	    /**
+	     * get the symbol bound
+	     * 
+	     * @return the layer
+	     */
+	    getBound2D : function(){
+	        return this.bound2D;
+	    },
+
+	    /**
+	     * set the symbol bound
+	     * 
+	     * @param bound2D
+	     *            the bound2D to set
+	     */
+	    setBound2D : function(bound2D) {
+	        this.bound2D = bound2D;
+	    },
+
+	    /**
+	     * @param isFiller
+	     *            the isFiller to set
+	     */
+	    setFiller : function(isFiller) {
+	        this.isFiller = isFiller;
+	    },
+
+	    
+
+	    /**
+	     * get filler type
+	     * 
+	     * @return filler type
+	     */
+	    getFillerType : function(){
+	        return this.fillerType;
+	    },
+
+	    /**
+	     * set filler type
+	     * 
+	     * @param fillerType
+	     */
+	    setFillerType : function(fillerType) {
+	        this.fillerType = fillerType;
+	    },
+
+	    /**
+	     * get the host of this bar component
+	     * 
+	     * @return the host
+	     */
+	    getHost : function(){
+	        return this.host;
+	    },
+
+	    /**
+	     * set the host for this bar component
+	     * 
+	     * @param host
+	     *            the host to set
+	     */
+	    setHost : function(host) {
+	        this.host = host;
+	    },
+
+	    /**
+	     * get the component name
+	     * 
+	     * @return the name
+	     */
+	    getName : function(){
+	        if (name == null) {
+	            if (getLayer() != null) {
+	                name = getClass().getSimpleName() + "_"
+	                        + getLayer().getSymbolIndex(this);
+	            }
+	            else {
+	                name = getClass().getSimpleName();
+	            }
+	        }
+	        return name;
+	    },
+
+	    /**
+	     * set the name
+	     * 
+	     * @param name
+	     *            the name to set
+	     */
+	    setName : function(name) {
+	        this.name = name;
+	    },
+
+	    /**
+	     * get the component thickness in device coordinate
+	     * 
+	     * @return the bar thickness
+	     */
+	    getThickness : function(){
+	        return this.thickness;
+	    },
+
+	    /**
+	     * set the component thickness
+	     * 
+	     * @param thickness
+	     *            the thickness to set
+	     */
+	    setThickness : function( thickness) {
+	        this.thickness = thickness;
+	    },
+
+	    /**
+	     * return true if the component is opaque, false otherwise
+	     * 
+	     * @return true if the component is opaque, false otherwise
+	     */
+	    isOpaque : function(){
+	        return this.opaque;
+	    },
+
+	    /**
+	     * set the component opacity
+	     * 
+	     * @param opaque
+	     *            the opacity
+	     */
+	    setOpaque : function(opaque) {
+	        this.opaque = opaque;
+	    },
+
+	    /**
+	     * get symbol location x in device coordinate
+	     * 
+	     * @return the location X
+	     */
+	   getLocationX : function(){
+	        if (this.layer === undefined) {
+	            return 0;
+	        }
+	        if (this.nature === 'Horizontal') {
+	            throw new Error("Horizontal symbol has no location x");
+	        }
+
+	        return this.layer.getComponentXLocation(this);
+	    },
+
+	    /**
+	     * get symbol center x in device coordinate
+	     * 
+	     * @return the center X
+	     */
+	    getCenterX : function(){
+	        if (this.layer == null) {
+	            return 0;
+	        }
+	        return this.getLocationX() + this.getThickness() / 2;
+	    },
+
+	    /**
+	     * get location y in device coordinate
+	     * 
+	     * @return the location Y
+	     */
+	   getLocationY : function(){
+	        if (this.layer === undefined) {
+	            return 0;
+	        }
+	        if (nature == SymbolNature.Vertical) {
+	            throw new Error("Vertical symbol has no location y");
+	        }
+	        return this.layer.getComponentYLocation(this);
+	    },
+
+	    /**
+	     * get symbol center y in device coordinate
+	     * 
+	     * @return the center X
+	     */
+	    getCenterY : function(){
+	        if (this.layer === undefined) {
+	            return 0;
+	        }
+	        return this.getLocationY() - this.getThickness() / 2;
+	    },
+
+	    /**
+	     * get the component nature
+	     * 
+	     * @return bar nature
+	     */
+	    getNature : function(){
+	        return this.nature;
+	    },
+
+	    /**
+	     * set nature
+	     * 
+	     * @param nature
+	     *            the nature to set
+	     */
+	    setNature : function(nature) {
+	        this.nature = nature;
+	    },
+
+	    /**
+	     * return true if mouse has just enter in this ray, false otherwise
+	     * 
+	     * @return enter flag
+	     */
+	    isLockEnter : function(){
+	        return this.lockEnter;
+	    },
+
+	    /**
+	     * lock ray enter flag
+	     */
+	    setLockEnter : function(lock){
+	        this.lockEnter = lock;
+	    },
+
+
+	    /**
+	     * @return the visible
+	     */
+	    isVisible : function(){
+	        return this.visible;
+	    },
+
+	    /**
+	     * @param visible
+	     *            the visible to set
+	     */
+	    setVisible: function( visible) {
+	        this.visible = visible;
+	    },
+
+	    /**
+	     * @return the userObject
+	     */
+	    getUserObject : function(){
+	        return this.userObject;
+	    },
+
+	    /**
+	     * @param userObject
+	     *            the userObject to set
+	     */
+	    setUserObject: function(userObject) {
+	        this.userObject = userObject;
+	    }
+	
+	
+	});
+	
+	
+
+   
+    
+})();
+(function(){
+	
+	JenScript.SymbolBar = function(config) {
+		//SymbolBar
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBar, JenScript.SymbolComponent);
+	JenScript.Model.addMethods(JenScript.SymbolBar,{
+		
+		_init : function(config){
+			config=config||{};
+			/** the bar value */
+			this.value  = config.value;
+			/** the bar base */
+			this.base =  config.base;
+			this.setBase(this.base);
+			
+			/** morphe style, default is Rectangle */
+			this.morpheStyle =(config.morpheStyle !== undefined)?config.morpheStyle: 'Rectangle';
+			
+			/** bar symbol label*/
+			this.symbol =(config.symbol !== undefined)?config.symbol : 'Unamed Bar Symbol';
+			/** round constant */
+			this.round = (config.round !== undefined)?config.round : 5;
+			
+			this.direction=(config.direction !== undefined)?config.direction : 'ascent';
+			/** ascent bar type */
+			this.ascent = false;
+			/** descent bar type */
+			this.descent = false;
+			if(this.direction === 'descent'){
+				this.setDescentValue(this.value);
+			}
+			else{
+				this.setAscentValue(this.value);
+			}
+			
+			/** bar stroke */
+			this.barStroke = config.barStroke;
+			/** bar fill */
+			this.barFill = (config.barFill !== undefined)?config.barFill : new JenScript.SymbolBarFill0({});
+			/** bar effect */
+			this.barEffect = config.barEffect;
+			/** bar label */
+			this.barLabel;
+			/** axis label */
+			this.axisLabel;
+			/** bar shape */
+			this.barShape;
+			/** part buffer */
+			this.part;
+			/** boolean inflating operation flag */
+			this.inflating = false;
+			/** deflating operation flag */
+			this.deflating = false;
+			/** current inflate */
+			this.inflate;
+			/** current deflate */
+			this.deflate;
+			JenScript.SymbolComponent.call(this, config);
+		},
+		
+		/**
+		 * get the bar label
+		 * 
+		 * @return the bar Label
+		 */
+		getBarLabel : function() {
+			return this.barLabel;
+		},
+
+		/**
+		 * set the bar label
+		 * 
+		 * @param barLabel
+		 *            the bar label to set
+		 */
+		setBarLabel : function( barLabel) {
+			this.barLabel = barLabel;
+		},
+
+		/**
+		 * @return the axisLabel
+		 */
+		getAxisLabel : function() {
+			return this.axisLabel;
+		},
+
+		/**
+		 * @param axisLabel
+		 *            the axisLabel to set
+		 */
+		setAxisLabel : function( axisLabel) {
+			this.axisLabel = axisLabel;
+		},
+
+		/**
+		 * get the part buffer
+		 * 
+		 * @return the part buffer
+		 */
+		getPart  : function() {
+			return this.part;
+		},
+
+		/**
+		 * set the bar part buffer
+		 * 
+		 * @param part
+		 */
+		setPart : function( part) {
+			this.part = part;
+		},
+
+		/**
+		 * get the round
+		 * 
+		 * @return the round
+		 */
+		getRound : function() {
+			return this.round;
+		},
+
+		/**
+		 * set round constant to set
+		 * 
+		 * @param round
+		 *            the round to set
+		 */
+		setRound : function( round) {
+			this.round = round;
+		},
+
+		/**
+		 * get the morphe style
+		 * 
+		 * @return morphe style
+		 */
+		getMorpheStyle : function() {
+			return this.morpheStyle;
+		},
+
+		/**
+		 * set the morphe style
+		 * 
+		 * @param morpheStyle
+		 *            the morphe style to set
+		 */
+		setMorpheStyle : function( morpheStyle) {
+			this.morpheStyle = morpheStyle;
+		},
+
+		/**
+		 * get bar shape
+		 * 
+		 * @return the bar shape
+		 */
+		getBarShape : function() {
+			return this.barShape;
+		},
+
+		/**
+		 * set bar shape
+		 * 
+		 * @param barShape
+		 *            the bar shpae to set
+		 */
+		setBarShape : function( barShape) {
+			this.barShape = barShape;
+		},
+
+		/**
+		 * get symbol
+		 * 
+		 * @return the symbol
+		 */
+		getSymbol : function() {
+			return this.symbol;
+		},
+
+		/**
+		 * set symbol
+		 * 
+		 * @param symbol
+		 *            the symbol to set
+		 */
+		setSymbol : function( symbol) {
+			this.symbol = symbol;
+		},
+
+		getValue : function() {
+			return this.value;
+		},
+
+		setAscentValue : function(value) {
+			this.ascent = true;
+			this.descent = false;
+			if (value < 0) {
+				throw new Error("bar value should be greater than 0");
+			}
+			this.value = value;
+		},
+
+		/**
+		 * @return the inflating
+		 */
+		isInflating : function() {
+			return this.inflating;
+		},
+
+		/**
+		 * @param inflating
+		 *            the inflating to set
+		 */
+		setInflating : function( inflating) {
+			this.inflating = inflating;
+		},
+
+		/**
+		 * @return the deflating
+		 */
+		isDeflating : function() {
+			return this.deflating;
+		},
+
+		/**
+		 * @param deflating
+		 *            the deflating to set
+		 */
+		setDeflating : function( deflating) {
+			this.deflating = deflating;
+		},
+		
+		/**
+		 * set the descent value
+		 * 
+		 * @param value
+		 *            the descent value
+		 */
+		setDescentValue : function( value) {
+			this.ascent = false;
+			this.descent = true;
+			if (value < 0) {
+				throw new Error("bar value should be greater than 0");
+			}
+			this.value = value;
+		},
+
+		/**
+		 * get bar base
+		 * 
+		 * @return  bar base
+		 */
+		getBase : function() {
+			return this.base;
+		},
+
+		/**
+		 * set bar base
+		 * 
+		 * @param base
+		 *            the base to set
+		 */
+		setBase : function( base) {
+			this.baseSet = true;
+			this.base = base;
+		},
+
+		/**
+		 * return true if the base has been set, false otherwise
+		 * 
+		 * @return true if the base has been set, false otherwise
+		 */
+		isBaseSet : function() {
+			return this.baseSet;
+		},
+
+		/**
+		 * return true is the bar is ascent, false otherwise
+		 * 
+		 * @return true is the bar is ascent, false otherwise
+		 */
+		isAscent : function() {
+			return this.ascent;
+		},
+
+		/**
+		 * return true is the bar is descent, false otherwise
+		 * 
+		 * @return true is the bar is descent, false otherwise
+		 */
+		isDescent : function() {
+			return this.descent;
+		},
+
+		/**
+		 * true if the bar symbol descent or ascent value is set, false otherwise
+		 * 
+		 * @return true if the bar symbol descent or ascent value is set, false
+		 *         otherwise
+		 */
+		isValueSet : function() {
+			return this.ascent || this.descent;
+		},
+
+		/**
+		 * get the bar stroke
+		 * 
+		 * @return the bar stroke
+		 */
+		getBarStroke : function() {
+			return this.barStroke;
+		},
+
+		/**
+		 * set the bar stroke
+		 * 
+		 * @param barStroke
+		 *            the bar stroke to set
+		 */
+		setBarStroke : function(barStroke) {
+			this.barStroke = barStroke;
+		},
+
+		/**
+		 * get bar fill
+		 * 
+		 * @return the bar fill
+		 */
+		getBarFill : function() {
+			return this.barFill;
+		},
+
+		/**
+		 * set the bar fill
+		 * 
+		 * @param barFill
+		 *            the bar fill to ser
+		 */
+		setBarFill : function( barFill) {
+			this.barFill = barFill;
+		},
+
+		/**
+		 * get bar effect
+		 * 
+		 * @return the bar effect
+		 */
+		 getBarEffect : function() {
+			return this.barEffect;
+		 },
+
+		/**
+		 * set the bar effect
+		 * 
+		 * @param barEffect
+		 *            the bar effect to set
+		 */
+		setBarEffect : function(barEffect) {
+			this.barEffect = barEffect;
+		},
+		
+		
+		
+	});
+	
+	
+})();
+(function(){
+	
+	JenScript.SymbolStack = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolStack, JenScript.SymbolBar);
+	JenScript.Model.addMethods(JenScript.SymbolStack,{
+		__init : function(config){
+			config=config||{};
+			JenScript.SymbolBar.call(this, config);
+			 /** stacked bar symbol host */
+		    this.hostSymbol;
+		    /** stack relative value */
+		    this.stackValue = config.stackValue;
+		    /** stack normalized value */
+		    this.normalizedValue;
+		},
+		
+	    toString : function() {
+	        return "Stack [hostSymbol=" + this.hostSymbol + ", stackValue=" + this.stackValue
+	                + ", normalizedValue=" + this.normalizedValue + ", lockEnter="
+	                + this.lockEnter + "]";
+	    },
+
+	    /**
+	     * @return the stackValue
+	     */
+	    getStackValue : function() {
+	        return this.stackValue;
+	    },
+
+	    /**
+	     * @param stackValue
+	     *            the stackValue to set
+	     */
+	    setStackValue : function(stackValue) {
+	        this.stackValue = stackValue;
+	    },
+
+	    /**
+	     * get normalized value of this stack
+	     * 
+	     * @return normalized value of this stack
+	     */
+	    getNormalizedValue : function() {
+	        return this.normalizedValue;
+	    },
+
+	    /**
+	     * set the normalized value of this stack
+	     * 
+	     * @param normalizedValue
+	     *            the normalized value to set
+	     */
+	    setNormalizedValue : function(normalizedValue) {
+	        this.normalizedValue = normalizedValue;
+	    },
+
+	    /**
+	     * get stacked bar symbol host for this stack
+	     * 
+	     * @return bar symbol host for this stack
+	     */
+	    getHostSymbol : function() {
+	        return this.hostSymbol;
+	    },
+
+	    /**
+	     * set stacked bar symbol host for this stack
+	     * 
+	     * @param hostSymbol
+	     *            the stacked bar symbol host to set
+	     */
+	    setHostSymbol : function(hostSymbol) {
+	        this.hostSymbol = hostSymbol;
+	    }
+
+	});
+	
+	
+	
+	JenScript.SymbolBarStacked = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarStacked, JenScript.SymbolBar);
+	JenScript.Model.addMethods(JenScript.SymbolBarStacked,{
+		
+		__init : function(config){
+			config=config||{};
+			JenScript.SymbolBar.call(this, config);
+			/** stacks registry */
+			this.stacks = [];
+		},
+
+	    /**
+	     * get the base of the specified stack
+	     * 
+	     * @param stack
+	     *            the stack
+	     * @return the base of specified stack
+	     */
+	   getStackBase : function(stack) {
+	        var base = this.getBase();
+	        for (var i = 0; i < this.stacks.length; i++) {
+	        	var s = this.stacks[i];
+	        	if (stack.equals(s)) {
+	        		//console.log('getStackBase:'+base);
+	                return base;
+	            }
+	            if (this.isAscent()) {
+	                base = base + s.getNormalizedValue();
+	            }
+	            else if (this.isDescent()) {
+	                base = base - s.getNormalizedValue();
+	            }
+			}
+	       // console.log('getStackBase:'+base);
+	        return base;
+	    },
+
+//	    /**
+//	     * create and add a new stack with specified parameters
+//	     * 
+//	     * @param name
+//	     *            the stack name to set
+//	     * @param themeColor
+//	     *            the theme color to set
+//	     * @param proportionValue
+//	     *            the proportion value
+//	     */
+//	    addStack : function(name,themeColor,proportionValue) {
+//	        if (proportionValue < 0) {
+//	            throw new Error("stack proportion value should be greater than 0");
+//	        }
+//
+//	        var stack = new JenScript.Stack(name, themeColor, proportionValue);
+//	        stack.setHostSymbol(this);
+//	        this.stacks[stacks.length].add(stack);
+//	    },
+
+
+
+	    /**
+	     * add the specified stack in this stacked symbol
+	     * 
+	     * @param stack
+	     *            the stack to add
+	     */
+	    addStack : function(stack) {
+	        if (stack.getValue() < 0) {
+	            throw new Error("stack proportion value should be greater than 0");
+	        }
+	        stack.setHostSymbol(this);
+	        this.stacks[this.stacks.length] = stack;
+	    },
+
+	    /**
+	     * normalization of the stack value
+	     */
+	   normalize : function() {
+	        var deltaValue = Math.abs(this.getValue());
+	        var stacksSumValue = 0;
+	        for (var i = 0; i < this.stacks.length; i++) {
+	        	stacksSumValue = stacksSumValue + this.stacks[i].getStackValue();
+	        }
+	        for (var i = 0; i < this.stacks.length; i++) {
+				this.stacks[i].setNormalizedValue(this.stacks[i].getStackValue() * deltaValue / stacksSumValue);
+			}
+	    },
+
+	    /**
+	     * get stacks registry
+	     * 
+	     * @return stacks registry
+	     */
+	    getStacks : function() {
+	        return this.stacks;
+	    }
+		
+	});
+	
+	
+})();
+(function(){
+	
+	JenScript.SymbolBarGroup = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarGroup, JenScript.SymbolBar);
+	JenScript.Model.addMethods(JenScript.SymbolBarGroup,{
+		
+		__init : function(config){
+			config=config||{};
+			JenScript.SymbolBar.call(this, config);
+			/** component registry */
+			this.symbolComponents = [];
+		},
+
+		getThickness : function() {
+	        var groupThickness = 0;
+	        for (var i = 0; i < this.symbolComponents.length; i++) {
+	            groupThickness = groupThickness + this.symbolComponents[i].getThickness();
+	        }
+	        return groupThickness;
+	    },
+
+
+	    /**
+	     * get max value in device coordinate for this group in the scalar dimension
+	     * 
+	     * @return the max value in device coordinate
+	     */
+	    getMaxValue : function() {
+	        var max = -1;
+	        var setMax = false;
+	        for (var i = 0; i < this.symbolComponents.length; i++) {
+	        	var b = this.symbolComponents[i];
+	            if (!b.isFiller) {
+	                var rect2D = b.getBarShape().getBounds2D();
+	                if (this.getNature() === 'Vertical') {
+	                    if (!setMax) {
+	                        max = rect2D.getMaxY();
+	                        setMax = true;
+	                    }
+	                    max = Math.max(max, rect2D.getMaxY());
+	                }
+	                else if (this.getNature() === 'Horizontal') {
+	                    if (!setMax) {
+	                        max = rect2D.getMaxX();
+	                        setMax = true;
+	                    }
+	                    max = Math.max(max, rect2D.getMaxX());
+	                }
+	            }
+	        }
+	        return max;
+	    },
+
+	    /**
+	     * get min value in device coordinate for this group in the scalar dimension
+	     * 
+	     * @return the min value in device coordinate
+	     */
+	    getMinValue : function() {
+	        var min = -1;
+	        var setMin = false;
+	        for (var i = 0; i < this.symbolComponents.length; i++) {
+	        	var b = this.symbolComponents[i];
+	            if (!b.isFiller) {
+	                var rect2D = b.getBarShape().getBounds2D();
+	                if (this.getNature() === 'Vertical') {
+	                    if (!setMin) {
+	                        min = rect2D.getMinY();
+	                        setMin = true;
+	                    }
+	                    min = Math.min(min, rect2D.getMinY());
+	                }
+	                else if (this.getNature() == 'Horizontal') {
+	                    if (!setMin) {
+	                        min = rect2D.getMinX();
+	                        setMin = true;
+	                    }
+	                    min = Math.min(min, rect2D.getMinX());
+	                }
+	            }
+	        }
+	        return min;
+	    },
+
+	    /**
+	     * get center value in device coordinate for this group in the scalar
+	     * dimension
+	     * 
+	     * @return the center value in device coordinate
+	     */
+	    getCenterValue : function() {
+	        var max = this.getMaxValue();
+	        var min = this.getMinValue();
+	        return min + Math.abs(max - min) / 2;
+	    },
+
+	    /**
+	     * get the bar group virtual shape the bar shape for this group is the
+	     * bounding rectangle which contains all bar symbol
+	     */
+	   getBarShape : function() {
+//	        Area a = new Area();
+//	        double max = getMaxValue();
+//	        double min = getMinValue();
+//
+//	        for (BarSymbol b : getSymbolComponents()) {
+//	            if (!b.isFiller()) {
+//	                a.add(new Area(b.getBarShape()));
+//	            }
+//	            else if (b.isFiller() && b.getFillerType() == FillerType.Strut) {
+//	                Rectangle2D strutShape = null;
+//	                if (getNature() == SymbolNature.Vertical) {
+//	                    strutShape = new Rectangle2D.Double(b.getLocationX(), max,
+//	                                                        b.getThickness(), max - min);
+//	                }
+//	                else if (getNature() == SymbolNature.Horizontal) {
+//	                    strutShape = new Rectangle2D.Double(min, b.getLocationY(),
+//	                                                        max - min, b.getThickness());
+//	                }
+//	                // a.add(new Area(strutShape));
+//	            }
+//	        }
+//	        return a.getBounds2D();
+	    },
+	    
+	    /**
+	     * add symbol component
+	     * 
+	     * @param symbol
+	     *            the symbol to add
+	     * @throws IllegalArgumentException
+	     *             if glue is add in this group
+	     */
+	    addSymbol : function(symbol) {
+	        if (symbol.isFiller && symbol.getFillerType() === 'Glue') {
+	            throw new Error("Glue can not be add in group.");
+	        }
+	        this.symbolComponents.add(symbol);
+	    },
+
+	    /**
+	     * remove symbol component
+	     * 
+	     * @param symbol
+	     *            the symbol to remove
+	     */
+	    removeSymbolComponent : function(symbol) {
+	        //symbolComponents.remove(symbol);
+	    },
+
+	    /**
+	     * get symbol components
+	     * 
+	     * @return symbol components
+	     */
+	    getSymbolComponents : function() {
+	        return this.symbolComponents;
+	    },
+
+	    /**
+	     * set symbols components to set
+	     * 
+	     * @param symbolComponents
+	     */
+	   setSymbolComponents : function(symbolComponents) {
+	        this.symbolComponents = symbolComponents;
+	   }
+		
+	});
+	
+	
+})();
+(function(){
+	
+	JenScript.SymbolPoint = function(config) {
+		//SymbolPoint
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolPoint, JenScript.SymbolComponent);
+	JenScript.Model.addMethods(JenScript.SymbolPoint,{
+		
+		_init : function(config){
+			config=config||{};
+			 /** the point value in user system coordinate */
+		   this.value = config.value;
+		    /** transformed value in device coordinate */
+		   this.deviceValue;
+		    /** the point of this symbol */
+		   this.devicePoint;
+		    /** symbol point painter */
+		   this.pointSymbolPainters = [];
+		   this.pointSymbolPainters[0] = new JenScript.SymbolPointSquare(); 
+		   /** sensible radius in pixel */
+		   this.sensibleRadius = 10;
+		    /** sensible shape */
+		   this.sensibleShape;
+		   JenScript.SymbolComponent.call(this, config);
+		},
+		
+		
+		 /**
+	     * get the value in the user system coordinate
+	     * 
+	     * @return the value
+	     */
+	    getValue : function() {
+	        return this.value;
+	    },
+
+	    /**
+	     * set the value in the user system coordinate
+	     * 
+	     * @param value
+	     *            the value to set
+	     */
+	    setValue : function(value) {
+	        this.value = value;
+	    },
+
+	    // /**
+	    // * a point symbol has no thickness, so this return 0
+	    // */
+	    // @Override
+	    // public double getThickness() {
+	    // return 0;
+	    // }
+
+	    /**
+	     * @return the sensibleShape
+	     */
+	    getSensibleShape : function() {
+	        return this.sensibleShape;
+	    },
+
+	    /**
+	     * @param sensibleShape
+	     *            the sensibleShape to set
+	     */
+	    setSensibleShape : function(sensibleShape) {
+	        this.sensibleShape = sensibleShape;
+	    },
+
+	    /**
+	     * get the transformed value coordinate in the device system
+	     * 
+	     * @return the deviceValue
+	     */
+	    getDeviceValue : function() {
+	        return this.deviceValue;
+	    },
+
+	    /**
+	     * set the transformed value coordinate in the device system
+	     * 
+	     * @param deviceValue
+	     *            the deviceValue to set
+	     */
+	    setDeviceValue : function(deviceValue) {
+	        this.deviceValue = deviceValue;
+	    },
+
+	    /**
+	     * @return the devicePoint
+	     */
+	    getDevicePoint : function() {
+	        return this.devicePoint;
+	    },
+
+	    /**
+	     * @param devicePoint
+	     *            the devicePoint to set
+	     */
+	    setDevicePoint : function(devicePoint) {
+	        this.devicePoint = devicePoint;
+	    },
+
+	    /**
+	     * @return the pointSymbolPainter
+	     */
+	    getPointSymbolPainters : function() {
+	        return this.pointSymbolPainters;
+	    },
+
+	    /**
+	     * @param pointSymbolPainterList
+	     *            the pointSymbolPainter list to set
+	     */
+	    setPointSymbolPainters : function(painters) {
+	        this.pointSymbolPainters = painters;
+	    },
+
+	    /**
+	     * @param pointSymbolPainter
+	     *            the pointSymbolPainter to add
+	     */
+	    addPointSymbolPainter : function( painter) {
+	        this.pointSymbolPainters[this.pointSymbolPainters] = painter;
+	    },
+
+	    /**
+	     * @return the sensibleRadius
+	     */
+	    getSensibleRadius : function() {
+	        return this.sensibleRadius;
+	    },
+
+	    /**
+	     * @param sensibleRadius
+	     *            the sensibleRadius to set
+	     */
+	    setSensibleRadius : function(sensibleRadius) {
+	        this.sensibleRadius = sensibleRadius;
+	    }
+
+	});
+})();
+(function(){
+	
+	JenScript.SymbolPolylinePoint = function(config) {
+		//SymbolPolylinePoint
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolPolylinePoint, JenScript.SymbolPoint);
+	JenScript.Model.addMethods(JenScript.SymbolPolylinePoint,{
+		
+		__init : function(config){
+			config=config||{};
+			 /** bar members */
+		    this.symbolComponents = [];
+		    /** polyline painter */
+		    this.polylinePainter = new JenScript.SymbolPolylinePainter();
+		    JenScript.SymbolPoint.call(this, config);
+		},
+		
+	    getNature : function() {
+	        return this.getHost().getNature();
+	    },
+
+	    getThickness : function() {
+	        return 0;
+	    },
+
+	    /***
+	     * get the polyline painter
+	     * 
+	     * @return polyline painter
+	     */
+	    getPolylinePainter : function() {
+	        return this.polylinePainter;
+	    },
+
+	    /**
+	     * set the polyline painter
+	     * 
+	     * @param polylinePainter
+	     *            the polyline painter to set
+	     */
+	    setPolylinePainter : function(polylinePainter) {
+	        this.polylinePainter = polylinePainter;
+	    },
+
+	    /**
+	     * add symbol component
+	     * 
+	     * @param symbol
+	     *            the symbol to add
+	     */
+	    addSymbol : function(point) {
+	    	if(point instanceof JenScript.SymbolPoint)
+	    		this.symbolComponents[this.symbolComponents.length]= point;
+	    },
+
+	    /**
+	     * remove symbol component
+	     * 
+	     * @param symbol
+	     *            the bar to remove
+	     */
+	    removeSymbolComponent : function(point) {
+	    	var pts = [];
+	    	for (var i = 0; i < this.symbolComponents.length; i++) {
+				if(!this.symbolComponents[i].equals(point))
+					pts[pts.length]=this.symbolComponents[i];
+			}
+	        this.symbolComponents=pts;
+	    },
+
+	    /**
+	     * get symbol components
+	     * 
+	     * @return symbol components
+	     */
+	    getSymbolComponents : function() {
+	        return this.symbolComponents;
+	    },
+
+	    /**
+	     * set symbol components
+	     * 
+	     * @param symbolComponents
+	     */
+	    setSymbolComponents : function(symbolComponents) {
+	        this.symbolComponents = symbolComponents;
+	    }
+	});
+})();
+(function(){
+	JenScript.SymbolPainter = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.SymbolPainter,{
+		init : function(config){
+			config=config||{};
+		},
+		paintSymbol : function(g2d,symbol,xviewPart) {}
+	});
+})();
+(function(){
+	JenScript.SymbolBarFill = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarFill, JenScript.SymbolPainter);
+	JenScript.Model.addMethods(JenScript.SymbolBarFill,{
+		
+		_init : function(config){
+			config=config||{};
+			this.Id = 'symbolfill'+JenScript.sequenceId++;
+			JenScript.SymbolPainter.call(this, config);
+		},
+		
+		paintBarFill : function(g2d,bar){},
+		
+		paintSymbol : function(g2d,symbol,xviewPart) {
+			 if (symbol.isVisible()) {
+		            this.paintBarFill(g2d,symbol);
+		     }
+		}
+		
+	});
+	
+	JenScript.SymbolBarFill0 = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarFill0, JenScript.SymbolBarFill);
+	JenScript.Model.addMethods(JenScript.SymbolBarFill0,{
+		
+		__init : function(config){
+			config=config||{};
+			JenScript.SymbolBarFill.call(this, config);
+		},
+		
+	    paintBarFill : function(g2d,bar) {
+	     	g2d.deleteGraphicsElement(this.Id+bar.Id);
+		   	var elem =  bar.getBarShape().Id(this.Id+bar.Id).fill(bar.themeColor).fillOpacity(bar.opacity).toSVG();
+		   	g2d.insertSVG(elem);
+		   	//set bar bound2D
+		   	var bbox = elem.getBBox();
+		   	bar.setBound2D(new JenScript.Bound2D(bbox.x,bbox.y,bbox.width,bbox.height));
+	    }
+	});
+	
+	JenScript.SymbolBarFill1 = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarFill1, JenScript.SymbolBarFill);
+	JenScript.Model.addMethods(JenScript.SymbolBarFill1,{
+		
+		__init : function(config){
+			config=config||{};
+			JenScript.SymbolBarFill.call(this, config);
+		},
+		
+	    paintBarFill : function(g2d,bar) {
+	        if (bar.getNature() === 'Vertical') {
+	            this.v(g2d, bar);
+	        }
+	        if (bar.getNature() === 'Horizontal') {
+	            this.h(g2d, bar);
+	        }
+	    },
+
+	   v : function(g2d,bar) {
+		   
+		   	//g2d.insertSVG(bar.getBarShape().Id(this.Id+bar.Id).stroke(bar.getThemeColor()).fillNone().toSVG());
+		   	g2d.deleteGraphicsElement(this.Id+bar.Id);
+		   	var elem =  bar.getBarShape().Id(this.Id+bar.Id).toSVG();
+		   	g2d.insertSVG(elem);
+	        var bbox = elem.getBBox();
+	        var start = new JenScript.Point2D(bbox.x, bbox.y + bbox.height/2);
+	        var end = new JenScript.Point2D(bbox.x + bbox.width,bbox.y + bbox.height/2);
+	        var cBase = bar.getThemeColor();
+	        var brighther1 = JenScript.Color.brighten(cBase, 20);
+	        var dist = [ '0%', '50%', '100%' ];
+	        var colors = [ brighther1, cBase, brighther1 ];
+	        var opacity = [ 0.6, 0.8, 0.4 ];
+	        var gradient1= new JenScript.SVGLinearGradient().Id(this.Id+bar.Id+'gradient').from(start.x, start.y).to(end.x, end.y).shade(dist,colors);
+	        g2d.deleteGraphicsElement(this.Id+bar.Id+'gradient');
+	        g2d.definesSVG(gradient1.toSVG());
+	        elem.setAttribute('fill','url(#'+this.Id+bar.Id+'gradient'+')');
+	    	//set bar bound2D
+		   	var bbox = elem.getBBox();
+		   	bar.setBound2D(new JenScript.Bound2D(bbox.x,bbox.y,bbox.width,bbox.height));
+	    },
+
+	    h : function(g2d,bar) {
+	    	g2d.deleteGraphicsElement(bar.Id);
+		   	var elem =  bar.getBarShape().Id(bar.Id).toSVG();
+		   	g2d.insertSVG(elem);
+	        var bbox = elem.getBBox();
+	        var start = new JenScript.Point2D(bbox.x+bbox.width/2,bbox.y);
+	        var end = new JenScript.Point2D(bbox.x+bbox.width/2, bbox.y + bbox.height);
+	        var cBase = bar.getThemeColor();
+	        var brighther1 = JenScript.Color.brighten(cBase, 20);
+
+	        var dist = [ '0%', '50%', '100%' ];
+	        var colors = [ brighther1, cBase, brighther1 ];
+	        var opacity = [ 0.6, 0.8, 0.4 ];
+	        var gradient1= new JenScript.SVGLinearGradient().Id(this.Id+'gradient').from(start.x, start.y).to(end.x, end.y).shade(dist,colors);
+	        g2d.deleteGraphicsElement(this.Id+'gradient');
+	        g2d.definesSVG(gradient1.toSVG());
+	        elem.setAttribute('fill','url(#'+this.Id+'gradient'+')');
+	    	//set bar bound2D
+		   	var bbox = elem.getBBox();
+		   	bar.setBound2D(new JenScript.Bound2D(bbox.x,bbox.y,bbox.width,bbox.height));
+	    }
+		
+	});
+})();
+(function(){
+	JenScript.SymbolBarEffect = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarEffect, JenScript.SymbolPainter);
+	JenScript.Model.addMethods(JenScript.SymbolBarEffect,{
+		
+		_init : function(config){
+			config=config||{};
+			this.Id = 'symboleffect'+JenScript.sequenceId++;
+			JenScript.SymbolPainter.call(this, config);
+		},
+		
+		paintBarEffect : function(g2d,bar){},
+		
+		paintSymbol : function(g2d,symbol,xviewPart) {
+			 if (symbol.isVisible()) {
+		            this.paintBarEffect(g2d,symbol);
+		     }
+		}
+		
+	});
+	
+	JenScript.SymbolBarEffect0 = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarEffect0, JenScript.SymbolBarEffect);
+	JenScript.Model.addMethods(JenScript.SymbolBarEffect0,{
+		
+		__init : function(config){
+			config=config||{};
+			this.Id = 'symboleffect0_'+JenScript.sequenceId++;
+			JenScript.SymbolBarEffect.call(this,config);
+		},
+		
+		paintBarEffect : function(g2d,bar){
+			 if (bar.getNature() === 'Vertical') {
+		            this.v(g2d,bar);
+		        }
+		        if (bar.getNature() === 'Horizontal') {
+		            this.h(g2d,bar);
+		        }
+		},
+		
+		 v : function(g2d,bar) {
+
+	        var proj = bar.getHost().getProjection();
+	        var p2dUser = null;
+	        if (bar.isAscent()) {
+	            p2dUser = new JenScript.Point2D(0, bar.getBase() + bar.getValue());
+	        }
+	        if (bar.isDescent()) {
+	            p2dUser = new JenScript.Point2D(0, bar.getBase() - bar.getValue());
+	        }
+	        var p2ddevice = proj.userToPixel(p2dUser);
+
+	        var p2dUserBase = new JenScript.Point2D(0, bar.getBase());
+	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
+
+	        var x = bar.getLocationX();
+	        var y = p2ddevice.getY();
+	        if (bar.isDescent()) {
+	            y = p2ddeviceBase.getY();
+	        }
+	        var width = bar.getThickness();
+	        var height = Math.abs(p2ddeviceBase.getY() - p2ddevice.getY());
+
+	        var shapeEffect = undefined;
+
+	        var inset = 2;
+	        x = x + inset;
+	        y = y + inset;
+	        width = width - 2 * inset;
+	        height = height - 2 * inset;
+	        if (bar.getMorpheStyle() === 'Round') {
+
+	        	var round = bar.getRound();
+	        	var barPath = new JenScript.SVGPath().Id(this.Id);
+	            if (bar.isAscent()) {
+	                barPath.moveTo(x, y + round);
+	                barPath.lineTo(x, y + height);
+	                barPath.lineTo(x + width / 2, y + height);
+	                barPath.lineTo(x + width / 2, y);
+	                barPath.lineTo(x + round, y);
+	                barPath.quadTo(x, y, x, y + round);
+	                barPath.close();
+	            }
+	            else if (bar.isDescent()) {
+	                barPath.moveTo(x, y);
+	                barPath.lineTo(x, y + height - round);
+	                barPath.quadTo(x, y + height, x + round, y + height);
+	                barPath.lineTo(x + width / 2, y + height);
+	                barPath.lineTo(x + width / 2, y);
+	                barPath.close();
+
+	            }
+	            shapeEffect = barPath;
+	        }
+	        else if (bar.getMorpheStyle() === 'Rectangle') {
+	            var barRec = new JenScript.SVGRect().Id(this.Id).origin(x, y).size(width / 2, height);
+	            shapeEffect = barRec;
+	        }
+
+	        var boun2D2 =  new JenScript.Bound2D(x, y,width, height);
+
+	        var start = null;
+	        var end = null;
+	        if (bar.isAscent()) {
+	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+	            end = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(), boun2D2.getY() + boun2D2.getHeight());
+	        }
+	        else if (bar.isDescent()) {
+	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY()+ boun2D2.getHeight());
+	                    
+	        }
+	        var dist = [ '0%', '100%' ];
+	        var colors = [ 'rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.5)' ];
+
+	        var gradient1= new JenScript.SVGLinearGradient().Id(this.Id+'gradient').from(start.x, start.y).to(end.x, end.y).shade(dist,colors);
+	        g2d.deleteGraphicsElement(this.gradientId);
+	        g2d.definesSVG(gradient1.toSVG());
+	        
+	        
+	        var el = shapeEffect.fillURL(this.Id+'gradient').toSVG();
+	        g2d.insertSVG(el);
+
+	    },
+
+	    h : function(g2d, bar) {
+
+//	        Projection w2d = bar.getHost().getProjection();
+//
+//	        Point2D p2dUser = null;
+//	        if (bar.isAscent()) {
+//	            p2dUser = new JenScript.Point2D(bar.getBase() + bar.getValue(), 0);
+//	        }
+//	        if (bar.isDescent()) {
+//	            p2dUser = new JenScript.Point2D(bar.getBase() - bar.getValue(), 0);
+//	        }
+//
+//	        Point2D p2ddevice = w2d.userToPixel(p2dUser);
+//
+//	        Point2D p2dUserBase = new JenScript.Point2D(bar.getBase(), 0);
+//	        Point2D p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+//
+//	        double y = bar.getLocationY();
+//	        double x = (int) p2ddeviceBase.getX();
+//	        if (bar.isAscent()) {
+//	            x = (int) p2ddeviceBase.getX();
+//	        }
+//	        if (bar.isDescent()) {
+//	            x = (int) p2ddevice.getX();
+//	        }
+//
+//	        double height = bar.getThickness();
+//	        double width = Math.abs(p2ddevice.getX() - p2ddeviceBase.getX());
+//
+//	        Shape shapeEffect = null;
+//
+//	        int inset = 2;
+//	        x = x + inset;
+//	        y = y + inset;
+//	        width = width - 2 * inset;
+//	        height = height - 2 * inset;
+//	        if (bar.getMorpheStyle() == MorpheStyle.Round) {
+//	            double round = bar.getRound();
+//	            GeneralPath barPath = new GeneralPath();
+//	            if (bar.isAscent()) {
+//	                barPath.moveTo(x, y);
+//	                barPath.lineTo(x + width - round, y);
+//	                barPath.quadTo(x + width, y, x + width, y + round);
+//	                barPath.lineTo(x + width, y + height / 2);
+//	                barPath.lineTo(x, y + height / 2);
+//	                barPath.closePath();
+//	            }
+//	            else if (bar.isDescent()) {
+//	                barPath.moveTo(x + round, y);
+//	                barPath.lineTo(x + width, y);
+//	                barPath.lineTo(x + width, y + height / 2);
+//	                barPath.lineTo(x, y + height / 2);
+//	                barPath.quadTo(x, y, x + round, y);
+//	                barPath.closePath();
+//	            }
+//	            shapeEffect = barPath;
+//	        }
+//	        else {
+//	            Rectangle2D barRec = new Rectangle2D.Double(x, y, width, height / 2);
+//	            shapeEffect = barRec;
+//	        }
+//
+//	        Rectangle2D boun2D2 = shapeEffect.getBounds2D();
+//
+//	        Point2D start = null;
+//	        Point2D end = null;
+//	        if (bar.isAscent()) {
+//	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getCenterY());
+//	            end = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(),
+//	                                     boun2D2.getCenterY());
+//	        }
+//	        else if (bar.isDescent()) {
+//	            start = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(),
+//	                                       boun2D2.getCenterY());
+//	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getCenterY());
+//	        }
+//	        float[] dist = { 0.0f, 1.0f };
+//	        Color[] colors = {'rgba(255, 255, 255, 120),
+//	               'rgba(255, 255, 255, 80) };
+//	        LinearGradientPaint p2 = new LinearGradientPaint(start, end, dist,
+//	                                                         colors);
+//
+//	        g2d.setPaint(p2);
+//
+//	        g2d.fill(shapeEffect);
+	    }
+		
+		
+		
+	});
+	
+	
+	
+	
+	JenScript.SymbolBarEffect1 = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarEffect1, JenScript.SymbolBarEffect);
+	JenScript.Model.addMethods(JenScript.SymbolBarEffect1,{
+		
+		__init : function(config){
+			config=config||{};
+			this.Id = 'symboleffect1_'+JenScript.sequenceId++;
+			JenScript.SymbolBarEffect.call(this,config);
+		},
+		
+		paintBarEffect : function(g2d,bar){
+			 if (bar.getNature() === 'Vertical') {
+		            this.v(g2d,bar);
+		        }
+		        if (bar.getNature() === 'Horizontal') {
+		            this.h(g2d,bar);
+		        }
+		},
+		
+		v : function(g2d, bar) {
+
+	        // Graphics2D partGraphics =bar.getPart().getGraphics2D();
+
+	        var w2d = bar.getHost().getProjection();
+
+	        var p2dUser = null;
+	        if (bar.isAscent()) {
+	            p2dUser = new JenScript.Point2D(0, bar.getBase() + bar.getValue());
+	        }
+	        if (bar.isDescent()) {
+	            p2dUser = new JenScript.Point2D(0, bar.getBase() - bar.getValue());
+	        }
+	        var p2ddevice = w2d.userToPixel(p2dUser);
+
+	        var p2dUserBase = new JenScript.Point2D(0, bar.getBase());
+	        var p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+
+	        var x = bar.getLocationX();
+	        var y =  p2ddevice.getY();
+	        if (bar.isDescent()) {
+	            y =  p2ddeviceBase.getY();
+	        }
+	        var width = bar.getThickness();
+	        var height = Math.abs(p2ddeviceBase.getY() - p2ddevice.getY());
+
+	        var shapeEffect = null;
+
+	        var inset = 2;
+	        x = x + inset;
+	        y = y + inset;
+	        width = width - 2 * inset;
+	        height = height - 2 * inset;
+	        if (bar.getMorpheStyle() === 'Round') {
+	        	var round = bar.getRound();
+	        	var  barPath = new JenScript.SVGPath().Id(this.Id);
+	            if (bar.isAscent()) {
+	                barPath.moveTo(x, y + round);
+	                barPath.lineTo(x, y + height);
+	                barPath.lineTo(x + width, y + height);
+	                barPath.lineTo(x + width, y + round);
+	                barPath.quadTo(x + width, y, x + width - round, y);
+	                barPath.lineTo(x + round, y);
+	                barPath.quadTo(x, y, x, y + round);
+	                barPath.close();
+	                shapeEffect = barPath;
+	            }
+	            else if (bar.isDescent()) {
+	                barPath.moveTo(x, y);
+	                barPath.lineTo(x, y + height - round);
+	                barPath.quadTo(x, y + height, x + round, y + height);
+	                barPath.lineTo(x + width - round, y + height);
+	                barPath.quadTo(x + width, y + height, x + width, y + height - round);
+	                barPath.lineTo(x + width, y);
+	                barPath.close();
+	                shapeEffect = barPath;
+	            }
+	        }
+	        else if (bar.getMorpheStyle() === 'Rectangle') {
+	        	var barRec = new JenScript.SVGRect().Id(this.Id).origin(x, y).size(width, height);
+	            shapeEffect = barRec;
+	        }
+	        var boun2D2 =  new JenScript.Bound2D(x, y,width,height);
+	        var start = undefined;
+	        var end = undefined;
+	        if (bar.isAscent()) {
+	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY() + boun2D2.getHeight());
+	        }
+	        else if (bar.isDescent()) {
+	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY()  + boun2D2.getHeight());
+	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+	        }
+	        var dist = [ '0%', '33%', '66%', '100%' ];
+	        var colors = [ 'rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0)', 'rgba(40, 40, 40, 0)', 'rgba(40, 40, 40, 0.4)' ];
+	        var gd = new JenScript.SVGLinearGradient().Id(this.Id+'gradient').from(start.x,start.y).to(end.x,end.y).shade(dist,colors).toSVG();
+	        g2d.definesSVG(gd);                                              
+	        g2d.insertSVG(shapeEffect.fillURL(this.Id+'gradient').toSVG());
+	    },
+
+	    h : function(g2d, bar) {
+
+//	        Projection w2d = bar.getHost().getProjection();
+//
+//	        Point2D p2dUser = null;
+//	        if (bar.isAscent()) {
+//	            p2dUser = new JenScript.Point2D(bar.getBase() + bar.getValue(), 0);
+//	        }
+//	        if (bar.isDescent()) {
+//	            p2dUser = new JenScript.Point2D(bar.getBase() - bar.getValue(), 0);
+//	        }
+//
+//	        Point2D p2ddevice = w2d.userToPixel(p2dUser);
+//
+//	        Point2D p2dUserBase = new JenScript.Point2D(bar.getBase(), 0);
+//	        Point2D p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+//
+//	        double y = bar.getLocationY();
+//	        double x = (int) p2ddeviceBase.getX();
+//	        if (bar.isAscent()) {
+//	            x = (int) p2ddeviceBase.getX();
+//	        }
+//	        if (bar.isDescent()) {
+//	            x = (int) p2ddevice.getX();
+//	        }
+//
+//	        double height = bar.getThickness();
+//	        double width = Math.abs(p2ddevice.getX() - p2ddeviceBase.getX());
+//
+//	        Shape shapeEffect = null;
+//
+//	        int inset = 2;
+//	        x = x + inset;
+//	        y = y + inset;
+//	        width = width - 2 * inset;
+//	        height = height - 2 * inset;
+//	        if (bar.getMorpheStyle() == MorpheStyle.Round) {
+//	            double round = bar.getRound();
+//	            GeneralPath barPath = new GeneralPath();
+//	            if (bar.isAscent()) {
+//	                barPath.moveTo(x, y);
+//	                barPath.lineTo(x + width - round, y);
+//	                barPath.quadTo(x + width, y, x + width, y + round);
+//	                barPath.lineTo(x + width, y + height - round);
+//	                barPath.quadTo(x + width, y + height, x + width - round, y
+//	                        + height);
+//	                barPath.lineTo(x, y + height);
+//	                barPath.closePath();
+//	            }
+//	            else if (bar.isDescent()) {
+//
+//	                barPath.moveTo(x + round, y);
+//	                barPath.lineTo(x + width, y);
+//	                barPath.lineTo(x + width, y + height);
+//	                barPath.lineTo(x + round, y + height);
+//	                barPath.quadTo(x, y + height, x, y + height - round);
+//	                barPath.lineTo(x, y + round);
+//	                barPath.quadTo(x, y, x + round, y);
+//	                barPath.closePath();
+//	            }
+//	            shapeEffect = barPath;
+//	        }
+//	        else {
+//
+//	            Rectangle2D barRec = new Rectangle2D.Double(x, y, width, height);
+//	            shapeEffect = barRec;
+//
+//	        }
+//
+//	        Rectangle2D boun2D2 = shapeEffect.getBounds2D();
+//
+//	        Point2D start = null;
+//	        Point2D end = null;
+//	        if (bar.isAscent()) {
+//	            start = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(),
+//	                                       boun2D2.getY());
+//	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+//	        }
+//	        else if (bar.isDescent()) {
+//	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+//	            end = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(),
+//	                                     boun2D2.getY());
+//	        }
+//
+//	        float[] dist = { 0.0f, 0.33f, 0.66f, 1.0f };
+//	        Color[] colors = { 'rgba(255, 255, 255, 180),
+//	                'rgba(255, 255, 255, 0), 'rgba(40, 40, 40, 0),
+//	                'rgba(40, 40, 40, 100) };
+//	        LinearGradientPaint p2 = new LinearGradientPaint(start, end, dist,
+//	                                                         colors);
+//
+//	        g2d.setPaint(p2);
+//	        g2d.fill(shapeEffect);
+
+	    }
+		
+		
+	});
+	
+	
+	
+	
+	JenScript.SymbolBarEffect2 = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarEffect2, JenScript.SymbolBarEffect);
+	JenScript.Model.addMethods(JenScript.SymbolBarEffect2,{
+		
+		__init : function(config){
+			config=config||{};
+			this.Id = 'symboleffect2_'+JenScript.sequenceId++;
+			JenScript.SymbolBarEffect.call(this,config);
+		},
+		
+		paintBarEffect : function(g2d,bar){
+			 if (bar.getNature() === 'Vertical') {
+		            this.v(g2d,bar);
+		        }
+		        if (bar.getNature() === 'Horizontal') {
+		            this.h(g2d,bar);
+		        }
+		},
+		
+		v : function(g2d, bar) {
+
+	        var w2d = bar.getHost().getProjection();
+
+	        var p2dUser = null;
+	        if (bar.isAscent()) {
+	            p2dUser = new JenScript.Point2D(0, bar.getBase() + bar.getValue());
+	        }
+	        if (bar.isDescent()) {
+	            p2dUser = new JenScript.Point2D(0, bar.getBase() - bar.getValue());
+	        }
+	        var p2ddevice = w2d.userToPixel(p2dUser);
+
+	        var p2dUserBase = new JenScript.Point2D(0, bar.getBase());
+	        var p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+
+	        var x = bar.getLocationX();
+	        var y =  p2ddevice.getY();
+	        if (bar.isDescent()) {
+	            y = p2ddeviceBase.getY();
+	        }
+	        var width = bar.getThickness();
+	        var height = Math.abs(p2ddeviceBase.getY() - p2ddevice.getY());
+	        var shapeEffect = null;
+	        var inset = 2;
+	        x = x + inset;
+	        y = y + inset;
+	        width = width - 2 * inset;
+	        height = height - 2 * inset;
+	        var biais = 10;
+	        if (bar.getMorpheStyle() === 'Round') {
+	        	var round = bar.getRound();
+	        	var barPath = new JenScript.SVGPath().Id(this.Id);
+	            if (bar.isAscent()) {
+	                barPath.moveTo(x, y + round);
+	                barPath.lineTo(x, y + height / 2 + biais);
+	                barPath.lineTo(x + width, y + height / 2 - biais);
+	                barPath.lineTo(x + width, y + round);
+	                barPath.quadTo(x + width, y, x + width - round, y);
+	                barPath.lineTo(x + round, y);
+	                barPath.quadTo(x, y, x, y + round);
+	                barPath.close();
+	            }
+	            else if (bar.isDescent()) {
+	                barPath.moveTo(x, y + height / 2 - biais);
+	                barPath.lineTo(x, y + height - round);
+	                barPath.quadTo(x, y + height, x + round, y + height);
+	                barPath.lineTo(x + width - round, y + height);
+	                barPath.quadTo(x + width, y + height, x + width, y + height - round);
+	                barPath.lineTo(x + width, y + height / 2 + biais);
+	                barPath.close();
+	            }
+	            shapeEffect = barPath;
+	        }
+	        else if (bar.getMorpheStyle() === 'Rectangle') {
+	        	var barPath = new JenScript.SVGPath().Id(this.Id);
+	            if (bar.isAscent()) {
+	                barPath.moveTo(x, y);
+	                barPath.lineTo(x, y + height / 2 + biais);
+	                barPath.lineTo(x + width, y + height / 2 - biais);
+	                barPath.lineTo(x + width, y);
+	                barPath.close();
+	            }
+	            else if (bar.isDescent()) {
+	                barPath.moveTo(x, y + height / 2 - biais);
+	                barPath.lineTo(x, y + height);
+	                barPath.lineTo(x + width, y + height);
+	                barPath.lineTo(x + width, y + height / 2 + biais);
+	                barPath.close();
+	            }
+	            shapeEffect = barPath;
+	        }
+
+	        var elem = shapeEffect.toSVG();
+	        g2d.insertSVG(elem);
+	        
+	        var bbox = elem.getBBox();
+	        var boun2D2 = new JenScript.Bound2D(bbox.x,bbox.y,bbox.width,bbox.height);
+
+	        var start = null;
+	        var end = null;
+	        if (bar.isAscent()) {
+	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY()  + boun2D2.getHeight());
+	        }
+	        else if (bar.isDescent()) {
+	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY()  + boun2D2.getHeight());
+	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+	        }
+
+	        var dist = ['0%','100%'];
+	        var colors = [ 'rgba(255, 255, 255, 0.7)', 'rgba(255, 255, 255, 0.2)' ];
+	               
+	        var p2 = new JenScript.SVGLinearGradient().Id(this.Id+'gradient').from(start.x,start.y).to(end.x,end.y).shade(dist, colors).toSVG();
+	        g2d.deleteGraphicsElement(this.Id+'gradient');
+	        g2d.definesSVG(p2);
+	        
+	        elem.setAttribute('fill','url(#'+this.Id+'gradient'+')');
+	    },
+
+	    h:function(g2d, bar) {
+
+//	        Projection w2d = bar.getHost().getProjection();
+//
+//	        Point2D p2dUser = null;
+//	        if (bar.isAscent()) {
+//	            p2dUser = new JenScript.Point2D(bar.getBase() + bar.getValue(), 0);
+//	        }
+//	        if (bar.isDescent()) {
+//	            p2dUser = new JenScript.Point2D(bar.getBase() - bar.getValue(), 0);
+//	        }
+//
+//	        Point2D p2ddevice = w2d.userToPixel(p2dUser);
+//
+//	        Point2D p2dUserBase = new JenScript.Point2D(bar.getBase(), 0);
+//	        Point2D p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+//
+//	        double y = bar.getLocationY();
+//	        double x = (int) p2ddeviceBase.getX();
+//	        if (bar.isAscent()) {
+//	            x = (int) p2ddeviceBase.getX();
+//	        }
+//	        if (bar.isDescent()) {
+//	            x = (int) p2ddevice.getX();
+//	        }
+//
+//	        double height = bar.getThickness();
+//	        double width = Math.abs(p2ddevice.getX() - p2ddeviceBase.getX());
+//
+//	        Shape shapeEffect = null;
+//
+//	        int inset = 2;
+//	        x = x + inset;
+//	        y = y + inset;
+//	        width = width - 2 * inset;
+//	        height = height - 2 * inset;
+//
+//	        int biais = 10;
+//
+//	        if (bar.getMorpheStyle() == MorpheStyle.Round) {
+//	            double round = bar.getRound();
+//	            GeneralPath barPath = new GeneralPath();
+//	            if (bar.isAscent()) {
+//	                barPath.moveTo(x + width / 2 + biais, y);
+//	                barPath.lineTo(x + width - round, y);
+//	                barPath.quadTo(x + width, y, x + width, y + round);
+//	                barPath.lineTo(x + width, y + height - round);
+//	                barPath.quadTo(x + width, y + height, x + width - round, y
+//	                        + height);
+//	                barPath.lineTo(x + width / 2 - biais, y + height);
+//	                barPath.closePath();
+//	            }
+//	            else if (bar.isDescent()) {
+//
+//	                barPath.moveTo(x + round, y);
+//	                barPath.lineTo(x + width / 2 - biais, y);
+//	                barPath.lineTo(x + width / 2 + biais, y + height);
+//	                barPath.lineTo(x + round, y + height);
+//	                barPath.quadTo(x, y + height, x, y + height - round);
+//	                barPath.lineTo(x, y + round);
+//	                barPath.quadTo(x, y, x + round, y);
+//	                barPath.closePath();
+//	            }
+//	            shapeEffect = barPath;
+//	        }
+//	        else {
+//
+//	            GeneralPath barPath = new GeneralPath();
+//
+//	            if (bar.isAscent()) {
+//	                barPath.moveTo(x + width / 2 + biais, y);
+//	                barPath.lineTo(x + width, y);
+//	                barPath.lineTo(x + width, y + height);
+//	                barPath.lineTo(x + width / 2 - biais, y + height);
+//	                barPath.closePath();
+//	            }
+//	            else if (bar.isDescent()) {
+//	                barPath.moveTo(x + width / 2 - biais, y);
+//	                barPath.lineTo(x, y);
+//	                barPath.lineTo(x, y + height);
+//	                barPath.lineTo(x + width / 2 + biais, y + height);
+//	                barPath.closePath();
+//	            }
+//	            shapeEffect = barPath;
+//
+//	        }
+//
+//	        Rectangle2D boun2D2 = shapeEffect.getBounds2D();
+//
+//	        Point2D start = null;
+//	        Point2D end = null;
+//	        if (bar.isAscent()) {
+//	            start = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(),
+//	                                       boun2D2.getY());
+//	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+//	        }
+//	        else if (bar.isDescent()) {
+//	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+//	            end = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(),
+//	                                     boun2D2.getY());
+//	        }
+//
+//	        float[] dist = { 0.0f, 1.0f };
+//	        Color[] colors = {'rgba(255, 255, 255, 180),
+//	               'rgba(255, 255, 255, 60) };
+//	        LinearGradientPaint p2 = new LinearGradientPaint(start, end, dist,
+//	                                                         colors);
+//
+//	        g2d.setPaint(p2);
+//	        g2d.fill(shapeEffect);
+
+	    }
+	});
+	
+	
+	JenScript.SymbolBarEffect3 = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarEffect3, JenScript.SymbolBarEffect);
+	JenScript.Model.addMethods(JenScript.SymbolBarEffect3,{
+		
+		__init : function(config){
+			config=config||{};
+			this.Id = 'symboleffect3_'+JenScript.sequenceId++;
+			JenScript.SymbolBarEffect.call(this,config);
+		},
+		
+		paintBarEffect : function(g2d,bar){
+			 if (bar.getNature() === 'Vertical') {
+		            this.v(g2d,bar);
+		        }
+		        if (bar.getNature() === 'Horizontal') {
+		            this.h(g2d,bar);
+		        }
+		},
+		
+	   v : function(g2d,bar) {
+	        if (bar.getHost() === undefined || bar.getHost().getProjection() === undefined) {
+	            return;
+	        }
+	        var w2d = bar.getHost().getProjection();
+	        var p2dUser = null;
+	        if (bar.isAscent()) {
+	            p2dUser = new JenScript.Point2D(0, bar.getBase() + bar.getValue());
+	        }
+	        if (bar.isDescent()) {
+	            p2dUser = new JenScript.Point2D(0, bar.getBase() - bar.getValue());
+	        }
+	        var p2ddevice = w2d.userToPixel(p2dUser);
+	        var p2dUserBase = new JenScript.Point2D(0, bar.getBase());
+	        var p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+
+	        var x = bar.getLocationX();
+	        var y = p2ddevice.getY();
+	        if (bar.isDescent()) {
+	            y = p2ddeviceBase.getY();
+	        }
+	        var width = bar.getThickness();
+	        var height = Math.abs(p2ddeviceBase.getY() - p2ddevice.getY());
+
+	        var shapeEffect = null;
+	        var inset = 2;
+	        x = x + inset;
+	        y = y + inset;
+	        width = width - 2 * inset;
+	        height = height - 2 * inset;
+	        var barPath = new JenScript.SVGPath().Id(this.Id);
+	        if (bar.getMorpheStyle() == 'Round') {
+	        	var round = bar.getRound();
+	            if (bar.isAscent()) {
+	                barPath.moveTo(x, y + round);
+	                barPath.quadTo(x + width / 2, y + height / 2, x, y + height);
+	                barPath.lineTo(x + width, y + height);
+	                barPath.quadTo(x + width / 2, y + height / 2, x + width, y + round);
+	                barPath.quadTo(x + width, y, x + width - round, y);
+	                barPath.lineTo(x + round, y);
+	                barPath.quadTo(x, y, x, y + round);
+	                barPath.close();
+	            }
+	            else if (bar.isDescent()) {
+	                barPath.moveTo(x, y);
+	                barPath.quadTo(x + width / 2, y + height / 2, x, y + height- round);
+	                barPath.quadTo(x, y + height, x + round, y + height);
+	                barPath.lineTo(x + width - round, y + height);
+	                barPath.quadTo(x + width, y + height, x + width, y + height- round);
+	                barPath.quadTo(x + width / 2, y + height / 2, x + width, y);
+	                barPath.close();
+	            }
+	        }
+	        else if (bar.getMorpheStyle() === 'Rectangle') {
+	            barPath.moveTo(x, y);
+	            barPath.quadTo(x + width / 2, y + height / 2, x, y + height);
+	            barPath.lineTo(x + width, y + height);
+	            barPath.quadTo(x + width / 2, y + height / 2, x + width, y);
+	            barPath.close();
+	        }
+	        shapeEffect = barPath;
+	        
+	        var elem = shapeEffect.toSVG();
+	        g2d.insertSVG(elem);
+	        
+	        var bbox = elem.getBBox();
+	        var boun2D2 = new JenScript.Bound2D(bbox.x,bbox.y,bbox.width,bbox.height);
+
+	        var start = null;
+	        var end = null;
+	        if (bar.isAscent()) {
+	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY() + boun2D2.getHeight());
+	        }
+	        else if (bar.isDescent()) {
+	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY()  + boun2D2.getHeight());
+	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+	        }
+
+	        var dist = ['0%','33%','66%','100%' ];
+	        var colors = ['rgba(255, 255, 255, 0.55)',  'rgba(255, 255, 255, 0)','rgba(40, 40, 40, 0)','rgba(40, 40, 40, 0.45)' ];
+	        var p2 = new JenScript.SVGLinearGradient().Id(this.Id+'gradient').from(start.x,start.y).to(end.x,end.y).shade(dist,colors).toSVG();
+	        g2d.deleteGraphicsElement(this.Id+'gradient');
+	        g2d.definesSVG(p2);
+	        
+	        elem.setAttribute('fill','url(#'+this.Id+'gradient'+')');
+
+	       
+	    },
+
+	    h : function(g2d,bar) {
+
+//	        Projection w2d = bar.getHost().getProjection();
+//
+//	        Point2D p2dUser = null;
+//	        if (bar.isAscent()) {
+//	            p2dUser = new JenScript.Point2D(bar.getBase() + bar.getValue(), 0);
+//	        }
+//	        if (bar.isDescent()) {
+//	            p2dUser = new JenScript.Point2D(bar.getBase() - bar.getValue(), 0);
+//	        }
+//
+//	        Point2D p2ddevice = w2d.userToPixel(p2dUser);
+//
+//	        Point2D p2dUserBase = new JenScript.Point2D(bar.getBase(), 0);
+//	        Point2D p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+//
+//	        double y = bar.getLocationY();
+//	        double x = (int) p2ddeviceBase.getX();
+//	        if (bar.isAscent()) {
+//	            x = (int) p2ddeviceBase.getX();
+//	        }
+//	        if (bar.isDescent()) {
+//	            x = (int) p2ddevice.getX();
+//	        }
+//
+//	        double height = bar.getThickness();
+//	        double width = Math.abs(p2ddevice.getX() - p2ddeviceBase.getX());
+//
+//	        Shape shapeEffect = null;
+//
+//	        int inset = 2;
+//	        x = x + inset;
+//	        y = y + inset;
+//	        width = width - 2 * inset;
+//	        height = height - 2 * inset;
+//	        if (bar.getMorpheStyle() == MorpheStyle.Round) {
+//	            double round = bar.getRound();
+//	            GeneralPath barPath = new GeneralPath();
+//	            if (bar.isAscent()) {
+//	                barPath.moveTo(x, y);
+//	                barPath.quadTo(x + width / 2, y + height / 2,
+//	                               x + width - round, y);
+//	                barPath.quadTo(x + width, y, x + width, y + round);
+//	                barPath.lineTo(x + width, y + height - round);
+//	                barPath.quadTo(x + width, y + height, x + width - round, y
+//	                        + height);
+//	                barPath.quadTo(x + width / 2, y + height / 2, x, y + height);
+//	                barPath.closePath();
+//
+//	            }
+//	            else if (bar.isDescent()) {
+//
+//	                barPath.moveTo(x + round, y);
+//	                barPath.quadTo(x + width / 2, y + height / 2, x + width, y);
+//	                barPath.lineTo(x + width, y + height);
+//	                barPath.quadTo(x + width / 2, y + height / 2, x + round, y
+//	                        + height);
+//	                barPath.quadTo(x, y + height, x, y + height - round);
+//	                barPath.lineTo(x, y + round);
+//	                barPath.quadTo(x, y, x + round, y);
+//	                barPath.closePath();
+//
+//	            }
+//	            shapeEffect = barPath;
+//	        }
+//	        else {
+//
+//	            GeneralPath barPath = new GeneralPath();
+//	            barPath.moveTo(x, y);
+//	            barPath.quadTo(x + width / 2, y + height / 2, x + width, y);
+//	            barPath.lineTo(x + width, y + height);
+//	            barPath.quadTo(x + width / 2, y + height / 2, x, y + height);
+//	            barPath.closePath();
+//	            shapeEffect = barPath;
+//
+//	        }
+//
+//	        Rectangle2D boun2D2 = shapeEffect.getBounds2D();
+//
+//	        Point2D start = null;
+//	        Point2D end = null;
+//	        if (bar.isAscent()) {
+//	            start = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(),
+//	                                       boun2D2.getY());
+//	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+//	        }
+//	        else if (bar.isDescent()) {
+//	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getY());
+//	            end = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(),
+//	                                     boun2D2.getY());
+//	        }
+//
+//	        float[] dist = { 0.0f, 0.33f, 0.66f, 1.0f };
+//	        Color[] colors2 = {'rgba(255, 255, 255, 180),
+//	               'rgba(255, 255, 255, 0),'rgba(40, 40, 40, 0),
+//	               'rgba(40, 40, 40, 100) };
+//	        LinearGradientPaint p2 = new LinearGradientPaint(start, end, dist,
+//	                                                         colors2);
+//
+//	        g2d.setPaint(p2);
+//	        g2d.fill(shapeEffect);
+
+	    }
+	});
+	
+	
+	
+})();
+(function(){
+	JenScript.SymbolBarStroke = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarStroke, JenScript.SymbolPainter);
+	JenScript.Model.addMethods(JenScript.SymbolBarStroke,{
+		
+		_init : function(config){
+			config=config||{};
+			this.Id = 'symbolstroke'+JenScript.sequenceId++;
+			this.strokeColor = config.strokeColor;
+			this.strokeWidth = (config.strokeWidth !== undefined)?config.strokeWidth :1;
+			JenScript.SymbolPainter.call(this, config);
+		},
+		
+		paintBarStroke : function(g2d,bar){
+			g2d.deleteGraphicsElement(this.Id);
+			var c = (this.strokeColor !== undefined)?this.strokeColor : bar.getThemeColor();
+		   	var elem =  bar.getBarShape().Id(this.Id).fillNone().stroke(c).strokeWidth(this.strokeWidth).toSVG();
+		   	g2d.insertSVG(elem);
+		},
+		
+		paintSymbol : function(g2d,symbol,viewPart) {
+			 if (symbol.isVisible()) {
+		            this.paintBarStroke(g2d,symbol);
+		     }
+		}
+		
+	});
+	
+	
+})();
+(function(){
+	
+})();
+(function(){
+	
+})();
+(function(){
+	JenScript.SymbolPointPainter = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolPointPainter, JenScript.SymbolPainter);
+	JenScript.Model.addMethods(JenScript.SymbolPointPainter,{
+		
+		_init : function(config){
+			config=config||{};
+			this.Id = 'symbolpainter'+JenScript.sequenceId++;
+			JenScript.SymbolPainter.call(this, config);
+		},
+		
+		/**
+		 * override this method provides a point painter
+		 * 
+		 */
+		paintSymbolPoint : function(g2d,point){},
+		
+		paintSymbol : function(g2d,symbol,viewPart) {
+			 if (symbol.isVisible()) {
+		            this.paintSymbolPoint(g2d,symbol);
+		     }
+		}
+	});
+	
+	JenScript.SymbolPointSquare = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolPointSquare, JenScript.SymbolPointPainter);
+	JenScript.Model.addMethods(JenScript.SymbolPointSquare,{
+		
+		__init : function(config){
+			config=config||{};
+			JenScript.SymbolPointPainter.call(this, config);
+		},
+		
+		paintSymbolPoint : function(g2d,point){
+			var square = new JenScript.SVGRect().Id(this.Id).origin(point.devicePoint.x-2,point.devicePoint.y-2).size(4,4);
+			square.fill(point.getThemeColor());
+			g2d.insertSVG(square.toSVG());
+		},
+	});
+})();
+(function(){
+	JenScript.SymbolPolylinePainter = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolPolylinePainter, JenScript.SymbolPainter);
+	JenScript.Model.addMethods(JenScript.SymbolPolylinePainter,{
+		
+		_init : function(config){
+			config=config||{};
+			this.Id = 'symbolpolyline'+JenScript.sequenceId++;
+			JenScript.SymbolPainter.call(this, config);
+		},
+		
+		paintSymbolPolyline : function(g2d,polyline){
+			var points = polyline.getSymbolComponents();
+			var svgPolyline = new JenScript.SVGPath().Id(this.Id);
+			for (var i = 0; i < points.length; i++) {
+				var point =points[i];
+				if(i == 0)
+					svgPolyline.moveTo(point.devicePoint.x,point.devicePoint.y);
+				else
+					svgPolyline.lineTo(point.devicePoint.x,point.devicePoint.y);
+			}
+			g2d.insertSVG(svgPolyline.stroke(polyline.getThemeColor()).fillNone().toSVG());
+		},
+		
+		paintSymbol : function(g2d,symbol,viewPart) {
+			 if (symbol.isVisible()) {
+		            this.paintSymbolPolyline(g2d,symbol);
+		     }
+		}
+	});
+})();
+(function(){
+	
+	JenScript.SymbolLayer = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.SymbolLayer,{
+		
+		init : function(config){
+			config=config||{};
+			/** host symbol plug in */
+		    this.host;
+		    /** layer symbols */
+		    this.symbols = [];
+		},
+		
+		 /**
+	     * @return the host
+	     */
+	    getHost : function() {
+	        return this.host;
+	    },
+
+	    /**
+	     * @param host
+	     *            the host to set
+	     */
+	    setHost : function(host) {
+	        this.host = host;
+	    },
+
+	    /**
+	     * add specified symbol in this layer
+	     * 
+	     * @param symbol
+	     *            the symbol to add
+	     */
+	    addSymbol : function(symbol,repaint) {
+	        symbol.setLayer(this);
+	        this.symbols[this.symbols.length] = symbol;
+	        if(repaint)
+	        if(this.host !== undefined) this.host.repaintPlugin();
+	    },
+
+	    /**
+	     * remove specified symbol in this layer
+	     * 
+	     * @param symbol
+	     *            the symbol to remove
+	     */
+	    removeSymbol : function(symbol) {
+	        //symbol.setLayer(null);
+	        //symbols.remove(symbol);
+	    },
+
+	    /**
+	     * count the symbols in this layer
+	     * 
+	     * @return the symbol number items
+	     */
+	    countSymbols : function() {
+	        return this.symbols.length;
+	    },
+
+	    /**
+	     * get symbol at the specified index
+	     * 
+	     * @param index
+	     * @return symbol at the given index
+	     */
+	   getSymbol : function(index) {
+	        return this.symbols[index];
+	    },
+
+	    /**
+	     * get all registered symbol in this layer
+	     * 
+	     * @return the symbols
+	     */
+	    getSymbols : function() {
+	        return this.symbols;
+	    },
+
+	    /**
+	     * set symbol collection in this layer
+	     * 
+	     * @param symbols
+	     *            the symbols to set
+	     */
+	    setSymbols : function(symbols) {
+	        this.symbols = symbols;
+	    },
+
+	    /**
+	     * get the symbol index for the specified symbol
+	     * 
+	     * @param symbol
+	     * @return the symbol index, -1 otherwise
+	     */
+	   getSymbolIndex : function(symbol) {
+	        if (symbol === undefined) {
+	            return -1;
+	        }
+	        for (var i = 0; i < this.symbols.length; i++) {
+	            var s = this.symbols[i];
+	            if (s.equals(symbol)) {
+	                return i;
+	            }
+	        }
+	        return -1;
+	    },
+	    
+	    
+	    /**
+	     * solve the specified component
+	     * 
+	     * @param symbol
+	     */
+	    solveSymbolComponent : function(symbol){},
+
+	    /**
+	     * solve this layer geometry
+	     */
+	    paintLayer : function(g2d,part,paintRequest){},
+	                                   
+
+	    /**
+	     * return flatten symbol components in the projection
+	     * flatten mean include symbol registered in group
+	     * 
+	     * @return the flattened list of symbol components
+	     */
+	    getFlattenSymbolComponents : function(){},
+
+	    /**
+	     * solve this layer geometry
+	     */
+	    solveGeometry : function() {
+	        var symbols = this.getSymbols();
+	        for (var i = 0; i < symbols.length; i++) {
+	        	 if (!symbols[i].isFiller) {
+		                this.solveSymbolComponent(symbols[i]);
+		          }
+			}
+	    },
+
+	   
+
+	    /**
+	     * call on mouse move
+	     * 
+	     * @param me
+	     */
+	    onMove : function(me){
+	    },
+
+	    /**
+	     * call on mouse click
+	     * 
+	     * @param me
+	     */
+	    onClick : function(me){
+	    },
+
+	    /**
+	     * call on mouse exit
+	     * 
+	     * @param me
+	     */
+	    onExit : function(me) {
+	    },
+
+	    /**
+	     * call on mouse enter
+	     * 
+	     * @param me
+	     */
+	    onEnter : function(me) {
+	    },
+
+	    /**
+	     * call on mouse press
+	     * 
+	     * @param me
+	     */
+	    onPress : function(me) {
+	    },
+
+	    /**
+	     * call on mouse released
+	     * 
+	     * @param me
+	     */
+	    onRelease : function(me) {
+	    },
+
+	    /**
+	     * call on mouse drag
+	     * 
+	     * @param me
+	     */
+	    onDrag : function(me) {
+	    },
+
+	    /**
+	     * get symbol x Location
+	     * 
+	     * @param symbol
+	     *            the bar component
+	     * @return component x location
+	     */
+	    getComponentXLocation : function(symbol) {
+	    	//System.out.println("symbol class : "+symbol.getClass().getSimpleName());
+	    	if(symbol instanceof JenScript.SymbolStack){
+	    		//System.out.println("location for stack"+((Stack)symbol).getHostSymbol());
+	    		//symbol = ((Stack)symbol).getHostSymbol();
+	    	}
+	        var flattenSymbols = this.getFlattenSymbolComponents();
+	        var total = 0;
+	        var glues = [];
+	        for (var i = 0; i < flattenSymbols.length; i++) {
+				var bc = flattenSymbols[i];
+				//console.log('symbols : '+bc.isFiller+','+ bc.getFillerType());
+	            if (bc.isFiller && bc.getFillerType() === 'Glue') {
+	            	//console.log('>glue');
+	                glues[glues.length] = bc;
+	            }
+	            else {
+	            	//console.log('>other comp');
+	                total = total + bc.getThickness();
+	            }
+	        }
+	        if (this.getHost().getProjection().getView().getDevice().getWidth() > total) {
+	            var reste = this.getHost().getProjection().getView().getDevice().getWidth() - total;
+	            var gluesCount = glues.length;
+	            if (gluesCount > 0) {
+	            	 for (var i = 0; i < glues.length; i++) {
+	            		 var glue = glues[i];
+	            		 glue.setThickness(reste / gluesCount);
+	                }
+	            }
+	        }
+	        var positionX = 0;
+	        for (var i = 0; i < flattenSymbols.length; i++) {
+				var bc = flattenSymbols[i];
+	            if (!bc.equals(symbol)) {
+	                positionX = positionX + bc.getThickness();
+	            }
+	            else {
+	                return positionX;
+	            }
+	        }
+	        return positionX;
+	    },
+
+	    /**
+	     * get symbol y location
+	     * 
+	     * @param symbol
+	     * @return component y location
+	     */
+	    getComponentYLocation : function(symbol) {
+	        var flattenSymbols = this.getFlattenSymbolComponents();
+	        var total = 0;
+	        var glues = [];
+	        
+	        for (var i = 0; i < flattenSymbols.length; i++) {
+				var bc = flattenSymbols[i];
+	            if (bc.isFiller && bc.getFillerType() === 'Glue') {
+	            	 glues[glues.length] = bc;
+	            }
+	            else {
+	                total = total + bc.getThickness();
+	            }
+	        }
+	        if (this.getHost().getProjection().getView().getDevice().getHeight() > total) {
+	            var reste = this.getHost().getProjection().getView().getDevice().getHeight() - total;
+	            var gluesCount = glues.length;
+	            if (gluesCount > 0) {
+	            	for (var i = 0; i < glues.length; i++) {
+	            		var glue = glues[i];
+	                    glue.setThickness(reste / gluesCount);
+	                }
+	            }
+	        }
+	        var positionY = 0;
+	        for (var i = 0; i < flattenSymbols.length; i++) {
+				var bc = flattenSymbols[i];
+	            if (!bc.equals(symbol)) {
+	                positionY = positionY + bc.getThickness();
+	            }
+	            else {
+	                return positionY;
+	            }
+	        }
+	        return positionY;
+	    }
+		
+	});
+	
+	
+})();
+(function(){
+	
+	/**
+	 * Defines the symbol bar layer
+	 * @constructor
+	 * @param {Object} config the layer configuration
+	 */
+	JenScript.SymbolBarLayer = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarLayer, JenScript.SymbolLayer);
+	JenScript.Model.addMethods(JenScript.SymbolBarLayer,{
+		
+		/**
+		 * Initialize symbol bar layer
+		 * @param {Object} config the layer configuration
+		 */
+		_init : function(config){
+			config=config||{};
+			JenScript.SymbolLayer.call(this, config);
+			this.symbolListeners = [];
+		},
+		
+		/**
+		 * String representation of this SymbolBarLayer
+		 * @override
+		 */
+		toString : function(){
+			return "JenScript.SymbolBarLayer";
+		},
+		
+		/**
+	     * add symbol listener with given action
+	     * 
+	     * enter : when symbol is entered
+	     * exit : when symbol is exited
+	     * move : when move in bar
+	     * press : when symbol is pressed
+	     * release : when symbol is released
+	     * 
+	     * 
+	     * @param {String}   symbol action event type like enter, exit, press, release
+	     * @param {Function} listener
+	     * @param {String}   listener owner name
+	     */
+		addSymbolListener  : function(actionEvent,listener,name){
+			if(name === undefined)
+				throw new Error('Symbol listener, listener name should be supplied.');
+			var l = {action:actionEvent , onEvent : listener, name:name};
+			this.symbolListeners[this.symbolListeners.length] =l;
+		},
+		
+		/**
+		 * fire listener when symbol is entered, exited, pressed, released
+		 * @param {actionEvent}   event type name
+		 * @param {Object}   event object
+		 */
+		fireSymbolEvent : function(actionEvent,event){
+			for (var i = 0; i < this.symbolListeners.length; i++) {
+				var l = this.symbolListeners[i];
+				if(actionEvent === l.action){
+					l.onEvent(event);
+				}
+			}
+		},
+		
+		/**
+		 * get flattened symbols
+		 * @return symbols the flatten array symbols
+		 */
+	    getFlattenSymbolComponents : function() {
+	       var flattenSymbolComponents = [];
+	       for (var i = 0; i < this.getSymbols().length; i++) {
+	    	    var comp = this.getSymbols()[i];
+	    	   	if (comp instanceof JenScript.SymbolComponent && !(comp instanceof JenScript.SymbolBarGroup)) {
+	    	   		flattenSymbolComponents[flattenSymbolComponents.length]=comp;
+	            }
+	            else if (comp instanceof JenScript.SymbolBarGroup) {
+	            	var g =  comp.getSymbolComponents();
+	            	for (var j = 0; j < g.length; j++) {
+	            		flattenSymbolComponents[flattenSymbolComponents.length]=g[j];
+					}
+	            }
+	       }
+	        return flattenSymbolComponents;
+	    },
+
+	    /**
+	     * paint layer
+	     * 
+	     * @param {Object}   g2d graphic context
+	     * @param {String}   view part
+	     * @param {String}   paint request, symbol or labels
+	     */
+	    paintLayer : function(g2d,viewPart,paintRequest) {
+	        this.paintSymbols(g2d,this.getSymbols(),viewPart,paintRequest);
+	    },
+
+	    /**
+	     * paint symbols
+	     * 
+	     * @param {Object}  g2d graphic context
+	     * @param {Array} 	symbols
+	     * @param {String}  view part
+	     * @param {String}  paint request, symbol or labels
+	     *            
+	     */
+	    paintSymbols : function(g2d,symbols,viewPart,paintRequest) {
+	        this.solveGeometry();
+	        if (viewPart === 'Device') {
+	        	  for (var i = 0; i < symbols.length; i++) {
+	   	    	   	var symbol = symbols[i];
+		   	    	if (symbol instanceof JenScript.SymbolBar) {
+		   	    		if (symbol instanceof JenScript.SymbolBarGroup) {
+	                        this.paintGroup(g2d,symbol,viewPart,paintRequest);
+	                    }
+	                    else if (symbol instanceof JenScript.SymbolBarStacked) {
+	                        this.paintBarStacked(g2d,symbol,viewPart, paintRequest);
+	                    }
+	                    else {
+	                        this.paintBar(g2d,symbol,viewPart,paintRequest);
+	                    }
+		   	    	}
+	            }
+	        }
+	        if (viewPart !== 'Device'   && paintRequest === 'LabelLayer') {
+	            this.paintSymbolsAxisLabel(g2d,symbols,viewPart);
+	        }
+	    },
+
+	    /**
+	     * paint group
+	     * 
+	     * @param {Object}  g2d graphic context
+	     * @param {Object}  barGroup
+	     * @param {String}  view part
+	     * @param {String}  paint request, symbol or labels
+	     */
+	    paintGroup : function(g2d,barGroup,viewPart,paintRequest) {
+	        barGroup.setHost(this.getHost());
+	        barGroup.setLayer(this);
+	        if (paintRequest === 'LabelLayer') {
+	            this.paintBar(g2d,barGroup,viewPart,paintRequest);
+	        }
+	        var barSymbolComponents = barGroup.getSymbolComponents();
+	        this.paintSymbols(g2d,barSymbolComponents,viewPart,paintRequest);
+	    },
+
+	    /**
+	     * paint bars axis symbols
+	     * 
+	     * @param {Object}  g2d graphic context
+	     * @param {Array} 	barSymbolComponents    the symbols components to paint
+	     * @param {String}  view part
+	     */
+	    paintSymbolsAxisLabel : function(g2d,barSymbolComponents,viewPart) {
+	    	 for (var i = 0; i < barSymbolComponents.length; i++) {
+	   	    	var barComponent = barSymbolComponents[i];
+	            barComponent.setHost(this.getHost());
+	            if (barComponent instanceof JenScript.SymbolBar) {
+	                if (barComponent instanceof JenScript.SymbolBarGroup) {
+	                    var barGroup = barComponent;
+	                    var groupBarSymbolComponents = barGroup.getSymbolComponents();
+
+	                    this.paintSymbolsAxisLabel(g2d,groupBarSymbolComponents,viewPart);
+
+	                    if (barGroup.getAxisLabel() != null) {
+	                        barGroup.getAxisLabel().paintSymbol(g2d, barGroup, viewPart);
+	                    }
+	                }
+	                else {
+	                    this.paintBarAxisLabel(g2d,barComponent,viewPart);
+	                }
+	            }
+	        }
+	    },
+
+	    /**
+	     * paint bars axis symbols
+	     * 
+	     * @param {Object}  g2d graphic context
+	     * @param {Object} barSymbol  the symbol component
+	     * @param {String} viewPart
+	     */
+	    paintBarAxisLabel : function(g2d,barSymbol,viewPart) {
+	        if (barSymbol.getAxisLabel() !== undefined) {
+	            barSymbol.getAxisLabel().paintSymbol(g2d, barSymbol, viewPart);
+	        }
+	    },
+
+	    /**
+	     * paint bar
+	     * 
+	     * @param {Object} g2d graphic context
+	     * @param {Object} bar  the bar to paint
+	     * @param {String} viewPart
+	     * @param {String} paint request      
+	     */
+	    paintBar : function(g2d,bar,viewPart,paintRequest) {
+	        bar.setHost(this.getHost());
+	        bar.setLayer(this);
+	        if (paintRequest === 'SymbolLayer') {
+	            if (bar.getBarFill() !== undefined) {
+	                bar.getBarFill().paintSymbol(g2d,bar,viewPart);
+	            }
+	            if (bar.getBarEffect() !== undefined) {
+	                bar.getBarEffect().paintSymbol(g2d,bar,viewPart);
+	            }
+	            if (bar.getBarStroke() !== undefined) {
+	                bar.getBarStroke().paintSymbol(g2d,bar,viewPart);
+	            }
+	        }
+	        else if (paintRequest == 'LabelLayer') {
+	            if (bar.getBarLabel() != null) {
+	                bar.getBarLabel().paintSymbol(g2d,bar,viewPart);
+	            }
+	        }
+	    },
+	    
+	    /**
+	     * paint stacked bar
+	     * 
+	     * @param {Object}  g2d graphic context
+	     * @param {Object}  stackedBar the stacked bar symbol to paint
+	     * @param {String}  view part
+	     * @param {String}  paintRequest symbol or label paint request
+	     */
+	    paintBarStacked : function(g2d,stackedBar,viewPart,paintRequest) {
+	        stackedBar.setHost(this.getHost());
+	        stackedBar.setLayer(this);
+	        var stacks = stackedBar.getStacks();
+	        if (paintRequest === 'SymbolLayer') {
+	            for (var i = 0; i < stacks.length; i++) {
+	            	stacks[i].barFill = stackedBar.barFill;
+	                this.paintBar(g2d, stacks[i],viewPart,paintRequest);
+	            }
+	            if (stackedBar.getBarEffect() !== undefined) {
+	                stackedBar.getBarEffect().paintSymbol(g2d, stackedBar,viewPart);
+	            }
+	            if (stackedBar.getBarStroke() !== undefined) {
+	                stackedBar.getBarStroke().paintSymbol(g2d, stackedBar, viewPart);
+	            }
+	        }
+	        else if (paintRequest == 'LabelLayer') {
+	            if (stackedBar.getBarLabel() != null) {
+	                stackedBar.getBarLabel().paintSymbol(g2d,stackedBar, viewPart);
+	            }
+	            for (var i = 0; i < stacks.length; i++) {
+	            	var s = stacks[i];
+	                if (s.getBarLabel() != null) {
+	                    s.getBarLabel().paintSymbol(g2d, s, viewPart);
+	                }
+	            }
+	        }
+	    },
+
+	    /**
+	     * solve symbol component
+	     * @param {Object}  symbol the symbol to solve
+	     */
+	    solveSymbolComponent : function(symbol) {
+	        if (symbol.isFiller) {
+	            return;
+	        }
+	        symbol.setLayer(this);
+	        if (this.getHost().getNature() === 'Vertical') {
+	            this.solveVSymbolComponent(symbol);
+	        }
+	        if (this.getHost().getNature() === 'Horizontal') {
+	            this.solveHSymbolComponent(symbol);
+	        }
+	    },
+
+	    /**
+	     * solve vertical component geometry
+	     * 
+	     * @param {Object}  symbol the vertical symbol to solve
+	     */
+	    solveVSymbolComponent : function(symbol) {
+	        if (symbol.isFiller) {
+	            return;
+	        }
+	        symbol.setNature('Vertical');
+	        symbol.setLayer(this);
+	        if (symbol instanceof JenScript.SymbolBarGroup) {
+	            this.solveVBarGroup(symbol);
+	        }
+	        else if (symbol instanceof JenScript.SymbolBarStacked) {
+	            this.solveVStackedBar(symbol);
+	        }
+	        else {
+	            this.solveVBarSymbol(symbol);
+	        }
+	    },
+
+	    /**
+	     * solve vertical bar
+	     * 
+	     * @param {Object}  symbol the vertical symbol bar to solve
+	     */
+	    solveVBarSymbol : function(bar) {
+	        if (this.getHost() === undefined || this.getHost().getProjection() === undefined) {
+	            return;
+	        }
+	        bar.setHost(this.getHost());
+	        var proj = this.getHost().getProjection();
+	        var p2dUser = null;
+	        if (bar.isAscent()) {
+	            p2dUser = new JenScript.Point2D(0, bar.getBase() + bar.getValue());
+	        }
+	        if (bar.isDescent()) {
+	            p2dUser = new JenScript.Point2D(0, bar.getBase() - bar.getValue());
+	        }
+	        if (!bar.isValueSet()) {
+	            throw new Error("bar symbol ascent or descent value should be supplied.");
+	        }
+	        if (!bar.isBaseSet()) {
+	            throw new Error("bar symbol base value should be supplied.");
+	        }
+
+	        var p2ddevice = proj.userToPixel(p2dUser);
+	        var p2dUserBase = new JenScript.Point2D(0, bar.getBase());
+	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
+
+	        var x = this.getComponentXLocation(bar);
+	        var y = p2ddevice.y;
+	        if (bar.isAscent()) {
+	            y = p2ddevice.y;
+	        }
+	        if (bar.isDescent()) {
+	            y = p2ddeviceBase.y;
+	        }
+	        var width = bar.getThickness();
+	        var height = Math.abs(p2ddeviceBase.y - p2ddevice.y);
+
+	        if (bar.getMorpheStyle() === 'Round') {
+	        	var round = bar.getRound();
+	        	var barPath = new JenScript.SVGPath().Id(bar.Id);
+	            if (bar.isAscent()) {
+	                barPath.moveTo(x, y + round);
+	                barPath.lineTo(x, y + height);
+	                barPath.lineTo(x + width, y + height);
+	                barPath.lineTo(x + width, y + round);
+	                barPath.quadTo(x + width, y, x + width - round, y);
+	                barPath.lineTo(x + round, y);
+	                barPath.quadTo(x, y, x, y + round);
+	                barPath.close();
+	            }
+	            else if (bar.isDescent()) {
+	                barPath.moveTo(x, y);
+	                barPath.lineTo(x, y + height - round);
+	                barPath.quadTo(x, y + height, x + round, y + height);
+	                barPath.lineTo(x + width - round, y + height);
+	                barPath.quadTo(x + width, y + height, x + width, y + height - round);
+	                barPath.lineTo(x + width, y);
+	                barPath.close();
+	            }
+	            bar.setBarShape(barPath);
+	        }
+	        else if (bar.getMorpheStyle() === 'Rectangle') {
+	            var barRec = new JenScript.SVGRect().origin(x, y).size(width,height);
+	            bar.setBarShape(barRec);
+	        }
+	    },
+
+	    /**
+	     * solve the given vertical stacked bar
+	     * 
+	     * @param {Object}  stackedBar the vertical stacked bar symbol to solve
+	     */
+	    solveVStackedBar : function(stackedBar) {
+	        if (this.getHost() === undefined || this.getHost().getProjection() === undefined) {
+	            return;
+	        }
+	        stackedBar.setHost(this.getHost());
+	        stackedBar.normalize();
+	        var proj = this.getHost().getProjection();
+	        var p2dUser = undefined;
+	        if (stackedBar.isAscent()) {
+	            p2dUser = new JenScript.Point2D(0, stackedBar.getBase() + stackedBar.getValue());
+	        }
+	        if (stackedBar.isDescent()) {
+	            p2dUser = new new JenScript.Point2D(0, stackedBar.getBase() - stackedBar.getValue());
+	        }
+	        if (!stackedBar.isValueSet()) {
+	            throw new Error("stacked bar symbol ascent or descent value should be supplied.");
+	        }
+	        if (!stackedBar.isBaseSet()) {
+	            throw new Error("stacked bar symbol base value should be supplied.");
+	        }
+	        var p2ddevice = proj.userToPixel(p2dUser);
+	        var p2dUserBase = new JenScript.Point2D(0, stackedBar.getBase());
+	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
+	        var x = this.getComponentXLocation(stackedBar);
+	        var y = p2ddevice.y;
+	        if (stackedBar.isAscent()) {
+	            y = p2ddevice.y;
+	        }
+	        if (stackedBar.isDescent()) {
+	            y = p2ddeviceBase.y;
+	        }
+	        var width = stackedBar.getThickness();
+	        var height = Math.abs(p2ddeviceBase.y - p2ddevice.y);
+	        if (stackedBar.getMorpheStyle() === 'Round') {
+	            var round = stackedBar.getRound();
+	            var barPath = new JenScript.SVGPath().Id(stackedBar.Id);
+	            if (stackedBar.isAscent()) {
+	                barPath.moveTo(x, y + round);
+	                barPath.lineTo(x, y + height);
+	                barPath.lineTo(x + width, y + height);
+	                barPath.lineTo(x + width, y + round);
+	                barPath.quadTo(x + width, y, x + width - round, y);
+	                barPath.lineTo(x + round, y);
+	                barPath.quadTo(x, y, x, y + round);
+	                barPath.close();
+	            }
+	            else if (stackedBar.isDescent()) {
+	                barPath.moveTo(x, y);
+	                barPath.lineTo(x, y + height - round);
+	                barPath.quadTo(x, y + height, x + round, y + height);
+	                barPath.lineTo(x + width - round, y + height);
+	                barPath.quadTo(x + width, y + height, x + width, y + height  - round);
+	                barPath.lineTo(x + width, y);
+	                barPath.close();
+	            }
+	            stackedBar.setBarShape(barPath);
+	        }
+	        else if (stackedBar.getMorpheStyle() === 'Rectangle') {
+	            var barRec = new JenScript.SVGRect().Id(stackedBar.Id).origin(x, y).size(width, height);
+	            stackedBar.setBarShape(barRec);
+	        }
+	        var stacks = stackedBar.getStacks();
+	        var count = 0;
+	        for (var i = 0; i < stacks.length; i++) {
+				var stack = stacks[i];
+	            stack.setThickness(stackedBar.getThickness());
+	            stack.setBase(stackedBar.getStackBase(stack));
+	            stack.setNature(stackedBar.getNature());
+	            stack.setBarFill(stackedBar.getBarFill());
+	            if (stackedBar.isAscent()) {
+	                stack.setAscentValue(stack.getNormalizedValue());
+	            }
+	            else if (stackedBar.isDescent()) {
+	                stack.setDescentValue(stack.getNormalizedValue());
+	            }
+	            var stackedp2dUser = undefined;
+	            if (stackedBar.isAscent()) {
+	                stackedp2dUser = new JenScript.Point2D(0,stackedBar.getStackBase(stack) + stack.getNormalizedValue());
+	            }
+	            else if (stackedBar.isDescent()) {
+	                stackedp2dUser = new JenScript.Point2D(0,stackedBar.getStackBase(stack) - stack.getNormalizedValue());
+	            }
+	            var stackedp2ddevice = proj.userToPixel(stackedp2dUser);
+	            var stackedp2dUserBase = new JenScript.Point2D(0, stackedBar.getStackBase(stack));
+	            var stackedp2ddeviceBase = proj.userToPixel(stackedp2dUserBase);
+	            var stackedx = this.getComponentXLocation(stackedBar);
+	            var stackedy = stackedp2ddevice.y;
+	            if (stackedBar.isAscent()) {
+	                stackedy = stackedp2ddevice.y;
+	            }
+	            if (stackedBar.isDescent()) {
+	                stackedy = stackedp2ddeviceBase.y;
+	            }
+	            var stackedwidth = stackedBar.getThickness();
+	            var stackedheight = Math.abs(stackedp2ddeviceBase.y- stackedp2ddevice.y);
+	            if (stackedBar.getMorpheStyle() === 'Round') {
+	                if (count == stacks.length - 1) {
+	                    var round = stackedBar.getRound();
+	                    var barPath = new JenScript.SVGPath().Id(stack.Id);
+	                    if (stackedBar.isAscent()) {
+	                        barPath.moveTo(stackedx, stackedy + round);
+	                        barPath.lineTo(stackedx, stackedy + stackedheight);
+	                        barPath.lineTo(stackedx + stackedwidth, stackedy   + stackedheight);
+	                        barPath.lineTo(stackedx + stackedwidth, stackedy    + round);
+	                        barPath.quadTo(stackedx + stackedwidth, stackedy,   stackedx + stackedwidth - round, stackedy);
+	                        barPath.lineTo(stackedx + round, stackedy);
+	                        barPath.quadTo(stackedx, stackedy, stackedx, stackedy  + round);
+	                        barPath.close();
+	                    }
+	                    else if (stackedBar.isDescent()) {
+	                        barPath.moveTo(stackedx, stackedy);
+	                        barPath.lineTo(stackedx, stackedy + stackedheight - round);
+	                        barPath.quadTo(stackedx, stackedy + stackedheight,   stackedx + round, stackedy + stackedheight);
+	                        barPath.lineTo(stackedx + stackedwidth - round,    stackedy + stackedheight);
+	                        barPath.quadTo(stackedx + stackedwidth, stackedy    + stackedheight, stackedx + stackedwidth,  stackedy + stackedheight - round);
+	                        barPath.lineTo(stackedx + stackedwidth, stackedy);
+	                        barPath.close();
+	                    }
+	                   stack.setBarShape(barPath);
+	                }
+	                else {
+	                    var barRec = new JenScript.SVGRect().Id(stack.Id).origin(stackedx,stackedy).size(stackedwidth, stackedheight);
+	                    stack.setBarShape(barRec);
+	                }
+	            }
+	            else if (stackedBar.getMorpheStyle() === 'Rectangle') {
+	            	 var barRec = new JenScript.SVGRect().Id(stack.Id).origin(stackedx,stackedy).size(stackedwidth, stackedheight);
+	                 stack.setBarShape(barRec);
+	            }
+	            count++;
+	        }
+	    },
+
+	    /**
+	     * solve horizontal group
+	     * 
+	     * @param {Object}  barGroup the horizontal bar group symbol to solve
+	     */
+	    solveHBarGroup : function(barGroup) {
+	        barGroup.setHost(this.getHost());
+	        barGroup.copyToBar();
+	        var bars = barGroup.getSymbolComponents();
+	        for (var i = 0; i < bars.length; i++) {
+	        	var bc = bars[i];
+	        	bc.setLayer(this);
+		        this.solveHSymbolComponent(bc);
+			}
+	    },
+
+	    /**
+	     * solve the specified horizontal component
+	     * 
+	     * @param {Object}  symbol the horizontal symbol to solve
+	     */
+	    solveHSymbolComponent : function(symbol) {
+	        if (symbol.isFiller) {
+	            return;
+	        }
+	        symbol.setNature('Horizontal');
+	        if (symbol instanceof JenScript.SymbolBarGroup) {
+	            this.solveHBarGroup(symbol);
+	        }
+	        else if (symbol instanceof JenScript.SymbolBarStacked) {
+	            this.solveHStackedBar(symbol);
+	        }
+	        else {
+	            this.solveHBarSymbol(symbol);
+	        }
+	    },
+
+	    /**
+	     * solve horizontal bar group
+	     * 
+	     * @param {Object}  barGroup the vertical bar group symbol to solve
+	     */
+	    solveVBarGroup : function(barGroup) {
+	        barGroup.setHost(this.getHost());
+	        barGroup.copyToBar();
+	       var bars = barGroup.getSymbolComponents();
+	       for (var i = 0; i < bars.length; i++) {
+	    	   var bc = bars[i];
+	    	   bc.setLayer(this);
+	           bc.setHost(this.getHost());
+	           this.solveVSymbolComponent(bc);
+	       }
+	    },
+
+	    /**
+	     * solve horizontal bar
+	     * 
+	     * @param {Object}  bar the horizontal bar symbol to solve
+	     */
+	    solveHBarSymbol : function(bar) {
+	        if (this.getHost() === undefined || this.getHost().getProjection() === undefined) {
+	            return;
+	        }
+	        bar.setHost(this.getHost());
+	        var proj = this.getHost().getProjection();
+
+	        var p2dUser = null;
+	        if (bar.isAscent()) {
+	            p2dUser = new JenScript.Point2D(bar.getBase() + bar.getValue(), 0);
+	        }
+	        if (bar.isDescent()) {
+	            p2dUser = new JenScript.Point2D(bar.getBase() - bar.getValue(), 0);
+	        }
+	        if (!bar.isValueSet()) {
+	            throw new Error("bar symbol ascent or descent value should be supplied.");
+	        }
+	        if (!bar.isBaseSet()) {
+	            throw new error("stacked bar symbol base value should be supplied.");
+	        }
+	        var p2ddevice = proj.userToPixel(p2dUser);
+	        var p2dUserBase = new JenScript.Point2D(bar.getBase(), 0);
+	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
+	        var y = this.getComponentYLocation(bar);
+	        var x = p2ddeviceBase.x;
+	        if (bar.isAscent()) {
+	            x = p2ddeviceBase.x;
+	        }
+	        if (bar.isDescent()) {
+	            x = p2ddevice.x;
+	        }
+	        var height = bar.getThickness();
+	        var width = Math.abs(p2ddevice.x - p2ddeviceBase.x);
+	        if (bar.getMorpheStyle() == 'Round') {
+	        	var round = bar.getRound();
+	            var barPath = new JenScript.SVGPath().Id(this.Id);
+	            if (bar.isAscent()) {
+	                barPath.moveTo(x, y);
+	                barPath.lineTo(x + width - round, y);
+	                barPath.quadTo(x + width, y, x + width, y + round);
+	                barPath.lineTo(x + width, y + height - round);
+	                barPath.quadTo(x + width, y + height, x + width - round, y + height);
+	                barPath.lineTo(x, y + height);
+	                barPath.close();
+	            }
+	            else if (bar.isDescent()) {
+	                barPath.moveTo(x + round, y);
+	                barPath.lineTo(x + width, y);
+	                barPath.lineTo(x + width, y + height);
+	                barPath.lineTo(x + round, y + height);
+	                barPath.quadTo(x, y + height, x, y + height - round);
+	                barPath.lineTo(x, y + round);
+	                barPath.quadTo(x, y, x + round, y);
+	                barPath.close();
+	            }
+	            bar.setBarShape(barPath);
+	        }
+	        else {
+	            var barRec = new JenScript.SVGRect().Id(this.Id).origin(x,y).size(width,height);
+	            bar.setBarShape(barRec);
+	        }
+	    },
+
+	    /**
+	     * solve the horizontal stacked bar
+	     * 
+	     * @param {Object}  stackedBar the horizontal stacked bar symbol to solve
+	     */
+	    solveHStackedBar : function(stackedBar) {
+	        if (this.getHost() == null || this.getHost().getProjection() == null) {
+	            return;
+	        }
+	        stackedBar.setHost(this.getHost());
+	        stackedBar.normalize();
+	        
+	        var w2d = getHost().getProjection();
+	        var p2dUser = null;
+	        if (stackedBar.isAscent()) {
+	            p2dUser = new JenScript.Point2D(stackedBar.getBase() + stackedBar.getValue(), 0);
+	        }
+	        if (stackedBar.isDescent()) {
+	            p2dUser = new JenScript.Point2D(stackedBar.getBase()- stackedBar.getValue(), 0);
+	        }
+	        if (!stackedBar.isValueSet()) {
+	            throw new Error("stacked bar symbol ascent or descent value should be supplied.");
+	        }
+	        if (!stackedBar.isBaseSet()) {
+	            throw new Error("stacked bar symbol base value should be supplied.");
+	        }
+	        var p2ddevice = w2d.userToPixel(p2dUser);
+	        var p2dUserBase = new JenScript.Point2D(stackedBar.getBase(), 0);
+	        var p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+	        var y = this.getComponentYLocation(stackedBar);
+	        var x = p2ddeviceBase.x;
+	        if (stackedBar.isAscent()) {
+	            x = p2ddeviceBase.x;
+	        }
+	        if (stackedBar.isDescent()) {
+	            x = p2ddevice.x;
+	        }
+	        var height = stackedBar.getThickness();
+	        var width = Math.abs(p2ddevice.x - p2ddeviceBase.x);
+
+	        if (stackedBar.getMorpheStyle() === 'Round') {
+	        	var round = stackedBar.getRound();
+	        	var barPath = new JenScript.SVGPath().Id(stackedBar.Id);
+	            if (stackedBar.isAscent()) {
+	                barPath.moveTo(x, y);
+	                barPath.lineTo(x + width - round, y);
+	                barPath.quadTo(x + width, y, x + width, y + round);
+	                barPath.lineTo(x + width, y + height - round);
+	                barPath.quadTo(x + width, y + height, x + width - round, y + height);
+	                barPath.lineTo(x, y + height);
+	                barPath.close();
+	            }
+	            else if (stackedBar.isDescent()) {
+	                barPath.moveTo(x + round, y);
+	                barPath.lineTo(x + width, y);
+	                barPath.lineTo(x + width, y + height);
+	                barPath.lineTo(x + round, y + height);
+	                barPath.quadTo(x, y + height, x, y + height - round);
+	                barPath.lineTo(x, y + round);
+	                barPath.quadTo(x, y, x + round, y);
+	                barPath.close();
+	            }
+	            stackedBar.setBarShape(barPath);
+	        }
+	        else {
+	        	  var barRec = new JenScript.SVGRect().Id(stackedBar.Id).origin(x,y).size(width,height);
+	        	  stackedBar.setBarShape(barRec);
+	        }
+	        var stacks = stackedBar.getStacks();
+	        var count = 0;
+	        for (var int = 0; int < stacks.length; int++) {
+				var stack = stacks[i];
+
+	            stack.setThickness(stackedBar.getThickness());
+	            stack.setBase(stackedBar.getStackBase(stack));
+	            stack.setNature(stackedBar.getNature());
+	            stack.setBarFill(stackedBar.getBarFill());
+
+	            if (stackedBar.isAscent()) {
+	                stack.setAscentValue(stack.getNormalizedValue());
+	            }
+	            else if (stackedBar.isDescent()) {
+	                stack.setDescentValue(stack.getNormalizedValue());
+	            }
+
+	            var stackedp2dUser = null;
+	            if (stackedBar.isAscent()) {
+	                stackedp2dUser = new JenScript.Point2D( stackedBar.getStackBase(stack) + stack.getNormalizedValue(), 0);
+	            }
+	            else if (stackedBar.isDescent()) {
+	                stackedp2dUser = new JenScript.Point2D(stackedBar.getStackBase(stack) - stack.getNormalizedValue(), 0);
+	            }
+	            var stackedp2ddevice = w2d.userToPixel(stackedp2dUser);
+	            var stackedp2dUserBase = new JenScript.Point2D(stackedBar.getStackBase(stack), 0);
+	            var stackedp2ddeviceBase = w2d.userToPixel(stackedp2dUserBase);
+
+	            var stackedy = this.getComponentYLocation(stackedBar);
+	            var stackedx = stackedp2ddeviceBase.x;
+	            if (stackedBar.isAscent()) {
+	                stackedx = stackedp2ddeviceBase.x;
+	            }
+	            if (stackedBar.isDescent()) {
+	                stackedx = stackedp2ddevice.x;
+	            }
+	            var stackedheight = stackedBar.getThickness();
+	            var stackedwidth = Math.abs(stackedp2ddevice.x - stackedp2ddeviceBase.x);
+
+	            if (stackedBar.getMorpheStyle() === 'Round') {
+	                if (count == stacks.length - 1) {
+	                    var round = stackedBar.getRound();
+	                    var barPath = new JenScript.SVGPath().Id(stack.Id);
+	                    if (stackedBar.isAscent()) {
+	                        barPath.moveTo(stackedx, stackedy);
+	                        barPath.lineTo(stackedx + stackedwidth - round,stackedy);
+	                        barPath.quadTo(stackedx + stackedwidth, stackedy,  stackedx + stackedwidth, stackedy + round);
+	                        barPath.lineTo(stackedx + stackedwidth, stackedy  + stackedheight - round);
+	                        barPath.quadTo(stackedx + stackedwidth, stackedy  + stackedheight, stackedx + stackedwidth   - round, stackedy + stackedheight);
+	                        barPath.lineTo(stackedx, stackedy + stackedheight);
+	                        barPath.close();
+	                    }
+	                    else if (stackedBar.isDescent()) {
+	                        barPath.moveTo(stackedx + round, stackedy);
+	                        barPath.lineTo(stackedx + stackedwidth, stackedy);
+	                        barPath.lineTo(stackedx + stackedwidth, stackedy + stackedheight);
+	                        barPath.lineTo(stackedx + round, stackedy + stackedheight);
+	                        barPath.quadTo(stackedx, stackedy + stackedheight,stackedx, stackedy + stackedheight - round);
+	                        barPath.lineTo(stackedx, stackedy + round);
+	                        barPath.quadTo(stackedx, stackedy, stackedx + round,  stackedy);
+	                                     
+	                        barPath.close();
+	                    }
+	                    stack.setBarShape(barPath);
+	                }
+	                else {
+	                	var barRec = new JenScript.SVGRect().Id(stack.Id).origin(stackedx,stackedy).size(stackedwidth,stackedheight);
+	                	stackedBar.setBarShape(barRec);
+	                }
+	            }
+	            else {
+	            	 var barRec = new JenScript.SVGRect().Id(stack.Id).origin(stackedx,stackedy).size(stackedwidth,stackedheight);
+		        	 stackedBar.setBarShape(barRec);
+	            }
+	            count++;
+	        }
+	    },
+	   
+	    onRelease : function(evt,part,x, y) {
+	    	this.barCheck('release',evt,x,y);
+	    },
+	   
+	    onPress : function(evt,part,x, y) {
+	    	this.barCheck('press',evt,x,y);
+	    },
+	   
+	    onMove : function(evt,part,x, y) {
+	    	this.barCheck('move',evt,x,y);
+	    },
+	    
+	    /**
+	     * check symbol event
+	     * 
+	     * @param {String}  action the action press, release, move, etc.
+	     * @param {Object}  original event
+	     * @param {Number}  x location
+	     * @param {Number}  y location
+	     */
+	    barCheck: function(action, evt,x,y){
+	    	var that=this;
+	    	var _d = function(bar){
+	    	   if(action === 'press')
+	    		   that.fireSymbolEvent('press',{symbol : bar, x:x,y:y, device :{x:x,y:y}});
+               else if(action === 'release')
+            	   that.fireSymbolEvent('release',{symbol : bar, x:x,y:y, device :{x:x,y:y}});
+               else 
+            	   that.barEnterExitTracker(bar,x,y);
+	    	};
+	    	var _c = function(bar){
+	    		if(bar.isFiller) return;
+	    		var contains = (bar.getBound2D() !== undefined  && bar.getBound2D().contains(x,y));
+        		if(action !== 'move' && contains && bar.isLockEnter()){
+        			_d(bar);
+        		}
+        		else if (action === 'move') {
+                	_d(bar);
+                }
+	    	};
+	    	 var bars = this.getSymbols();
+		        for (var i = 0; i < bars.length; i++) {
+		        	
+		        	var symbolComponent = bars[i];
+		        	
+		            if (symbolComponent instanceof JenScript.SymbolBarStacked) {
+		                var stackedBar = symbolComponent;
+		                _c(stackedBar);
+		               var barStacks = stackedBar.getStacks();
+		               for (var j = 0; j < barStacks.length; j++) {
+		            	   var barStack = barStacks[j];
+		            		_c(barStack);
+		                }
+		            }
+		            else if (symbolComponent instanceof JenScript.SymbolBarGroup) {
+		                var group = symbolComponent;
+		                var gss = group.getSymbolComponents();
+		                for (var k = 0; k < gss.length; k++) {
+		                	var sg = gss[k];
+		                    if (sg instanceof JenScript.SymbolBarStacked) {
+		                        var stackedBar = sg;
+		                        if (stackedBar.getBound2D() !== undefined   && stackedBar.getBound2D().contains(x, y)) {
+		                        	_c(stackedBar);
+		                        }
+		                        var barStacks = stackedBar.getStacks();
+		     	                for (var j = 0; j < barStacks.length; j++) {
+		     	            	   var barStack = bars[j];
+		     	                    if (barStack.getBound2D() !== undefined  && barStack.getBound2D().contains(x,y) && barStack.isLockEnter()) {
+		     	                    	_c(barStack);
+		     	                    }
+		     	                }
+		                    }
+		                    else if (sg instanceof JenScript.SymbolBar) {
+		                        if (sg.getBound2D() !== undefined  && sg.getBound2D().contains(x, y) && sg.isLockEnter()) {
+		                        	_c(sg);
+		                        }
+		                    }
+		                }
+		            }
+		            else if (symbolComponent instanceof JenScript.SymbolBar) {
+		                _c(symbolComponent);
+		            }
+		        }
+	    },
+
+	    /**
+	     * track bar enter or exit for the specified bar for device location x,y
+	     * 
+	     * @param {Object}  bar symbol
+	     * @param {Number}  x location in device coordinate
+	     * @param {Number}  y location in device coordinate
+	     */
+	    barEnterExitTracker : function(bar,x,y) {
+	        if (bar.getBound2D() === undefined) {
+	            return;
+	        }
+	        if (bar.getBound2D().contains(x, y) && !bar.isLockEnter()) {
+	            bar.setLockEnter(true);
+	            this.fireSymbolEvent('enter',{symbol : bar, x:x,y:y, device :{x:x,y:y}});
+	        }
+	        if (bar.getBound2D().contains(x, y) && bar.isLockEnter()) {
+	            this.fireSymbolEvent('move',{symbol : bar, x:x,y:y, device :{x:x,y:y}});
+	        }
+	        else if (!bar.getBound2D().contains(x, y) && bar.isLockEnter()) {
+	            bar.setLockEnter(false);
+	            this.fireSymbolEvent('exit',{symbol : bar, x:x,y:y, device :{x:x,y:y}});
+	        }
+	    },
+	});
+})();
+(function(){
+	
+	JenScript.SymbolPointLayer = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolPointLayer, JenScript.SymbolLayer);
+	JenScript.Model.addMethods(JenScript.SymbolPointLayer,{
+		
+		_init : function(config){
+			config=config||{};
+			JenScript.SymbolLayer.call(this, config);
+			this.symbolListeners = [];
+		},
+		
+		/**
+	     * add symbol listener with given action
+	     * 
+	     * enter : when symbol is entered
+	     * exit : when symbol is exited
+	     * move : when move in bar
+	     * press : when symbol is pressed
+	     * release : when symbol is released
+	     * 
+	     * 
+	     * @param {String}   symbol action event type like enter, exit, press, release
+	     * @param {Function} listener
+	     * @param {String}   listener owner name
+	     */
+		addSymbolListener  : function(actionEvent,listener,name){
+			if(name === undefined)
+				throw new Error('Symbol listener, listener name should be supplied.');
+			var l = {action:actionEvent , onEvent : listener, name:name};
+			this.symbolListeners[this.symbolListeners.length] =l;
+		},
+		
+		/**
+		 * fire listener when symbol is entered, exited, pressed, released
+		 */
+		fireSymbolEvent : function(actionEvent,bar){
+			for (var i = 0; i < this.symbolListeners.length; i++) {
+				var l = this.symbolListeners[i];
+				if(actionEvent === l.action){
+					l.onEvent(bar);
+				}
+			}
+		},
+		
+		
+	    getFlattenSymbolComponents : function() {
+	        var flattenSymbolComponents = [];
+	    	for (var i = 0; i < this.getSymbols().length; i++) {
+				var comp = this.getSymbols()[i];
+				if (comp instanceof JenScript.SymbolComponent   && !(comp instanceof JenScript.SymbolPolylinePoint)) {
+	                flattenSymbolComponents[flattenSymbolComponents.length] = comp;
+	            }
+	    	}
+	        return flattenSymbolComponents;
+	    },
+
+	    
+	   paintLayer : function(g2d,viewPart,paintRequest) {
+	        if (viewPart === 'Device' && paintRequest === 'SymbolLayer') {
+	        	for (var i = 0; i < this.getSymbols().length; i++) {
+					var ps = this.getSymbols()[i];
+					
+	                if (!ps.isFiller) {
+	                    if (ps instanceof JenScript.SymbolPoint && !(ps instanceof JenScript.SymbolPolylinePoint)) {
+	                    	var painters = ps.getPointSymbolPainters();
+	                    	for (var j = 0; j < painters.length; j++) {
+	                    		painters[j].paintSymbol(g2d, ps, viewPart);
+							}
+	                    }
+	                    else if (ps instanceof JenScript.SymbolPolylinePoint) {
+	                        if (ps.getPolylinePainter() !== undefined) {
+	                            ps.getPolylinePainter().paintSymbol(g2d, ps, viewPart);
+	                        }
+	                    }
+
+	                }
+				}
+	           
+	        }
+	    },
+
+	    
+	   solveSymbolComponent : function(symbol) {
+	        if (symbol.isFiller) {
+	            return;
+	        }
+	        if (this.getHost().getNature() === 'Vertical') {
+	            this.solveVSymbolComponent(symbol);
+	        }
+	        if (this.getHost().getNature() === 'Horizontal') {
+	            this.solveHSymbolComponent(symbol);
+	        }
+	    },
+
+	    /**
+	     * solve vertical component geometry
+	     * 
+	     * @param symbol
+	     *            the component to solve
+	     */
+	   solveVSymbolComponent : function(symbol) {
+	        symbol.setNature('Vertical');
+	        if (symbol instanceof JenScript.SymbolPoint && !(symbol instanceof JenScript.SymbolPolylinePoint)) {
+	            this.solveVPointSymbol(symbol);
+	        }
+	        else if (symbol instanceof JenScript.SymbolPolylinePoint) {
+	            // does not solving for polyline
+	        }
+	    },
+
+	    /**
+	     * solve the specified horizontal component
+	     * 
+	     * @param symbol
+	     *            the bar component to solve
+	     */
+	    solveHSymbolComponent : function(symbol) {
+	        symbol.setNature(SymbolNature.Horizontal);
+	        if (symbol instanceof PointSymbol && !(symbol instanceof PolylinePointSymbol)) {
+	            solveHPointSymbol(symbol);
+	        }
+	        else if (symbol instanceof PolylinePointSymbol) {
+	            // does not solving for polyline
+	        }
+	    },
+
+	    /**
+	     * solve symbol points for vertical nature
+	     * 
+	     * @param pointSymbol
+	     *            the symbol point to solve
+	     */
+	    solveVPointSymbol : function(pointSymbol) {
+	        var proj = this.getHost().getProjection();
+	        pointSymbol.setHost(this.getHost());
+	        var p2dUser = new JenScript.Point2D(0, pointSymbol.getValue());
+	        var p2ddevice = proj.userToPixel(p2dUser);
+	        pointSymbol.setDeviceValue(p2ddevice.getY());
+	        var x = this.getComponentXLocation(pointSymbol);
+	        var devicePoint = new JenScript.Point2D(x, p2ddevice.getY());
+	        var rectangle = new JenScript.SVGRect().origin(devicePoint.getX() - pointSymbol.getSensibleRadius(),  devicePoint.getY() - pointSymbol.getSensibleRadius())
+	                                               .size(2 * pointSymbol.getSensibleRadius(),2 * pointSymbol.getSensibleRadius());
+	                                                     
+	        pointSymbol.setSensibleShape(rectangle);
+	        pointSymbol.setDevicePoint(devicePoint);
+	    },
+
+	    /**
+	     * solve symbol points for horizontal nature
+	     * 
+	     * @param pointSymbol
+	     *            the symbol point to solve
+	     */
+	    solveHPointSymbol : function(pointSymbol) {
+	        var w2d = this.getHost().getProjection();
+	        pointSymbol.setHost(this.getHost());
+	        var p2dUser = new JenScript.Point2D(pointSymbol.getValue(), 0);
+	        var p2ddevice = w2d.userToPixel(p2dUser);
+	        pointSymbol.setDeviceValue(p2ddevice.getX());
+	        //var y = this.getComponentYLocation(pointSymbol);
+	        pointSymbol.setDevicePoint(new JenScript.Point2D(p2ddevice.getX(), pointSymbol.getLocationY()));
+	    },
+
+	   
+	   onRelease : function(evt,part,x, y) {
+//	    	 var symbols = this.getSymbols();
+//		     for (var i = 0; i < symbols.length; i++) {
+//		    	   var symbolComponent = symbols[i];
+//		            if (symbolComponent instanceof JenScript.SymbolPoint) {
+//		                if (symbolComponent.getSensibleShape() != undefined
+//		                        && symbolComponent.getSensibleShape().contains(x, y)
+//		                        && symbolComponent.isLockEnter()) {
+//		                	  this.fireSymbolEvent('release',{symbol : symbolComponent, x:x,y:y, device :{x:x,y:y}});
+//		                }
+//		            }
+//
+//		     }
+	    },
+
+	  
+	   onPress : function(evt,part,x, y) {
+//		   var symbols = this.getSymbols();
+//	       for (var i = 0; i < symbols.length; i++) {
+//	    	   var symbolComponent = symbols[i];
+//	            if (symbolComponent instanceof JenScript.SymbolPoint) {
+//	                if (symbolComponent.getSensibleShape() != undefined
+//	                        && symbolComponent.getSensibleShape().contains(x, y)
+//	                        && symbolComponent.isLockEnter()) {
+//	                	 this.fireSymbolEvent('press',{symbol : symbolComponent, x:x,y:y, device :{x:x,y:y}});
+//	                }
+//	            }
+//
+//	        }
+	    },
+
+	   
+
+	   
+	   onMove : function(evt,part,x, y) {
+//	       var symbols = this.getSymbols();
+//	       for (var i = 0; i < symbols.length; i++) {
+//	    	   var symbolComponent = symbols[i];
+//			   if (symbolComponent instanceof PointSymbol) {
+//	                this.barEnterExitTracker(symbolComponent, x, y);
+//	            }
+//	       }
+	    },
+	    
+	    /**
+	     * track symbol enter or exit for the specified symbol for device location x,y
+	     * 
+	     * @param bar
+	     *            the bar to track
+	     * @param x
+	     *            the x in device coordinate
+	     * @param y
+	     *            the y in device coordinate
+	     */
+	    symbolEnterExitTracker : function(symbol,x,y) {
+	        if (symbol.getBound2D() === undefined) {
+	            return;
+	        }
+	        if (symbol.getBound2D().contains(x, y) && !symbol.isLockEnter()) {
+	            symbol.setLockEnter(true);
+	            this.fireSymbolEvent('enter',{symbol : symbol, x:x,y:y, device :{x:x,y:y}});
+	        }
+	        else if (!symbol.getBound2D().contains(x, y) && symbol.isLockEnter()) {
+	            symbol.setLockEnter(false);
+	            this.fireSymbolEvent('exit',{symbol : symbol, x:x,y:y, device :{x:x,y:y}});
+	        }
+	    },
+
+
+	});
+})();
+(function(){
+		
+	/**
+	 * Defines Symbol plugin
+	 * @constructor
+	 * @param {Object} config the plugin configuration
+	 */
+	JenScript.SymbolPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.SymbolPlugin,{
+		
+		/**
+		 * Initialize symbol plugin with given configuration
+		 * @param {Object} config the plugin configuration
+		 */
+		_init : function(config){
+			config=config||{};
+			config.name='SymbolPlugin';
+			config.priority = 500;
+			JenScript.Plugin.call(this,config);
+			/** symbol nature */
+		    this.nature = (config.nature !== undefined)?config.nature : 'Vertical';
+		    /** symbol layers */
+		    this.layers = [];
+		},
+		
+		/**
+		 * String of representation of this symbol plugin
+		 * @override
+		 */
+		toString : function(){
+			return 'JenScript.SymbolPlugin';
+		},
+		
+		/**
+		 * on projection register add 'bound changed' projection listener that invoke repaint plugin
+		 * when projection bound changed event occurs.
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'SymbolPlugin projection bound changed');
+		},
+		
+		 /**
+	     * get the plug in symbol nature
+	     * 
+	     * @return the plug in symbol nature
+	     */
+	    getNature : function() {
+	        return this.nature;
+	    },
+
+	    /**
+	     * set the plug in symbol nature
+	     * 
+	     * @param {String} nature the symbol nature, vertical or horizontal
+	     */
+	    setNature : function(nature) {
+	        this.nature = nature;
+	    },
+
+	    /**
+	     * add the specified symbol layer to this symbol plug in
+	     * 
+	     * @param {Object} layer the layer to add
+	     */
+	    addLayer : function(layer) {
+	        layer.setHost(this);
+	        this.layers[this.layers.length]=layer;
+	        this.repaintPlugin();
+	    },
+
+
+	    /**
+	     * count the number of layer registered in this symbol plug in
+	     * @return the numbers of layers in this symbol plugin
+	     */
+	    countLayers : function() {
+	        return this.layers.length;
+	    },
+
+	    /**
+	     * get the layer at the specified index
+	     * 
+	     * @param {Number} index  the layer index
+	     * @return layer at the given index
+	     */
+	    getLayer : function(index) {
+	        return this.layers[index];
+	    },
+
+	   /**
+	    * paint symbols
+	    * @param {Object} g2d the graphic context
+	    * @param {String} viewPart the view part
+	    */
+	    paintPlugin : function(g2d,viewPart) {
+	    	if(viewPart !== 'Device') return;
+	        this.solveLayers();
+	        for (var i = 0; i < this.countLayers(); i++) {
+	        	var layer = this.getLayer(i);
+	            layer.paintLayer(g2d,viewPart,'SymbolLayer');
+	            //layer.paintLayer(g2d,viewPart,'LabelLayer');
+	        }
+	    },
+	    
+	    /**
+	     * solve layer
+	     */
+	    solveLayers : function() {
+	        for (var i = 0; i < this.countLayers(); i++) {
+	            this.getLayer(i).solveGeometry();
+	        }
+	    },
+
+	    onRelease : function(evt,part,x, y) {
+	        for (var i = 0; i < this.countLayers(); i++) {
+	           this.getLayer(i).onRelease(evt,part,x, y);
+	        }
+	    },
+
+	   onPress : function(evt,part,x, y) {
+	        for (var i = 0; i < this.countLayers(); i++) {
+	            this.getLayer(i).onPress(evt,part,x, y);
+	        }
+	    },
+	   
+	   onMove : function(evt,part,x, y) {
+	        for (var i = 0; i < this.countLayers(); i++) {
+	            this.getLayer(i).onMove(evt,part,x, y);
+	        }
+	    },
+	});
+})();
+(function(){
+	JenScript.RayPainter = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.RayPainter,{
+		init : function(config){
+			config=config||{};
+		},
+		paintRay : function(g2d,ray,viewPart) {}
+	});
+})();
+(function(){
+	JenScript.RayFill = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.RayFill, JenScript.RayPainter);
+	JenScript.Model.addMethods(JenScript.RayFill,{
+		
+		_init : function(config){
+			config=config||{};
+			this.Id = 'rayfill'+JenScript.sequenceId++;
+			JenScript.RayPainter.call(this, config);
+		},
+		
+		paintRayFill : function(g2d,ray){},
+		
+		paintRay : function(g2d,ray,viewPart) {
+		     this.paintRayFill(g2d,ray);
+		}
+		
+	});
+	
+	JenScript.RayFill0 = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.RayFill0, JenScript.RayFill);
+	JenScript.Model.addMethods(JenScript.RayFill0,{
+		
+		__init : function(config){
+			config=config||{};
+			JenScript.RayFill.call(this, config);
+		},
+		
+		paintRayFill : function(g2d,ray) {
+	     	g2d.deleteGraphicsElement(this.Id+ray.Id);
+		   	var elem =  ray.getRayShape().Id(this.Id+ray.Id).fill(ray.themeColor).fillOpacity(ray.opacity).toSVG();
+		   	g2d.insertSVG(elem);
+		   	//set bar bound2D
+		   	var bbox = elem.getBBox();
+		   	ray.setBound2D(new JenScript.Bound2D(bbox.x,bbox.y,bbox.width,bbox.height));
+	    }
+	});
+	
+	JenScript.SymbolBarFill1 = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarFill1, JenScript.SymbolBarFill);
+	JenScript.Model.addMethods(JenScript.SymbolBarFill1,{
+		
+		__init : function(config){
+			config=config||{};
+			JenScript.SymbolBarFill.call(this, config);
+		},
+		
+	    paintBarFill : function(g2d,bar) {
+	        if (bar.getNature() === 'Vertical') {
+	            this.v(g2d, bar);
+	        }
+	        if (bar.getNature() === 'Horizontal') {
+	            this.h(g2d, bar);
+	        }
+	    },
+
+	   v : function(g2d,bar) {
+		   
+		   	//g2d.insertSVG(bar.getBarShape().Id(this.Id+bar.Id).stroke(bar.getThemeColor()).fillNone().toSVG());
+		   	g2d.deleteGraphicsElement(this.Id+bar.Id);
+		   	var elem =  bar.getBarShape().Id(this.Id+bar.Id).toSVG();
+		   	g2d.insertSVG(elem);
+	        var bbox = elem.getBBox();
+	        var start = new JenScript.Point2D(bbox.x, bbox.y + bbox.height/2);
+	        var end = new JenScript.Point2D(bbox.x + bbox.width,bbox.y + bbox.height/2);
+	        var cBase = bar.getThemeColor();
+	        var brighther1 = JenScript.Color.brighten(cBase, 20);
+	        var dist = [ '0%', '50%', '100%' ];
+	        var colors = [ brighther1, cBase, brighther1 ];
+	        var opacity = [ 0.6, 0.8, 0.4 ];
+	        var gradient1= new JenScript.SVGLinearGradient().Id(this.Id+bar.Id+'gradient').from(start.x, start.y).to(end.x, end.y).shade(dist,colors);
+	        g2d.deleteGraphicsElement(this.Id+bar.Id+'gradient');
+	        g2d.definesSVG(gradient1.toSVG());
+	        elem.setAttribute('fill','url(#'+this.Id+bar.Id+'gradient'+')');
+	    	//set bar bound2D
+		   	var bbox = elem.getBBox();
+		   	bar.setBound2D(new JenScript.Bound2D(bbox.x,bbox.y,bbox.width,bbox.height));
+	    },
+
+	    h : function(g2d,bar) {
+	    	g2d.deleteGraphicsElement(bar.Id);
+		   	var elem =  bar.getBarShape().Id(bar.Id).toSVG();
+		   	g2d.insertSVG(elem);
+	        var bbox = elem.getBBox();
+	        var start = new JenScript.Point2D(bbox.x+bbox.width/2,bbox.y);
+	        var end = new JenScript.Point2D(bbox.x+bbox.width/2, bbox.y + bbox.height);
+	        var cBase = bar.getThemeColor();
+	        var brighther1 = JenScript.Color.brighten(cBase, 20);
+
+	        var dist = [ '0%', '50%', '100%' ];
+	        var colors = [ brighther1, cBase, brighther1 ];
+	        var opacity = [ 0.6, 0.8, 0.4 ];
+	        var gradient1= new JenScript.SVGLinearGradient().Id(this.Id+'gradient').from(start.x, start.y).to(end.x, end.y).shade(dist,colors);
+	        g2d.deleteGraphicsElement(this.Id+'gradient');
+	        g2d.definesSVG(gradient1.toSVG());
+	        elem.setAttribute('fill','url(#'+this.Id+'gradient'+')');
+	    	//set bar bound2D
+		   	var bbox = elem.getBBox();
+		   	bar.setBound2D(new JenScript.Bound2D(bbox.x,bbox.y,bbox.width,bbox.height));
+	    }
+		
+	});
+})();
+(function(){
+	/**
+	 * Object Ray()
+	 * Defines Ray
+	 * @param {Object} config ray configuration
+	 * @param {Object} [config.name] ray name
+	 * @param {Object} [config.Id] ray Id, generated if undefined
+	 * 
+	 */
+	JenScript.Ray = function(config){
+		config = config||{};
+		this.name = (config.name !== undefined)?config.name:'ray name undefined';
+		this.Id = (config.Id !== undefined)?config.Id:'ray'+JenScript.sequenceId++;
+	    /** the ray theme color */
+	    this.themeColor = (config.themeColor !== undefined)?config.themeColor:'blue';
+	    /**ray opacity*/
+	    this.opacity = (config.opacity !== undefined)?config.opacity : 1;
+	    /** the ray thickness */
+	    this.thickness;
+	    /** the ray thickness type, device or user coordinate */
+	    this.thicknessType; 
+	    /** the center of the ray value in user coordinate */
+	    this.ray;
+	    /** the ray base */
+	    this.rayBase;
+	    /** the ray value in device coordinate */
+	    this.rayValue;
+	    /** ray ascent */
+	    this.ascent = false;
+	    /** ray descent */
+	    this.descent = false;
+	    /** ray nature, XRay or YRay */
+	    this.rayNature;
+	    /** the ray basic shape */
+	    this.rayShape;
+	    /** the ray draw painter */
+	    this.rayDraw;
+	    /** the ray fill painter */
+	    this.rayFill = new JenScript.RayFill0();
+	    /** the ray effect painter */
+	    this.rayEffect;
+	    /** the ray label painter */
+	    this.rayLabel;
+	    /** the ray axis label painter */
+	    this.rayAxisLabel;
+	    /** the ray host plugin */
+	    this.plugin;
+	    /** enter flag */
+	    this.lockEnter = false;
+	    /** boolean inflating operation flag */
+	    this.inflating = false;
+	    /** deflating operation flag */
+	    this.deflating = false;
+	    this.bound2D;
+	    
+	    this.parent;
+	};
+	
+	JenScript.Model.addMethods(JenScript.Ray,{
+		
+		 /**
+	     * get the bound2D
+	     * @return {Object} bound2D
+	     */
+	    getBound2D : function() {
+	        return this.bound2D;
+	    },
+
+	    /**
+	     * set bound2D
+	     * @param {Object} bound2D
+	     */
+	    setBound2D : function(bound2D) {
+	        this.bound2D = bound2D;
+	    },
+	    
+		 /**
+	     * get the ray draw painter
+	     * @return ray draw painter
+	     */
+	    getRayDraw : function() {
+	        return this.rayDraw;
+	    },
+
+	    /**
+	     * set ray draw painter
+	     * 
+	     * @param rayDraw
+	     *            the ray draw painter to set
+	     */
+	    setRayDraw : function(rayDraw) {
+	        this.rayDraw = rayDraw;
+	    },
+
+	    /**
+	     * get the ray fill painter
+	     * 
+	     * @return ray fill painter
+	     */
+	    getRayFill : function() {
+	        return this.rayFill;
+	    },
+
+	    /**
+	     * set the ray fill painter
+	     * 
+	     * @param rayFill
+	     *            the ray fill painter to set
+	     */
+	    setRayFill : function(rayFill) {
+	        this.rayFill = rayFill;
+	    },
+
+	    /**
+	     * get the ray effect painter
+	     * 
+	     * @return the ray effect painter
+	     */
+	    getRayEffect : function() {
+	        return this.rayEffect;
+	    },
+
+	    /**
+	     * set the ray effect
+	     * 
+	     * @param rayEffect
+	     *            the ray effect painter to set
+	     */
+	    setRayEffect : function(rayEffect) {
+	        this.rayEffect = rayEffect;
+	    },
+
+	    /**
+	     * get the ray label
+	     * 
+	     * @return the rayLabel
+	     */
+	    getRayLabel : function() {
+	        return this.rayLabel;
+	    },
+
+	    /**
+	     * set the ray label
+	     * 
+	     * @param rayLabel
+	     *            the rayLabel to set
+	     */
+	    setRayLabel : function(rayLabel) {
+	        this.rayLabel = rayLabel;
+	    },
+
+	    /**
+	     * get ray axis label
+	     * 
+	     * @return the rayAxisLabel
+	     */
+	    getRayAxisLabel : function() {
+	        return this.rayAxisLabel;
+	    },
+
+	    /**
+	     * set the ray axis label
+	     * 
+	     * @param rayAxisLabel
+	     *            the rayAxisLabel to set
+	     */
+	    setRayAxisLabel : function(rayAxisLabel) {
+	        this.rayAxisLabel = rayAxisLabel;
+	    },
+
+	    /**
+	     * get the ray name
+	     * 
+	     * @return the ray name
+	     */
+	    getName : function() {
+	        return this.name;
+	    },
+
+	    /**
+	     * set the ray name
+	     * 
+	     * @param name
+	     *            the ray name to set
+	     */
+	    setName : function(name) {
+	        this.name = name;
+	    },
+
+	    /**
+	     * get the ray theme color
+	     * 
+	     * @return the ray theme color
+	     */
+	    getThemeColor : function() {
+	        return this.themeColor;
+	    },
+
+	    /**
+	     * set the ray theme color
+	     * 
+	     * @param themeColor
+	     *            the theme color to set
+	     */
+	    setThemeColor : function(themeColor) {
+	        this.themeColor = themeColor;
+	    },
+
+	    /**
+	     * get the ray thickness
+	     * 
+	     * @return the ray thickness
+	     */
+	    getThickness : function() {
+	        return this.thickness;
+	    },
+
+	    /**
+	     * set the ray thickness
+	     * 
+	     * @param thickness
+	     *            the ray thickness to set
+	     */
+	    setThickness : function(thickness) {
+	        this.thickness = thickness;
+	    },
+
+	    /**
+	     * get the thickness type
+	     * 
+	     * @return the thickness type
+	     */
+	    getThicknessType : function() {
+	        return this.thicknessType;
+	    },
+
+	    /**
+	     * set the thickness type
+	     * 
+	     * @param thicknessType
+	     *            the ray thickness to set
+	     */
+	    setThicknessType : function(thicknessType) {
+	        this.thicknessType = thicknessType;
+	    },
+
+	    /**
+	     * get the ray nature
+	     * 
+	     * @return the ray nature
+	     */
+	    getRayNature : function() {
+	        return this.rayNature;
+	    },
+
+	    /**
+	     * set the ray nature
+	     * 
+	     * @param rayNature
+	     *            the ray nature to set
+	     */
+	    setRayNature : function(rayNature) {
+	        this.rayNature = rayNature;
+	    },
+
+	    /**
+	     * get the ray define by the ray center in user coordinate
+	     * 
+	     * @return the ray center in user coordinate
+	     */
+	    getRay : function() {
+	        return this.ray;
+	    },
+
+	    /**
+	     * set the ray center in user coordinate
+	     * 
+	     * @param ray
+	     *            the ray center in user coordinate to set
+	     */
+	    setRay : function(ray) {
+	        this.ray = ray;
+	    },
+
+	    /**
+	     * get the ray value in device coordinate
+	     * 
+	     * @return the ray value in device coordinate
+	     */
+	    getRayValue : function() {
+	        return this.rayValue;
+	    },
+
+	    /**
+	     * set ray ascent value, value should be greater than 0
+	     * 
+	     * @param value
+	     *            the ray ascent to set
+	     */
+	    setAscentValue : function(value) {
+	        this.ascent = true;
+	        this.descent = false;
+	        if (value < 0) {
+	            throw new Error("ray value should be greater than 0");
+	        }
+	        this.rayValue = value;
+	    },
+
+	    /**
+	     * set ray descent value, value should be greater than 0
+	     * 
+	     * @param value
+	     *            the ray descent to set
+	     */
+	    setDescentValue : function(value) {
+	        this.ascent = false;
+	        this.descent = true;
+	        if (value < 0) {
+	            throw new Error("ray value should be greater than 0");
+	        }
+	        this.rayValue = value;
+	    },
+
+	    /**
+	     * get this ray base
+	     * 
+	     * @return ray base
+	     */
+	    getRayBase : function() {
+	        return this.rayBase;
+	    },
+
+	    /**
+	     * set this ray base
+	     * 
+	     * @param rayBase
+	     *            the ray base to set
+	     */
+	    setRayBase : function(rayBase) {
+	        this.rayBase = rayBase;
+	    },
+
+	    /**
+	     * return true if this ray is ascent, false otherwise
+	     * 
+	     * @return true if this ray is ascent, false otherwise
+	     */
+	    isAscent : function() {
+	        return this.ascent;
+	    },
+
+	    /**
+	     * return true if this ray is descent, false otherwise
+	     * 
+	     * @return true if this ray is descent, false otherwise
+	     */
+	    isDescent : function() {
+	        return this.descent;
+	    },
+
+	    /**
+	     * get this ray shape
+	     * 
+	     * @return the shape of this ray
+	     */
+	    getRayShape : function() {
+	        return this.rayShape;
+	    },
+
+	    /**
+	     * set this ray shape
+	     * 
+	     * @param rayShape
+	     */
+	    setRayShape : function(rayShape) {
+	        this.rayShape = rayShape;
+	    },
+
+	    /**
+	     * get this ray host
+	     * 
+	     * @return the host of this ray
+	     */
+	    getPlugin : function() {
+	        return this.plugin;
+	    },
+
+	    /**
+	     * set host of this ray
+	     * 
+	     * @param host
+	     *            this ray host to set
+	     */
+	    setPlugin : function(plugin) {
+	        this.plugin = plugin;
+	    },
+
+	    /**
+	     * return true if mouse has just enter in this ray, false otherwise
+	     * 
+	     * @return enter flag
+	     */
+	    isLockEnter : function() {
+	        return this.lockEnter;
+	    },
+
+	    /**
+	     * lock ray enter flag
+	     */
+	    setLockEnter : function(flag) {
+	         this.lockEnter = flag;
+	    },
+
+
+	    /**
+	     * @return the inflating
+	     */
+	    isInflating : function() {
+	        return this.inflating;
+	    },
+
+	    /**
+	     * @param inflating
+	     *            the inflating to set
+	     */
+	    setInflating : function(inflating) {
+	        this.inflating = inflating;
+	    },
+
+	    /**
+	     * @return the deflating
+	     */
+	    isDeflating : function() {
+	        return this.deflating;
+	    },
+
+	    /**
+	     * @param deflating
+	     *            the deflating to set
+	     */
+	    setDeflating : function(deflating) {
+	        this.deflating = deflating;
+	    },      
+
+	    /**
+	     * @param lockEnter
+	     *            the lockEnter to set
+	     */
+	    setLockEnter : function(lockEnter) {
+	        this.lockEnter = lockEnter;
+	    },
+
+		
+	});
+	
+	
+	JenScript.StackedRay = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StackedRay, JenScript.Ray);
+	JenScript.Model.addMethods(JenScript.StackedRay, {
+		_init : function(config){
+			this.stacks = [];
+			JenScript.Ray.call(this,config);
+		},
+		
+		 /**
+	     * get the stack base for the specified stack
+	     * 
+	     * @param stack
+	     *            the stack to find base
+	     * @return the stack base
+	     */
+	    getStackBase : function(stack) {
+			var base = this.getRayBase();
+			for (var i = 0; i < this.stacks.length; i++) {
+				var s = this.stacks[i];
+	            if (stack.equals(s)) {
+	                return base;
+	            }
+
+	            if (this.isAscent()) {
+	                base = base + s.getNormalizedValue();
+	            }
+	            else if (this.isDescent()) {
+	                base = base - s.getNormalizedValue();
+	            }
+	        }
+	        return base;
+	    },
+
+	    /**
+	     * add a ray stack on this ray
+	     * 
+	     * @param rStack
+	     *            the stack to add
+	     */
+	    addStack : function(stack) {
+	        if (stack.getStackValue() < 0) {
+	            throw new Error( "stack value value should be greater than 0");
+	        }
+	        stack.parent = this;
+	        this.stacks.push(stack);
+	    },
+
+	    /**
+	     * normalize registered stacks on this ray
+	     */
+	    normalize : function() {
+	        var deltaValue = Math.abs(this.getRayValue());
+	        var stacksValue = 0;
+	        for (var i = 0; i < this.stacks.length; i++) {
+	        	 stacksValue = stacksValue + this.stacks[i].getStackValue();
+			}
+	        for (var i = 0; i < this.stacks.length; i++) {
+	        	this.stacks[i].setNormalizedValue(this.stacks[i].getStackValue() * deltaValue / stacksValue);
+	        }
+	    },
+
+	    /**
+	     * get the stack registry
+	     * 
+	     * @return the stack registry
+	     */
+	    getStacks : function() {
+	        return this.stacks;
+	    },
+
+	    /**
+	     * set the stack registry
+	     * 
+	     * @param stacks
+	     *            the stack registry to set
+	     */
+	    setStacks : function(stacks) {
+	        this.stacks = stacks;
+	    },
+	});
+	
+	JenScript.RayStack = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.RayStack, JenScript.Ray);
+	JenScript.Model.addMethods(JenScript.RayStack, {
+		
+		_init : function(config){
+			config = config||{};
+			//this.name = (config.name !== undefined)?config.name:'raystack name undefined';
+			//this.Id = (config.Id !== undefined)?config.Id:'raystack'+JenScript.sequenceId++;
+			 /** the stacked ray host of this stack */
+		    //this.host;
+		    /** stack theme color */
+		    //this.themeColor = (config.themeColor !== undefined)?config.themeColor:JenScript.createColor();
+		    /** stack value */
+		    this.stackValue = (config.stackValue !== undefined)?config.stackValue:1;
+		    /** stack normalized value */
+		    this.normalizedValue;
+		    /** the generated ray of this stack */
+		    this.ray;
+		    /** ray draw */
+		    //this.rayDraw;
+		    /** ray fill */
+		    //this.rayFill = new JenScript.RayFill0();
+		    /** ray effect */
+		    //this.rayEffect;
+		    //this.bound2D;
+		    
+		    JenScript.Ray.call(this,config);
+		},
+	
+		equals : function(stack){
+			return (stack.Id === this.Id);
+		},
+		
+	    toString : function() {
+	        return "Ray Stack [name=" +  this.name + ", Id=" + this.Id + ", stackValue=" + this.stackValue
+	                + ", normalizedValue=" + this.normalizedValue + "]";
+	    },
+	    
+//	    /**
+//	     * get the bound2D
+//	     * @return {Object} bound2D
+//	     */
+//	    getBound2D : function() {
+//	        return this.bound2D;
+//	    },
+//
+//	    /**
+//	     * set bound2D
+//	     * @param {Object} bound2D
+//	     */
+//	    setBound2D : function(bound2D) {
+//	        this.bound2D = bound2D;
+//	    },
+//
+//	    /**
+//	     * get the stack name
+//	     * 
+//	     * @return the stack name
+//	     */
+//	    getName : function() {
+//	        return this.name;
+//	    },
+//
+//	    /**
+//	     * set the stack name
+//	     * 
+//	     * @param stackName
+//	     *            the stack name to set
+//	     */
+//	    setName : function(name) {
+//	        this.name = name;
+//	    },
+//
+//	    /**
+//	     * get stack theme color
+//	     * 
+//	     * @return stack theme color
+//	     */
+//	    getThemeColor : function() {
+//	        if (this.themeColor === undefined) {
+//	            this.themeColor = JenScript.createColor();
+//	        }
+//	        return this.themeColor;
+//	    },
+//
+//	    /**
+//	     * set stack theme color
+//	     * 
+//	     * @param themeColor
+//	     *            stack theme color to set
+//	     */
+//	    setThemeColor : function(themeColor) {
+//	        this.themeColor = themeColor;
+//	    },
+
+	    /**
+	     * get stack value
+	     * 
+	     * @return stack value
+	     */
+	    getStackValue : function() {
+	        return this.stackValue;
+	    },
+
+	    /**
+	     * set stack value
+	     * 
+	     * @param value
+	     *            the stack value to set
+	     */
+	    setStackValue : function(stackValue) {
+	        this.stackValue = stackValue;
+	    },
+
+	    /**
+	     * get stack normalize value
+	     * 
+	     * @return normalize value
+	     */
+	    getNormalizedValue : function() {
+	        return this.normalizedValue;
+	    },
+
+	    /**
+	     * set stack normalize value
+	     * 
+	     * @param normalizedValue
+	     *            the stack normalize value to set
+	     */
+	    setNormalizedValue : function(normalizedValue) {
+	        this.normalizedValue = normalizedValue;
+	    },
+
+	    /**
+	     * get the generated ray of this stack
+	     * 
+	     * @return the generated stack
+	     */
+	    getRay : function() {
+	        return this.ray;
+	    },
+
+	    /**
+	     * set the generated ray
+	     * 
+	     * @param ray
+	     *            the generated ray to set
+	     */
+	    setRay : function(ray) {
+	        this.ray = ray;
+	    },
+
+//	    /**
+//	     * get stacked ray host of this stack
+//	     * 
+//	     * @return stacked ray host
+//	     */
+//	    getHost : function() {
+//	        return this.host;
+//	    },
+//
+//	    /**
+//	     * set stacked ray host
+//	     * 
+//	     * @param host
+//	     *            the stacked ray host to set
+//	     */
+//	    setHost : function(host) {
+//	        this.host = host;
+//	    },
+//
+//	    /**
+//	     * get the ray draw
+//	     * 
+//	     * @return the ray draw
+//	     */
+//	    getRayDraw : function() {
+//	        return this.rayDraw;
+//	    },
+//
+//	    /**
+//	     * set the ray draw
+//	     * 
+//	     * @param rayDraw
+//	     *            the ray draw to set
+//	     */
+//	    setRayDraw : function(rayDraw) {
+//	        this.rayDraw = rayDraw;
+//	    },
+//
+//	    /**
+//	     * get the ray fill
+//	     * 
+//	     * @return the ray fill
+//	     */
+//	    getRayFill : function() {
+//	        return this.rayFill;
+//	    },
+//
+//	    /**
+//	     * set the ray fill
+//	     * 
+//	     * @param rayFill
+//	     *            the ray fill to set
+//	     */
+//	    setRayFill : function(rayFill) {
+//	        this.rayFill = rayFill;
+//	    },
+//
+//	    /**
+//	     * get the ray effect
+//	     * 
+//	     * @return the ray effect
+//	     */
+//	    getRayEffect : function() {
+//	        return this.rayEffect;
+//	    },
+//
+//	    /**
+//	     * set the ray effect
+//	     * 
+//	     * @param rayEffect
+//	     *            the ray effect to set
+//	     */
+//	    setRayEffect : function(rayEffect) {
+//	        this.rayEffect = rayEffect;
+//	    },
+	});
+	
+
+})();
+(function(){
+	/**
+	 * Ray Plugin takes the responsibility to paint rays
+	 */
+	JenScript.RayPlugin = function(config) {
+		this._init(config)
+	};
+	JenScript.Model.inheritPrototype(JenScript.RayPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.RayPlugin, {
+		
+		_init : function(config){
+			config = config || {};
+			this.rays = [];
+			this.raysListeners=[];
+			config.name = "RayPlugin"
+			JenScript.Plugin.call(this,config);
+		},
+		
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},that.toString());
+		},
+		
+		
+		/**
+		 * register the specified ray
+		 * 
+		 * @param ray
+		 *            the ray to register
+		 */
+		addRay : function(ray) {
+			ray.plugin = this;
+			this.rays.push(ray);
+		},
+		
+		
+		/**
+		 * String representation of this RayPlugin
+		 * @override
+		 */
+		toString : function(){
+			return "JenScript.RayPlugin";
+		},
+		
+		/**
+	     * add ray listener with given action
+	     * 
+	     * enter : when ray is entered
+	     * exit : when ray is exited
+	     * move : when move in ray
+	     * press : when ray is pressed
+	     * release : when ray is released
+	     * 
+	     * 
+	     * @param {String}   ray action event type like enter, exit, press, release
+	     * @param {Function} listener
+	     * @param {String}   listener owner name
+	     */
+		addRayListener  : function(actionEvent,listener,name){
+			if(name === undefined)
+				throw new Error('Ray listener, listener name should be supplied.');
+			var l = {action:actionEvent , onEvent : listener, name:name};
+			this.raysListeners[this.raysListeners.length] =l;
+		},
+		
+		/**
+		 * fire listener when ray is entered, exited, pressed, released
+		 * @param {actionEvent}   event type name
+		 * @param {Object}   event object
+		 */
+		fireRayEvent : function(actionEvent,event){
+			for (var i = 0; i < this.raysListeners.length; i++) {
+				var l = this.raysListeners[i];
+				if(actionEvent === l.action){
+					l.onEvent(event);
+				}
+			}
+		},
+
+		/**
+		 * check and validate the specified ray
+		 * 
+		 * @param ray
+		 *            the ray to validate
+		 */
+		checkRay : function(ray) {
+			if (ray.getRayNature() === undefined) {
+				throw new Error("Ray nature should be supplied");
+			}
+			// other check
+			// value, thickness, ray, etc
+		},
+
+		/**
+		 * resolve ray registry geometry
+		 */
+		resolveRayPluginGeometry : function() {
+			var that = this;
+			var solve = function(ray, index, array) {
+				that.checkRay(ray);
+				if (ray instanceof JenScript.StackedRay) {
+					that.resolveStackedRayGeometry(ray);
+				}
+				else {
+					that.resolveRayGeometry(ray);
+				}
+			}
+			this.rays.forEach(solve);
+		},
+
+		/**
+		 * resolve ray registry geometry
+		 */
+		resolveRayComponent : function(ray) {
+			if (ray instanceof JenScript.StackedRay) {
+				this.resolveStackedRayGeometry(ray);
+			}
+			else {
+				this.resolveRayGeometry(ray);
+			}
+		},
+
+
+		/**
+		 * resolve the specified ray geometry
+		 * 
+		 * @param ray
+		 *            the ray geometry to resolve
+		 */
+		resolveRayGeometry : function(ray) {
+			var proj = this.getProjection();
+			if (ray.getRayNature() === 'XRay') {
+
+				var centerUserX = ray.getRay();
+				var centerDeviceX = proj.userToPixel(new JenScript.Point2D(centerUserX, 0)).getX();
+				
+				var deviceRayWidth = 0;
+				if (ray.getThicknessType() === 'Device') {
+					deviceRayWidth = ray.getThickness();
+				} else {
+					var left = centerUserX - ray.getThickness() / 2;
+					var pLeft = proj.userToPixel(new JenScript.Point2D(left, 0));
+
+					var right = centerUserX + ray.getThickness() / 2;
+					var pRight = proj.userToPixel(new JenScript.Point2D(right, 0));
+
+					deviceRayWidth = pRight.getX() - pLeft.getX();
+				}
+
+				var yUserRayBase = 0;
+				if (ray.isAscent()) {
+					yUserRayBase = ray.getRayBase();
+				}
+				if (ray.isDescent()) {
+					yUserRayBase = ray.getRayBase() - ray.getRayValue();
+				}
+
+				var yDeviceRayBase = proj.userToPixel(new JenScript.Point2D(0, yUserRayBase)).getY();
+
+				var yUserRayFleche = 0;
+				if (ray.isAscent()) {
+					yUserRayFleche = ray.getRayBase() + ray.getRayValue();
+				}
+				if (ray.isDescent()) {
+					yUserRayFleche = ray.getRayBase();
+				}
+
+				var yDeviceRayFleche = proj.userToPixel(new JenScript.Point2D(0, yUserRayFleche)).getY();
+
+				var x = centerDeviceX - deviceRayWidth / 2;
+				var y = yDeviceRayFleche;
+				var width = deviceRayWidth;
+				var height = Math.abs(yDeviceRayFleche - yDeviceRayBase);
+
+				var rayShape = new JenScript.SVGRect().origin(x, y).size(width,height);
+				ray.setRayShape(rayShape);
+
+			} else if (ray.getRayNature() === 'YRay') {
+
+				var centerUserY = ray.getRay();
+				var centerDeviceY = proj.userToPixel(new JenScript.Point2D(0, centerUserY)).getY();
+
+				var deviceRayHeight = 0;
+				if (ray.getThicknessType() == 'Device') {
+					deviceRayHeight = ray.getThickness();
+				} else {
+					var top = centerUserY - ray.getThickness() / 2;
+					var pTop = proj.userToPixel(new JenScript.Point2D(0, top));
+
+					var bottom = centerUserY + ray.getThickness() / 2;
+					var pBottom = proj.userToPixel(new JenScript.Point2D(0, bottom));
+
+					deviceRayHeight = Math.abs(pTop.getY() - pBottom.getY());
+				}
+
+				var xUserRayBase = 0;
+				if (ray.isAscent()) {
+					xUserRayBase = ray.getRayBase();
+				}
+				if (ray.isDescent()) {
+					xUserRayBase = ray.getRayBase() - ray.getRayValue();
+				}
+
+				var xDeviceRayBase = proj.userToPixel(new JenScript.Point2D(xUserRayBase, 0)).getX();
+
+				var xUserRayFleche = 0;
+				if (ray.isAscent()) {
+					xUserRayFleche = ray.getRayBase() - ray.getRayValue();
+				}
+				if (ray.isDescent()) {
+					xUserRayFleche = ray.getRayBase();
+				}
+
+				var xDeviceRayFleche = proj.userToPixel(new JenScript.Point2D(xUserRayFleche, 0)).getX();
+
+				var x = xDeviceRayBase;
+				var y = centerDeviceY - deviceRayHeight / 2;
+				var width = Math.abs(xDeviceRayFleche - xDeviceRayBase);
+				var height = deviceRayHeight;
+
+				var rayShape = new JenScript.SVGRect().origin(x, y).size(width,height);
+				ray.setRayShape(rayShape);
+			}
+		},
+
+		/**
+		 * resolve specified stacked ray geometry
+		 * 
+		 * @param stackedRay
+		 *            the stacked ray geometry to resolve
+		 */
+		resolveStackedRayGeometry : function(stackedRay) {
+			var proj = this.getProjection();
+			stackedRay.normalize();
+			if (stackedRay.getRayNature() === 'XRay') {
+
+				var centerUserX = stackedRay.getRay();
+				var centerDeviceX = proj.userToPixel(new JenScript.Point2D(centerUserX, 0)).getX();
+				var deviceRayWidth = 0;
+				if (stackedRay.getThicknessType() == 'Device') {
+					deviceRayWidth = stackedRay.getThickness();
+				} else {
+					var left = centerUserX - stackedRay.getThickness() / 2;
+					var pLeft = proj.userToPixel(new JenScript.Point2D(left, 0));
+
+					var right = centerUserX + stackedRay.getThickness() / 2;
+					var pRight = proj.userToPixel(new JenScript.Point2D(right, 0));
+
+					deviceRayWidth = pRight.getX() - pLeft.getX();
+				}
+
+				var yUserRayBase = 0;
+				if (stackedRay.isAscent()) {
+					yUserRayBase = stackedRay.getRayBase();
+				}
+				if (stackedRay.isDescent()) {
+					yUserRayBase = stackedRay.getRayBase() - stackedRay.getRayValue();
+				}
+
+				var yDeviceRayBase = proj.userToPixel(new JenScript.Point2D(0, yUserRayBase)).getY();
+
+				var yUserRayFleche = 0;
+				if (stackedRay.isAscent()) {
+					yUserRayFleche = stackedRay.getRayBase() + stackedRay.getRayValue();
+				}
+				if (stackedRay.isDescent()) {
+					yUserRayFleche = stackedRay.getRayBase();
+				}
+
+				var yDeviceRayFleche = proj.userToPixel(new JenScript.Point2D(0, yUserRayFleche)).getY();
+
+				var x = centerDeviceX - deviceRayWidth / 2;
+				var y = yDeviceRayFleche;
+				var width = deviceRayWidth;
+				var height = Math.abs(yDeviceRayFleche - yDeviceRayBase);
+
+				var rayShape = new JenScript.SVGRect().origin(x, y).size(width,height);
+				stackedRay.setRayShape(rayShape);
+
+				// stacks
+				for (var i = 0; i < stackedRay.getStacks().length; i++) {
+					var s = stackedRay.getStacks()[i];
+					
+					s.setRayNature(stackedRay.getRayNature());
+					s.setThickness(stackedRay.getThickness());
+					s.setThicknessType(stackedRay.getThicknessType());
+					s.setRay(stackedRay.getRay());
+					s.setRayBase(stackedRay.getStackBase(s));
+					s.setThemeColor(s.getThemeColor());
+					s.setRayFill(s.getRayFill());
+					s.setRayDraw(s.getRayDraw());
+					s.setRayEffect(s.getRayEffect());
+					if (s.isAscent()) {
+						s.setAscentValue(s.getNormalizedValue());
+					} else if (stackedRay.isDescent()) {
+						s.setDescentValue(s.getNormalizedValue());
+					}
+					
+					var yUserStackRayBase = 0;
+					if (stackedRay.isAscent()) {
+						yUserStackRayBase = stackedRay.getStackBase(s);
+					}
+					if (stackedRay.isDescent()) {
+						yUserStackRayBase = stackedRay.getStackBase(s) - s.getNormalizedValue();
+					}
+
+					var yDeviceStackRayBase = proj.userToPixel(new JenScript.Point2D(0, yUserStackRayBase)).getY();
+
+					var yUserStackRayFleche = 0;
+					if (stackedRay.isAscent()) {
+						yUserStackRayFleche = stackedRay.getStackBase(s) + s.getNormalizedValue();
+					}
+					if (stackedRay.isDescent()) {
+						yUserStackRayFleche = stackedRay.getStackBase(s);
+					}
+
+					var yDeviceStackRayFleche = proj.userToPixel(new JenScript.Point2D(0, yUserStackRayFleche)).getY();
+
+					var stackx = centerDeviceX - deviceRayWidth / 2;
+					var stacky = yDeviceStackRayFleche;
+					var stackwidth = deviceRayWidth;
+					var stackheight = Math.abs(yDeviceStackRayFleche - yDeviceStackRayBase);
+
+					var stackRayShape = new JenScript.SVGRect().origin(stackx, stacky).size(stackwidth,stackheight);
+					s.setRayShape(stackRayShape);
+				}
+
+			} else if (stackedRay.getRayNature() === 'YRay') {
+
+				var centerUserY = stackedRay.getRay();
+				var centerDeviceY = proj.userToPixel(new JenScript.Point2D(0, centerUserY)).getY();
+
+				var deviceRayHeight = 0;
+				if (stackedRay.getThicknessType() == 'Device') {
+					deviceRayHeight = stackedRay.getThickness();
+				} else {
+					var top = centerUserY - stackedRay.getThickness() / 2;
+					var pTop = proj.userToPixel(new JenScript.Point2D(0, top));
+
+					var bottom = centerUserY + stackedRay.getThickness() / 2;
+					var pBottom = proj.userToPixel(new JenScript.Point2D(0, bottom));
+
+					deviceRayHeight = Math.abs(pTop.getY() - pBottom.getY());
+				}
+
+				var xUserRayBase = 0;
+				if (stackedRay.isAscent()) {
+					xUserRayBase = stackedRay.getRayBase();
+				}
+				if (stackedRay.isDescent()) {
+					xUserRayBase = stackedRay.getRayBase() - stackedRay.getRayValue();
+				}
+
+				var xDeviceRayBase = proj.userToPixel(new JenScript.Point2D(xUserRayBase, 0)).getX();
+
+				var xUserRayFleche = 0;
+				if (stackedRay.isAscent()) {
+					xUserRayFleche = stackedRay.getRayBase() - stackedRay.getRayValue();
+				}
+				if (stackedRay.isDescent()) {
+					xUserRayFleche = stackedRay.getRayBase();
+				}
+
+				var xDeviceRayFleche = proj.userToPixel(new JenScript.Point2D(xUserRayFleche, 0)).getX();
+
+				var x = xDeviceRayBase;
+				var y = centerDeviceY - deviceRayHeight / 2;
+				var width = Math.abs(xDeviceRayFleche - xDeviceRayBase);
+				var height = deviceRayHeight;
+
+				var rayShape = new JenScript.SVGRect().origin(x, y).size(width,height);
+				stackedRay.setRayShape(rayShape);
+
+				// stacks
+				for (var i = 0; i < stackedRay.getStacks().length; i++) {
+					var s = stackedRay.getStacks()[i];
+
+					s.setRayNature(stackedRay.getRayNature());
+					s.setThickness(stackedRay.getThickness());
+					s.setThicknessType(stackedRay.getThicknessType());
+					s.setRay(stackedRay.getRay());
+					s.setRayBase(stackedRay.getStackBase(s));
+					s.setThemeColor(s.getThemeColor());
+					s.setRayFill(s.getRayFill());
+					s.setRayDraw(s.getRayDraw());
+					s.setRayEffect(s.getRayEffect());
+					if (stackedRay.isAscent()) {
+						s.setAscentValue(s.getNormalizedValue());
+					} else if (stackedRay.isDescent()) {
+						s.setDescentValue(s.getNormalizedValue());
+					}
+
+					var xUserStackRayBase = 0;
+					if (stackedRay.isAscent()) {
+						xUserStackRayBase = stackedRay.getStackBase(s);
+					}
+					if (stackedRay.isDescent()) {
+						xUserStackRayBase = stackedRay.getStackBase(s) - s.getNormalizedValue();
+					}
+
+					var xDeviceStackRayBase = proj.userToPixel(new JenScript.Point2D(xUserStackRayBase, 0)).getX();
+
+					var xUserStackRayFleche = 0;
+					if (stackedRay.isAscent()) {
+						xUserStackRayFleche = stackedRay.getStackBase(s) - s.getNormalizedValue();
+					}
+					if (stackedRay.isDescent()) {
+						xUserStackRayFleche = stackedRay.getStackBase(s);
+					}
+
+					var xDeviceStackRayFleche = proj.userToPixel(new JenScript.Point2D(xUserStackRayFleche, 0)).getX();
+
+					var stackx = xDeviceStackRayBase;
+					var stacky = centerDeviceY - deviceRayHeight / 2;
+					var stackwidth = Math.abs(xDeviceStackRayFleche - xDeviceStackRayBase);
+					var stackheight = deviceRayHeight;
+
+					var stackRayShape = new JenScript.SVGRect().origin(stackx, stacky).size(stackwidth,stackheight);
+					s.setRayShape(stackRayShape);
+				}
+
+			}
+		},
+
+		/**
+		 * paint the specified ray
+		 * 
+		 * @param g2d
+		 *            graphics context
+		 * @param ray
+		 *            the ray to paint
+		 */
+		paintRay : function(g2d,ray,viewPart,paintRequest) {
+
+			ray.plugin = this;
+
+			if (paintRequest === 'RayLayer') {
+				if (ray.getRayFill() !== undefined) {
+					ray.getRayFill().paintRay(g2d, ray, viewPart);
+				}
+
+				if (ray.getRayEffect() !== undefined) {
+					ray.getRayEffect().paintRay(g2d, ray, viewPart);
+				}
+
+				if (ray.getRayDraw() !== undefined) {
+					ray.getRayDraw().paintRay(g2d, ray, viewPart);
+				}
+			} else {
+				if (ray.getRayLabel() != null) {
+					ray.getRayLabel().paintRay(g2d, ray, viewPart);
+				}
+			}
+
+		},
+
+		/**
+		 * paint the specified stacked ray
+		 * 
+		 * @param g2d
+		 *            graphics context
+		 * @param stackedRay
+		 *            the stackedRay to paint
+		 */
+		paintStackedRay : function(g2d,stackedRay,viewPart,paintRequest) {
+			var stacks = stackedRay.getStacks();
+			for (var i = 0; i < stacks.length; i++) {
+				var s = stacks[i];
+				this.paintRay(g2d, s, viewPart, paintRequest);
+			}
+			//this.paintRay(g2d, stackedRay, viewPart, paintRequest);
+		},
+
+		
+		/**
+		 * paint Ray Plugin
+		 * @param g2d graphics context
+		 * @param viewPart the view part
+		 * 
+		 */
+		paintPlugin : function(g2d,viewPart) {
+			this.resolveRayPluginGeometry();
+			if (viewPart === JenScript.ViewPart.Device) {
+
+				for (var i = 0; i < this.rays.length; i++) {
+					var ray = this.rays[i]
+					if (ray instanceof JenScript.StackedRay) {
+						this.paintStackedRay(g2d, ray, viewPart, 'RayLayer');
+					}
+					else {
+						this.paintRay(g2d, ray, viewPart, 'RayLayer');
+					}
+				}
+
+				for (var i = 0; i < this.rays.length; i++) {
+					var ray = this.rays[i]
+					if (ray instanceof JenScript.StackedRay) {
+						this.paintStackedRay(g2d, ray, viewPart, 'LabelLayer');
+					}
+					else {
+						this.paintRay(g2d, ray, viewPart, 'LabelLayer');
+					}
+				}
+			} else {
+				//this.paintRayAxisLabel(g2d, viewPart);
+			}
+		},
+
+		/**
+		 * paint rays axis symbols
+		 * 
+		 * @param g2d
+		 *            the graphics context to paint
+		 * @param viewPart
+		 *            to view part to paint
+		 */
+		paintRayAxisLabel : function(g2d,viewPart) {
+
+//			for (Ray ray : rays) {
+//				ray.setHost(this);
+//
+//				if (ray instanceof RayGroup) {
+//					RayGroup group = (RayGroup) ray;
+//
+//					if (group.getRayAxisLabel() != null) {
+//						group.getRayAxisLabel().paintRay(g2d, ray, viewPart);
+//					}
+//
+//					List<Ray> rays = group.getRays();
+//					for (Ray r : rays) {
+//						ray.setHost(this);
+//						if (!(r instanceof RayGroup)) {
+//							if (r.getRayAxisLabel() != null) {
+//								r.getRayAxisLabel().paintRay(g2d, r, viewPart);
+//							}
+//						}
+//					}
+//				} else {
+//					if (ray.getRayAxisLabel() != null) {
+//						ray.getRayAxisLabel().paintRay(g2d, ray, viewPart);
+//					}
+//				}
+//			}
+
+		},
+		
+	    onRelease : function(evt,part,x, y) {
+	    	this.rayCheck('release',evt,x,y);
+	    },
+	   
+	    onPress : function(evt,part,x, y) {
+	    	this.rayCheck('press',evt,x,y);
+	    },
+	   
+	    onMove : function(evt,part,x, y) {
+	    	this.rayCheck('move',evt,x,y);
+	    },
+	    
+	    /**
+	     * check ray event
+	     * 
+	     * @param {String}  action the action press, release, move, etc.
+	     * @param {Object}  original event
+	     * @param {Number}  x location
+	     * @param {Number}  y location
+	     */
+	    rayCheck: function(action, evt,x,y){
+	    	var that=this;
+	    	var _d = function(ray){
+	    	   if(action === 'press')
+	    		   that.fireRayEvent('press',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+               else if(action === 'release')
+            	   that.fireRayEvent('release',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+               else 
+            	   that.rayEnterExitTracker(ray,x,y);
+	    	};
+	    	var _c = function(ray){
+	    		if (ray.getBound2D() === undefined) {
+	 	            return;
+	 	        }
+	    		var contains = (ray.getBound2D() !== undefined  && ray.getBound2D().contains(x,y));
+        		if(action !== 'move' && contains && ray.isLockEnter()){
+        			_d(ray);
+        		}
+        		else if (action === 'move') {
+                	_d(ray);
+                }
+	    	};
+		        for (var i = 0; i < this.rays.length; i++) {
+		        	
+		        	var ray = this.rays[i];
+		        	
+		            if (ray instanceof JenScript.StackedRay) {
+		               var stackedRay = ray;
+		               _c(stackedRay);
+		               var rayStacks = stackedRay.getStacks();
+		               for (var j = 0; j < rayStacks.length; j++) {
+		            	   var rayStack = rayStacks[j];
+		            		_c(rayStack);
+		                }
+		            }
+		            else if (ray instanceof JenScript.Ray) {
+		                _c(ray);
+		            }
+		        }
+	    },
+
+	    /**
+	     * track ray enter or exit for the specified ray for device location x,y
+	     * 
+	     * @param {Object}  ray symbol
+	     * @param {Number}  x location in device coordinate
+	     * @param {Number}  y location in device coordinate
+	     */
+	    rayEnterExitTracker : function(ray,x,y) {
+	        if (ray.getBound2D() === undefined) {
+	            return;
+	        }
+	        if (ray.getBound2D().contains(x, y) && !ray.isLockEnter()) {
+	        	ray.setLockEnter(true);
+	            this.fireRayEvent('enter',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+	        }
+	        if (ray.getBound2D().contains(x, y) && ray.isLockEnter()) {
+	            this.fireRayEvent('move',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+	        }
+	        else if (!ray.getBound2D().contains(x, y) && ray.isLockEnter()) {
+	        	ray.setLockEnter(false);
+	            this.fireRayEvent('exit',{ray : ray, x:x,y:y, device :{x:x,y:y}});
+	        }
+	    },
+		
+	});
+
+	
+})();
+
+
+(function(){
+	JenScript.ProgressPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.ProgressPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.ProgressPlugin, {
+		_init : function(config){
+			this.width= config.width;
+			this.height = config.height;
+			this.x=config.x;
+			this.y=config.y;
+			config.name='ProgressPlugin';
+			JenScript.Plugin.call(this,config);
+			this.monitors = [];
+		},
+		
+		addMonitor : function(monitor){
+			monitor.plugin = this;
+			this.monitors[this.monitors.length] = monitor;
+			this.repaintPlugin();
+		},
+		
+		
+		paintMonitor : function(g2d, part, monitor,x,y){
+			var progress = new JenScript.SVGRect().origin(x,y).size(this.width,this.height).radius(monitor.cornerRadius,monitor.cornerRadius).fillNone().strokeNone();
+		       
+	        if(monitor.outlineColor !== undefined)
+	        	progress.stroke(monitor.outlineColor);
+	        if(monitor.outlineStrokeWidth !== undefined)
+	        	progress.strokeWidth(monitor.outlineStrokeWidth);
+	        if(monitor.backgroundColor !== undefined)
+	        	progress.fill(monitor.backgroundColor);
+	        
+	        progress.fillOpacity(monitor.backgroundOpacity);
+	        g2d.insertSVG(progress.toSVG());
+	        
+	        if(monitor.value !==undefined && monitor.total !== undefined){
+	        	var currentWidth = this.width*monitor.value/monitor.total;
+	        	var cprogress = new JenScript.SVGRect().origin(x,y).size(currentWidth,this.height).radius(monitor.cornerRadius,monitor.cornerRadius);
+		        
+	        	if(monitor.outlineColor !== undefined)
+	        		cprogress.stroke(monitor.outlineColor);
+	        	
+	        	g2d.insertSVG(cprogress.strokeNone().fill(monitor.foregroundColor).fillOpacity(monitor.foregroundOpacity).toSVG());
+	        }
+	        
+	        if(monitor.text !== undefined){
+	        	//console.log('(y+this.height+monitor.fontSize)='+y+','+this.height+','+monitor.fontSize);
+	        	var t = new JenScript.SVGElement().name('text')
+					.attr('x',x)
+					.attr('y',(y+this.height+monitor.fontSize))
+					.attr('font-size',monitor.fontSize)
+					.attr('fill',monitor.textColor)
+					.attr('fill-opacity',1)
+					.attr('text-anchor','start')
+					.textContent(monitor.text);
+		        	 g2d.insertSVG(t.buildHTML());
+		        	 
+	        }
+		},
+		
+		
+		paintPlugin : function(g2d,part) {
+	        if (part != JenScript.ViewPart.Device) {
+	            return;
+	        }
+	        var startX = this.x;
+	        var startY = this.y;
+	        var nm=[];
+	        var dy = 5;
+	        for (var i = 0; i < this.monitors.length; i++) {
+	        	var monitor = this.monitors[i];
+	        	if(!monitor.completed){
+	        		this.paintMonitor(g2d,part,monitor,startX,startY);
+	        		startY = startY + (this.height+monitor.fontSize)+dy;
+	        		nm[nm.length]=monitor;
+	        	}
+			}
+	        this.monitors=nm;
+	    },
+	    
+	    onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'monitor');
+		},
+		
+	});
+})();
+(function(){
+	JenScript.ProgressMonitor = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.ProgressMonitor, {
+		init : function(config){
+			//this.width= config.width;
+			//this.height = config.height;
+			//this.x=config.x;
+			//this.y=config.y;
+			this.Id = 'monitor'+JenScript.sequenceId++;
+			this.cornerRadius=(config.cornerRadius !== undefined)?config.cornerRadius : 2;
+			this.outlineColor=config.outlineColor;
+			this.name=(config.name !== undefined)?config.name : 'unamed monitor';
+			this.outlineStrokeWidth=config.outlineStrokeWidth;
+			
+			//this.backgroundColor=(config.backgroundColor !== undefined)?config.backgroundColor : JenScript.RosePalette.COALBLACK;
+			this.backgroundColor=(config.backgroundColor !== undefined)?config.backgroundColor : JenScript.RosePalette.COALBLACK;
+			this.backgroundOpacity=(config.backgroundOpacity !== undefined)?config.backgroundOpacity : 1;
+			
+			this.foregroundColor=(config.foregroundColor !== undefined)?config.foregroundColor : JenScript.RosePalette.CALYPSOBLUE;
+			this.foregroundOpacity=(config.foregroundOpacity !== undefined)?config.foregroundOpacity : 1;
+			
+			this.textColor =(config.textColor !== undefined)?config.textColor : JenScript.RosePalette.COALBLACK;
+			this.fontSize = (config.fontSize !== undefined)?config.fontSize : 10 ;
+			
+			this.total=config.total;
+			this.value;
+			this.text;
+			this.completed = false;
+			this.onComplete =config.onComplete;
+			
+		},
+		
+		setTotal : function(total){
+			this.total=total;
+			this.plugin.repaintPlugin();
+		},
+		
+		setValue : function(value,text){
+			this.value=value;
+			this.text=text;
+			var that = this;
+			setTimeout(function(){
+				that.plugin.repaintPlugin();
+			},100);
+			
+			if((this.value === this.total) && this.onComplete !== undefined)
+				this.complete();
+		},
+		
+		/**
+		 * mark monitor complete, set value to total and repaint plugin, then call onComplete callback
+		 */
+		complete : function(){
+			this.value = this.total;
+			if(this.onComplete !== undefined)
+				this.onComplete();
+			this.completed = true;
+			this.plugin.repaintPlugin();
+		},
+		
+		setText: function(text){
+			this.text=text;
+			var that = this;
+			setTimeout(function(){
+				that.plugin.repaintPlugin();
+			},200);
+		},
+		
+	});
+})();
+(function(){
+	JenScript.StockPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockPlugin, JenScript.Plugin);
+
+	JenScript.Model.addMethods(JenScript.StockPlugin, {
+		_init : function(config){
+			config = config || {};
+			this.stocks = [];
+			this.stockLayers=[];
+			config.priority = 10000;
+			config.name='StockPlugin';
+			JenScript.Plugin.call(this,config);
+			this.bearishColor = (config.bearishColor !== undefined)?config.bearishColor:'red';
+			this.bullishColor = (config.bullishColor !== undefined)?config.bullishColor:'green';
+		},
+		
+		getBearishColor :function() {
+			return this.bearishColor;
+		},
+
+		setBearishColor :function(bearishColor) {
+			this.bearishColor = bearishColor;
+		},
+
+		getBullishColor :function() {
+			return this.bullishColor;
+		},
+
+		setBullishColor :function(bullishColor) {
+			this.bullishColor = bullishColor;
+		},
+		
+		/**
+		 * get all stocks
+		 * @returns stocks
+		 */
+		getStocks : function(){
+			return this.stocks;
+		},
+		
+		/**
+		 * get stocks bounded in projection more previous and next points
+		 * @returns stocks in current projection date range
+		 */
+		getBoundedStocks : function(){
+			//console.log('get bounded stock');
+			var boundedStocks = [];
+			for (var i = 0; i < this.stocks.length; i++) {
+				var s = this.stocks[i];
+				var sp = this.stocks[i-1];
+				var sn = this.stocks[i+1];
+				if(s.fixing.getTime()>=this.getProjection().minX && s.fixing.getTime()<=this.getProjection().maxX){
+					if(sp !== undefined && sp.fixing.getTime()<this.getProjection().minX){
+						boundedStocks[boundedStocks.length] = sp;
+					}
+					boundedStocks[boundedStocks.length] = s;
+					if(sn !== undefined && sn.fixing.getTime()>this.getProjection().maxX){
+						boundedStocks[boundedStocks.length] = sn;
+					}
+				}
+				
+			}
+			return boundedStocks;
+		},
+		
+		/**
+		 * get stocks bounded in given min and max date
+		 * @returns stocks in given date range
+		 */
+		getRangeStocks : function(minDate,maxDate){
+			//console.log('get bounded stock');
+			var boundedStocks = [];
+			for (var i = 0; i < this.stocks.length; i++) {
+				var s = this.stocks[i];
+				if(s.fixing.getTime()>=minDate.getTime() && s.fixing.getTime()<=maxDate.getTime()){
+					boundedStocks[boundedStocks.length] = s;
+				}
+				
+			}
+			return boundedStocks;
+		},
+		
+		
+		/**
+		 * get all layers of stock plugin
+		 * @returns layers
+		 */
+		getLayers : function(){
+			return this.stockLayers;
+		},
+		
+		/**
+		 * add the given layer to stock plugin
+		 * @param {Object} layer
+		 */
+		addLayer : function(layer){
+			layer.plugin=this;
+			this.stockLayers[this.stockLayers.length]=layer;
+			this.repaintPlugin();
+		},
+		
+		/**
+		 * remove given layers 
+		 * @param {Object} layer
+		 */
+		removeLayer : function(layer){
+			var layers = [];
+			for (var i = 0; i < this.stockLayers.length; i++) {
+				var l = this.stockLayers[i];
+				if(l.Id !== layer.Id)
+					layers = l;
+			}
+			this.stockLayers = layers;
+			this.repaintPlugin();
+		},
+		
+		/**
+		 * remove all layers
+		 */
+		removeAllLayer : function(){
+			this.stockLayers = [];
+			this.repaintPlugin();
+		},
+		
+		/**
+		 * set stocks
+		 * @param {Array} stock array
+		 */
+		setStocks : function(stocks){
+			this.stocks=stocks;
+			stocks.sort(function(s1, s2) {
+				var f1 = s1.fixing.getTime();
+				var f2 = s2.fixing.getTime();
+				if (f1 > f2)
+					return 1;
+				else
+					return -1;
+			});
+			this.repaintPlugin();
+		},
+		
+		/**
+		 * add given stock
+		 * @param {Object} stock
+		 */
+		addStock : function(stock){
+			this.stocks[this.stocks.length]=stock;
+			this.setStocks(this.stocks);
+		},
+		
+		
+		/**
+		 * paint this stock plugin
+		 * @param {Object} g2d
+		 * @param {Object} part
+		 */
+		paintPlugin : function(g2d, part) {
+			if(part === 'Device'){
+				for (var i = 0; i < this.stockLayers.length; i++) {
+					var l = this.stockLayers[i];
+					l.solveLayer();
+					l.paintLayer(g2d,part);
+				}
+			}
+		},
+		
+		/**
+		 * on projection register, add projection bound listener to repaint this plugin
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'Stock plugin listener for projection bound changed');
+		},
+	});
+})();
+(function(){
+
+	
+	JenScript.Stock = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.Stock, {
+		init : function(config){
+			
+
+			//date and millis
+			this.fixing = config.fixing;
+			this.fixingDurationMillis = config.fixingDurationMillis;
+
+			//scalar values
+			this.open = config.open;
+			this.close = config.close;
+			this.low = config.low;
+			this.high = config.high;
+			this.volume = config.volume;
+		},
+		
+		getFixing :function() {
+			return this.fixing;
+		},
+
+		setFixing :function(fixing) {
+			this.fixing = fixing;
+		},
+
+		getOpen :function() {
+			return this.open;
+		},
+
+		setOpen :function(open) {
+			this.open = open;
+		},
+
+		getClose :function() {
+			return this.close;
+		},
+
+		setClose :function( close) {
+			this.close = close;
+		},
+
+		getLow :function() {
+			return this.low;
+		},
+
+		setLow :function(low) {
+			this.low = low;
+		},
+
+		getHigh :function() {
+			return this.high;
+		},
+
+		setHigh :function( high) {
+			this.high = high;
+		},
+
+		getVolume :function() {
+			return this.volume;
+		},
+
+		setVolume :function( volume) {
+			this.volume = volume;
+		},
+
+		getFixingDurationMillis :function() {
+			return this.fixingDurationMillis;
+		},
+
+		setFixingDurationMillis :function( fixingDurationMillis) {
+			this.fixingDurationMillis = fixingDurationMillis;
+		},
+
+		isBearish :function() {
+			return (this.close < this.open);
+		},
+
+		isBullish :function() {
+			return (this.close > this.open);
+		},
+
+	});
+
+})();
+(function(){
+	JenScript.StockGeometry = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.StockGeometry, {
+		init : function(config){
+			config = config || {};
+			this.name = config.name;
+			this.layer;
+		},
+		
+		setLayer : function(layer){
+			this.layer =layer;
+		},
+		
+		getLayer : function(){
+			return this.layer;
+		},
+		
+		solveGeometry : function(){},
+	});
+	
+	JenScript.StockItemGeometry = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockItemGeometry, JenScript.StockGeometry);
+
+	JenScript.Model.addMethods(JenScript.StockItemGeometry, {
+		_init : function(config){
+			config = config || {};
+			this.stock;
+			
+			//points
+			this.deviceLow;
+			this.deviceHigh;
+			this.deviceOpen;
+			this.deviceClose;
+			this.deviceVolume;
+			this.deviceVolumeBase;
+
+			//scalar float value
+			this.deviceFixing;
+			this.deviceFixingStart;
+			this.deviceFixingEnd;
+			this.deviceFixingDuration;
+			
+			JenScript.StockGeometry.call(this,{ name : "StockItemGeometry"});
+		},
+		
+		setStock : function(stock){
+			this.stock=stock;
+		},
+		
+		getStock : function(){
+			return this.stock;
+		},
+		
+		solveGeometry : function() {
+			var stock = this.stock;
+			// stock session
+			this.deviceLow = this.getProjection().userToPixel(new JenScript.Point2D(stock.getFixing().getTime(), stock.getLow()));
+			this.deviceHigh = this.getProjection().userToPixel(new JenScript.Point2D(stock.getFixing().getTime(), stock.getHigh()));
+			this.deviceOpen = this.getProjection().userToPixel(new JenScript.Point2D(stock.getFixing().getTime(), stock.getOpen()));
+			this.deviceClose = this.getProjection().userToPixel(new JenScript.Point2D(stock.getFixing().getTime(), stock.getClose()));
+			
+			// volume
+			this.deviceVolume = this.getProjection().userToPixel(new JenScript.Point2D(stock.getFixing().getTime(), stock.getVolume()));
+			this.deviceVolumeBase = this.getProjection().userToPixel(new JenScript.Point2D(stock.getFixing().getTime(), 0));
+
+			// fixing
+			this.deviceFixingStart = this.getProjection().userToPixelX(stock.getFixing().getTime() - stock.getFixingDurationMillis() / 2);
+			this.deviceFixingEnd = this.getProjection().userToPixelX(stock.getFixing().getTime() + stock.getFixingDurationMillis() / 2);
+
+			this.deviceFixingDuration = Math.abs(this.deviceFixingEnd - this.deviceFixingStart);
+			this.deviceFixing = this.getProjection().userToPixelX(stock.getFixing().getTime());
+			
+			this.solveItemGeometry();
+		},
+		
+		solveItemGeometry : function(){},
+		
+		getProjection : function(){
+			return this.getLayer().plugin.getProjection();
+		},
+	});
+	
+	
+	
+	
+	JenScript.StockGroupGeometry = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockGroupGeometry, JenScript.StockGeometry);
+
+	JenScript.Model.addMethods(JenScript.StockGroupGeometry, {
+		_init : function(config){
+			config = config || {};
+			/** stock primitive geometries */
+			this.stockItemGeometries = [];
+			JenScript.StockGeometry.call(this,{ name : "StockGroupGeometry"});
+		},
+
+		setStockItemGeometries : function(stockItemGeometries) {
+			this.stockItemGeometries = stockItemGeometries;
+		},
+
+		addStockItemGeometries : function(stockItemGeometry) {
+			this.stockItemGeometries[this.stockItemGeometries.length] = stockItemGeometry;
+		},
+
+		getStockItemGeometries : function() {
+			return this.stockItemGeometries;
+		},
+		
+		//reset solve function
+		solveGeometry : function() {
+		}
+
+	});
+})();
+(function(){
+	JenScript.StockLayer = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.StockLayer, {
+		init : function(config){
+			config = config || {};
+			this.Id = 'layer'+JenScript.sequenceId++;
+			this.name = config.name;
+			this.plugin;
+			this.geometries = [];
+		},
+		
+		clearGeometries : function(){
+			this.geometries = [];
+		},
+		
+		getGeometries : function(){
+			return this.geometries;
+		},
+		
+		addGeometry : function(geometry){
+			this.geometries[this.geometries.length] = geometry;
+		},
+		
+		getHost : function(){
+			return this.plugin;
+		},
+		
+		/**
+		 * solve layer geometry.
+		 * <p>
+		 * process projection of stock values from user system coordinates to device
+		 * pixel system coordinates and create geometry collection.
+		 * </p>
+		 */
+		solveLayer : function(){},
+
+		/**
+		 * paint stock layer
+		 * 
+		 * @param g2d
+		 *            graphics context
+		 * @param windowPart
+		 *            part to paint
+		 */
+		paintLayer : function(g2d,art){},
+		
+	});
+})();
+(function(){
+	JenScript.CandleStickGeometry = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.CandleStickGeometry, JenScript.StockItemGeometry);
+
+	JenScript.Model.addMethods(JenScript.CandleStickGeometry, {
+		__init : function(config){
+			config = config || {};
+			this.lowHighColor = 'darkgray';
+
+			/**line low/high shape*/
+			this.deviceLowHighGap;
+			
+			/**rectangle open/close shape*/
+			this.deviceOpenCloseGap;
+		},
+		
+		solveItemGeometry : function(){
+			//console.log('CandleStickGeometry.solveItemGeometry');
+			var deviceLow = this.deviceLow;
+			var deviceHigh = this.deviceHigh;
+			var deviceOpen = this.deviceOpen;
+			var deviceClose = this.deviceClose;
+			var deviceFixingStart = this.deviceFixingStart;
+			var deviceFixingDuration = this.deviceFixingDuration;
+			
+			this.deviceLowHighGap = new JenScript.SVGLine().from(deviceLow.x,deviceLow.y).to(deviceHigh.x,deviceHigh.y);
+			if (this.getStock().getOpen() > this.getStock().getClose()) {
+				this.deviceOpenCloseGap = new JenScript.SVGRect().origin(deviceFixingStart, deviceOpen.y).size(deviceFixingDuration, Math.abs(deviceOpen.y - deviceClose.y));
+			} else {
+				this.deviceOpenCloseGap = new JenScript.SVGRect().origin(deviceFixingStart, deviceClose.y).size(deviceFixingDuration, Math.abs(deviceOpen.y - deviceClose.y));
+			}
+		},
+	});
+	
+	JenScript.CandleStickLayer = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.CandleStickLayer, JenScript.StockLayer);
+	JenScript.Model.addMethods(JenScript.CandleStickLayer, {
+		_init : function(config){
+			config = config || {};
+			this.lowHighColor = (config.lowHighColor !== undefined)?config.lowHighColor:'black';
+			JenScript.StockLayer.call(this,{ name : "CandleStickLayer"});
+		},
+		
+		setLowHighColor : function(color){
+			this.color=color;
+		},
+		
+		getLowHighColor : function(){
+			return this.color;
+		},
+		
+		
+		solveLayer : function() {
+			this.geometries = [];
+			for (var i = 0; i < this.plugin.getBoundedStocks().length; i++) {
+				var stock = this.plugin.getBoundedStocks()[i];
+				var geom = new JenScript.CandleStickGeometry();
+				geom.setLayer(this);
+				geom.setStock(stock);
+				geom.solveGeometry();
+				this.addGeometry(geom);
+			}
+		},
+
+		paintLayer : function(g2d,part) {
+			if (part === 'Device') {
+				var svgLayer = new JenScript.SVGGroup().Id(this.Id).name('CandleStickLayer');
+				for (var i = 0; i < this.getGeometries().length; i++) {
+					var geom = this.getGeometries()[i];
+					var svgCandleStick = geom.deviceLowHighGap.stroke(this.lowHighColor).fillNone();
+					svgLayer.child(svgCandleStick.toSVG());
+
+					var fillColor = (geom.getStock().isBearish())? this.plugin.getBearishColor():this.plugin.getBullishColor();
+					var svgCandleStickFill = geom.deviceOpenCloseGap.strokeNone().fill(fillColor);
+					svgLayer.child(svgCandleStickFill.toSVG());
+				}
+				g2d.deleteGraphicsElement(this.Id);
+				g2d.insertSVG(svgLayer.toSVG());
+			}
+		},
+	});
+})();
+(function(){
+
+	
+	JenScript.OhlcGeometry = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.OhlcGeometry, JenScript.StockItemGeometry);
+
+	JenScript.Model.addMethods(JenScript.OhlcGeometry, {
+		__init : function(config){
+			config = config || {};
+			this.deviceLowHighGap;
+			this.deviceOpenTick;
+			this.deviceCloseTick;
+		},
+		
+		solveItemGeometry : function(){
+			var deviceLow = this.deviceLow;
+			var deviceHigh = this.deviceHigh;
+			var deviceOpen = this.deviceOpen;
+			var deviceClose = this.deviceClose;
+			var deviceFixingStart = this.deviceFixingStart;
+			var deviceFixingDuration = this.deviceFixingDuration;
+			
+			this.deviceLowHighGap = new JenScript.SVGLine().from(deviceLow.x,deviceLow.y).to(deviceHigh.x,deviceHigh.y);
+			if (this.getStock().getOpen() > this.getStock().getClose()) {
+				this.deviceLowOpenCloseGap = new JenScript.SVGRect().origin(deviceFixingStart, deviceOpen.y).size(deviceFixingDuration, Math.abs(deviceOpen.y - deviceClose.y));
+			} else {
+				this.deviceLowOpenCloseGap = new JenScript.SVGRect().origin(deviceFixingStart, deviceClose.y).size(deviceFixingDuration, Math.abs(deviceOpen.y - deviceClose.y));
+			}
+			
+			this.deviceLowHighGap = new JenScript.SVGLine().from(deviceLow.x,deviceLow.y).to(deviceHigh.x,deviceHigh.y);
+			this.deviceOpenTick = new JenScript.SVGLine().from(deviceOpen.x-deviceFixingDuration/2,deviceOpen.y).to(deviceOpen.x,deviceOpen.y);
+			this.deviceCloseTick = new  JenScript.SVGLine().from(deviceClose.x,deviceClose.y).to(deviceClose.x+deviceFixingDuration/2,deviceClose.y);
+		},
+	});
+	
+	
+	JenScript.OhlcLayer = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.OhlcLayer, JenScript.StockLayer);
+	JenScript.Model.addMethods(JenScript.OhlcLayer, {
+		_init : function(config){
+			config = config || {};
+			this.markerColor=(config.markerColor !== undefined)? config.markerColor : 'black';
+			this.markerWidth=(config.markerWidth !== undefined)? config.markerWidth : 1.5;
+			JenScript.StockLayer.call(this,{ name : "OhlcLayer"});
+		},
+		
+		setMarkerColor : function(mc) {
+			this.markerColor = mc;
+		},
+		
+		setMarkerWidth : function(mw) {
+			this.markerWidth = mw;
+		},
+		
+		solveLayer : function() {
+			this.geometries = [];
+			for (var i = 0; i < this.plugin.getBoundedStocks().length; i++) {
+				var stock = this.plugin.getBoundedStocks()[i];
+				var geom = new JenScript.OhlcGeometry();
+				geom.setLayer(this);
+				geom.setStock(stock);
+				geom.solveGeometry();
+				this.addGeometry(geom);
+			}
+		},
+
+		paintLayer : function(g2d,part) {
+			if (part === 'Device') {
+				var svgLayer = new JenScript.SVGGroup().Id(this.Id);
+				for (var i = 0; i < this.getGeometries().length; i++) {
+					var geom = this.getGeometries()[i];
+					svgLayer.child(geom.deviceLowHighGap.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
+					svgLayer.child(geom.deviceOpenTick.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
+					svgLayer.child(geom.deviceCloseTick.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
+				}
+				g2d.deleteGraphicsElement(this.Id);
+				g2d.insertSVG(svgLayer.toSVG());
+			}
+		},
+	});
+	
+	
+})();
+(function(){
+
+	JenScript.VolumeBarGeometry = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.VolumeBarGeometry, JenScript.StockItemGeometry);
+
+	JenScript.Model.addMethods(JenScript.VolumeBarGeometry, {
+		__init : function(config){
+			config = config || {};
+			this.lowHighColor = 'darkgray';
+			this.deviceVolumeGap;
+		},
+		
+		solveItemGeometry : function(){
+			var deviceFixingStart = this.deviceFixingStart;
+			var deviceFixingDuration = this.deviceFixingDuration;
+			var deviceVolume = this.deviceVolume;
+			var deviceVolumeBase = this.deviceVolumeBase;
+			
+			this.deviceVolumeGap = new JenScript.SVGRect().origin(deviceFixingStart, deviceVolume.y).size(deviceFixingDuration, Math.abs(deviceVolume.y - deviceVolumeBase.y));
+		},
+	});
+	
+	JenScript.VolumeBarLayer = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.VolumeBarLayer, JenScript.StockLayer);
+	JenScript.Model.addMethods(JenScript.VolumeBarLayer, {
+		_init : function(config){
+			config = config || {};
+			this.volumeColor = (config.volumeColor !== undefined)?config.volumeColor:'cyan';
+			JenScript.StockLayer.call(this,{ name : "VolumeBarLayer"});
+		},
+		
+		solveLayer : function() {
+			this.geometries = [];
+			for (var i = 0; i < this.plugin.getBoundedStocks().length; i++) {
+				var stock = this.plugin.getBoundedStocks()[i];
+				var geom = new JenScript.VolumeBarGeometry();
+				geom.setLayer(this);
+				geom.setStock(stock);
+				geom.solveGeometry();
+				this.addGeometry(geom);
+			}
+		},
+
+		paintLayer : function(g2d,part) {
+			if (part === 'Device') {
+				var svgLayer = new JenScript.SVGGroup().Id(this.Id);
+				for (var i = 0; i < this.getGeometries().length; i++) {
+					var geom = this.getGeometries()[i];
+					svgLayer.child(geom.deviceVolumeGap.fill(this.volumeColor).strokeNone().toSVG());
+				}
+				g2d.deleteGraphicsElement(this.Id);
+				g2d.insertSVG(svgLayer.toSVG());
+			}
+		},
+	});
+})();
+(function(){
+	
+	//encapsulate path
+	JenScript.CurveStockGeometry = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.CurveStockGeometry, JenScript.StockGroupGeometry);
+
+	JenScript.Model.addMethods(JenScript.CurveStockGeometry, {
+		__init : function(config){
+			config = config || {};
+			this.moveCount = (config.moveCount !== undefined)? config.moveCount : 20;
+			JenScript.StockGroupGeometry.call(this,config);
+			this.points=[];
+		},
+		
+		setMoveCount : function(mc){
+			this.moveCount = mc;
+		},
+		getMoveCount : function(){
+			return this.moveCount;
+		},
+		
+		getCurvePoints : function() {
+			return this.points;
+		},
+		
+		//reset solve an re throw error to force solve geometry curve (stock group) 
+		solveGeometry : function() {
+			throw new Error('CurveStockGeometry solve should be supplied');
+		}
+	});
+	
+	
+	JenScript.StockCurveLayer = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockCurveLayer, JenScript.StockLayer);
+	JenScript.Model.addMethods(JenScript.StockCurveLayer, {
+		_init : function(config){
+			config = config || {};
+			this.curveColor = (config.curveColor !== undefined)? config.curveColor : 'black';
+			this.curveWidth = (config.curveWidth !== undefined)? config.curveWidth : 1;
+			this.moveCount = (config.moveCount !== undefined)? config.moveCount : 20;
+			this.Id = 'fixing'+JenScript.sequenceId++;
+			config.name = (config.name !== undefined)?config.name: "StockCurveLayer";
+			JenScript.StockLayer.call(this,config);
+		},
+		
+		setMoveCount : function(mc){
+			this.moveCount = mc;
+		},
+		getMoveCount : function(){
+			return this.moveCount;
+		},
+		
+		getGeomInstance : function() {
+			throw new Error("Geometry should be supplied");
+		},
+		
+		solveLayer : function() {
+			this.clearGeometries();
+			var geom = this.getGeomInstance();
+			geom.setLayer(this);
+			geom.solveGeometry();
+			this.addGeometry(geom);
+		},
+
+		paintLayer : function(g2d,part) {
+			if (part === 'Device') {
+				for (var i = 0; i < this.getGeometries().length; i++) {
+					var geom = this.getGeometries()[i];
+					var proj = this.plugin.getProjection();
+					var points = geom.getCurvePoints();
+					var svgLayer = new JenScript.SVGGroup().Id(this.Id).name(this.name);
+					var stockCurve = new JenScript.SVGPath().Id(this.Id+'_path');
+					for (var p = 0; p < points.length; p++) {
+						var point = points[p];
+						if(p == 0)
+							stockCurve.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+						else
+							stockCurve.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+					}
+					g2d.deleteGraphicsElement(this.Id);
+					//g2d.insertSVG();
+					svgLayer.child(stockCurve.stroke(this.curveColor).strokeWidth(this.curveWidth).fillNone().toSVG());
+					g2d.insertSVG(svgLayer.toSVG());
+				}
+			}
+		},
+	});
+	
+})();
+(function(){
+	
+	JenScript.StockFixingGeometry = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockFixingGeometry, JenScript.CurveStockGeometry);
+
+	JenScript.Model.addMethods(JenScript.StockFixingGeometry, {
+		___init : function(config){
+			config = config || {};
+			JenScript.CurveStockGeometry.call(this,config);
+		},
+		
+		solveGeometry : function(){
+			var pts = [];
+			var stocks = this.getLayer().getHost().getStocks();
+			var proj = this.getLayer().getHost().getProjection();
+			var minMillis = proj.minX;
+			var maxMillis = proj.maxX;
+			for (var s = 0; s < stocks.length; s++) {
+				var stock = stocks[s];
+				var fm = stock.getFixing().getTime();
+				if(fm>minMillis && fm<maxMillis)
+				pts[pts.length] = {
+						x : stock.getFixing().getTime(),
+						y : stock.getClose()
+				};
+			}
+			this.points = pts;
+		},
+		
+	});
+	
+	/**
+	 * Stock fixing layer extends stock curve layer
+	 */
+	JenScript.StockFixingLayer = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockFixingLayer, JenScript.StockCurveLayer);
+	JenScript.Model.addMethods(JenScript.StockFixingLayer, {
+		__init : function(config){
+			config = config || {};
+			config.name = "StockFixingLayer";
+			JenScript.StockCurveLayer.call(this,config);
+		},
+		
+		/**
+		 * return the stock fixing geometry
+		 */
+		getGeomInstance : function() {
+			return new JenScript.StockFixingGeometry();
+		},
+	});
+	
+	
+})();
+(function(){
+	JenScript.StockMovingAverageGeometry = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockMovingAverageGeometry, JenScript.CurveStockGeometry);
+
+	JenScript.Model.addMethods(JenScript.StockMovingAverageGeometry, {
+		___init : function(config){
+			config = config || {};
+			JenScript.CurveStockGeometry.call(this,config);
+		},
+		
+		
+		solveGeometry : function(){
+
+			var proj = this.getLayer().getHost().getProjection();
+			var minMillis = proj.minX;
+			var maxMillis = proj.maxX;
+			
+			//TODO, better impl is to take only bound point and get index-moveCount and stop on need when condition(for example, not stock record available)
+			var points = [];
+			var stocks = this.getLayer().getHost().getStocks();
+			if(stocks){
+				stocks.sort(function(s1,s2){
+					if(s1.getFixing().getTime()>s2.getFixing().getTime())
+						return 1;
+					return -1;
+				});
+			}
+			
+			for (var i = this.moveCount; i < stocks.length; i++) {
+				var root = stocks[i];
+				var sum = 0;
+				for (var j = 0; j < this.moveCount; j++) {
+					var s = stocks[i - j];
+					sum = sum +s.getClose();
+				}
+				var movingAverage = sum / this.moveCount;
+				
+				var rootMillis = root.getFixing().getTime();
+				//keep only bound point for drawing
+				if(rootMillis>=minMillis && rootMillis<=maxMillis)
+					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), movingAverage);
+				
+			}
+			
+			this.points = points;
+		},
+		
+	});
+	
+	
+	/**
+	 * Stock moving average layer extends stock curve layer
+	 */
+	JenScript.StockMovingAverageLayer = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockMovingAverageLayer, JenScript.StockCurveLayer);
+	JenScript.Model.addMethods(JenScript.StockMovingAverageLayer, {
+		__init : function(config){
+			config = config || {};
+			config.name = "StockMovingAverageLayer";
+			JenScript.StockCurveLayer.call(this,config);
+		},
+		
+		/**
+		 * return the stock fixing geometry
+		 */
+		getGeomInstance : function() {
+			var conf = {moveCount : this.moveCount};
+			return new JenScript.StockMovingAverageGeometry(conf);
+		},
+	});
+	
+	
+})();
+(function(){
+	JenScript.StockWeightedMovingAverageGeometry = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockWeightedMovingAverageGeometry, JenScript.CurveStockGeometry);
+
+	JenScript.Model.addMethods(JenScript.StockWeightedMovingAverageGeometry, {
+		___init : function(config){
+			config = config || {};
+			JenScript.CurveStockGeometry.call(this,config);
+		},
+		
+		solveGeometry : function(){
+
+			var proj = this.getLayer().getHost().getProjection();
+			var minMillis = proj.minX;
+			var maxMillis = proj.maxX;
+			
+			var points = [];
+			var stocks = this.getLayer().getHost().getStocks();
+			if(stocks){
+				stocks.sort(function(s1,s2){
+					if(s1.getFixing().getTime()>s2.getFixing().getTime())
+						return 1;
+					return -1;
+				});
+			}
+			
+			for (var i = this.moveCount; i < stocks.length; i++) {
+				var root = stocks[i];
+				var sum = 0;
+				var divider = 0;
+				for (var j = 0; j < this.moveCount; j++) {
+					var s = stocks[i - j];
+					sum = sum + (this.moveCount-j)*s.getClose();
+					divider = divider + (this.moveCount-j);
+				}
+				var movingAverage = sum / divider;
+				
+				var rootMillis = root.getFixing().getTime();
+				//keep only bound point for drawing
+				if(rootMillis>=minMillis && rootMillis<=maxMillis)
+					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), movingAverage);
+			}
+			
+			this.points = points;
+		},
+		
+	});
+	
+	
+	/**
+	 * Stock weighted moving average layer extends stock curve layer
+	 */
+	JenScript.StockWeightedMovingAverageLayer = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockWeightedMovingAverageLayer, JenScript.StockCurveLayer);
+	JenScript.Model.addMethods(JenScript.StockWeightedMovingAverageLayer, {
+		__init : function(config){
+			config = config || {};
+			config.name = "StockWeightedMovingAverageLayer";
+			JenScript.StockCurveLayer.call(this,config);
+		},
+		
+		/**
+		 * return the stock fixing geometry
+		 */
+		getGeomInstance : function() {
+			var conf = {moveCount : this.moveCount};
+			return new JenScript.StockWeightedMovingAverageGeometry(conf);
+		},
+	});
+	
+	
+})();
+(function(){
+	JenScript.StockExponentialMovingAverageGeometry = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockExponentialMovingAverageGeometry, JenScript.CurveStockGeometry);
+
+	JenScript.Model.addMethods(JenScript.StockExponentialMovingAverageGeometry, {
+		___init : function(config){
+			config = config || {};
+			JenScript.CurveStockGeometry.call(this,config);
+		},
+		
+		solveGeometry : function(){	
+			
+			var proj = this.getLayer().getHost().getProjection();
+			var minMillis = proj.minX;
+			var maxMillis = proj.maxX;
+			
+			
+			//TODO, better impl is to take only bound point and get index-moveCount and stop on need when condition(for example, not stock record available)
+			var points = [];
+			var stocks = this.getLayer().getHost().getStocks();
+			
+			if(stocks){
+				stocks.sort(function(s1,s2){
+					if(s1.getFixing().getTime()>s2.getFixing().getTime())
+						return 1;
+					return -1;
+				});
+			}
+			var alpha = 2/(this.moveCount+1);
+			for (var i = this.moveCount; i < stocks.length; i++) {
+				var root = stocks[i];
+				var sum = root.getClose();
+				var divider = 1;
+				for (var j = 1; j < this.moveCount; j++) {
+					var s = stocks[i - j];
+					//sum = sum + (this.moveCount-j)*s.getClose();
+					//divider = divider + (this.moveCount-j);
+					sum = sum + Math.pow((1-alpha),j)*s.getClose();
+					divider = divider + Math.pow((1-alpha),j);
+				}
+				var movingAverage = sum / divider;
+				
+				var rootMillis = root.getFixing().getTime();
+				
+				//keep only bound point for drawing
+				if(rootMillis>=minMillis && rootMillis<=maxMillis)
+					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), movingAverage);
+			}
+			
+			this.points = points;
+		},
+		
+	});
+	
+	
+	/**
+	 * Stock exponential moving average layer extends stock curve layer
+	 */
+	JenScript.StockExponentialMovingAverageLayer = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockExponentialMovingAverageLayer, JenScript.StockCurveLayer);
+	JenScript.Model.addMethods(JenScript.StockExponentialMovingAverageLayer, {
+		__init : function(config){
+			config = config || {};
+			config.name = "StockExponentialMovingAverageLayer";
+			JenScript.StockCurveLayer.call(this,config);
+		},
+		
+		/**
+		 * return the stock fixing geometry
+		 */
+		getGeomInstance : function() {
+			var conf = {moveCount : this.moveCount};
+			return new JenScript.StockExponentialMovingAverageGeometry(conf);
+		},
+	});
+	
+	
+})();
+(function(){
+	//encapsulate path
+	JenScript.BollingerStockGeometry = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.BollingerStockGeometry, JenScript.StockGroupGeometry);
+
+	JenScript.Model.addMethods(JenScript.BollingerStockGeometry, {
+		__init : function(config){
+			config = config || {};
+			JenScript.StockGroupGeometry.call(this,config);
+			this.moveCount = (config.moveCount !== undefined)?config.moveCount : 20;
+			this.upperPoint=[];
+			this.bottomPoint=[];
+		},
+		
+		setMoveCount : function(mc){
+			this.moveCount = mc;
+		},
+		getMoveCount : function(){
+			return this.moveCount;
+		},
+		
+		getCurveUp : function() {
+			return this.upperPoint;
+		},
+		
+		getCurveAverage : function() {
+			return this.stockMAs;
+		},
+		
+		getCurveBottom : function() {
+			return this.bottomPoint;
+		},
+		
+		//reset solve an re throw error to force solve geometry curve (stock group) 
+		solveGeometry : function() {
+			
+			var proj = this.getLayer().getHost().getProjection();
+			var minMillis = proj.minX;
+			var maxMillis = proj.maxX;
+			
+			var upperPoint = [];
+			var bottomPoint = [];
+			var stockMAs = [];
+			
+			var stocks = this.getLayer().getHost().getStocks();
+			if(stocks){
+				stocks.sort(function(s1,s2){
+					if(s1.getFixing().getTime()>s2.getFixing().getTime())
+						return 1;
+					return -1;
+				});
+			}
+
+			for (var i = this.moveCount; i < stocks.length; i++) {
+				var root = stocks[i];
+				var rootMillis = root.getFixing().getTime();
+				
+				var sum = 0;
+				for (var j = 0; j < this.moveCount; j++) {
+					var s = stocks[i-j];
+					sum = sum + s.getClose();
+				}
+				var movingAverage = sum / this.moveCount;
+				
+				
+				//keep only bound point for drawing
+				if(rootMillis>=minMillis && rootMillis<=maxMillis)
+					stockMAs[stockMAs.length] = new JenScript.Point2D(root.getFixing().getTime(), movingAverage);
+				
+				
+
+				var squarred = 0;
+				for (var j = 0; j < this.moveCount; j++) {
+					var s = stocks[i-j];
+					squarred = squarred + Math.pow((s.getClose() - movingAverage), 2);
+				}
+				var deviation = Math.sqrt(squarred / this.moveCount);
+				
+				if(rootMillis>=minMillis && rootMillis<=maxMillis){
+					upperPoint[upperPoint.length]   = new JenScript.Point2D(root.getFixing().getTime(), movingAverage + 2 * deviation);
+					bottomPoint[bottomPoint.length] = new JenScript.Point2D(root.getFixing().getTime(), movingAverage - 2 * deviation);
+				}
+				
+			}
+			
+			this.upperPoint  = upperPoint;
+			this.bottomPoint = bottomPoint;
+			this.stockMAs 	 = stockMAs;
+		}
+	});
+	
+	
+	JenScript.StockBollingerLayer = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockBollingerLayer, JenScript.StockLayer);
+	JenScript.Model.addMethods(JenScript.StockBollingerLayer, {
+		_init : function(config){
+			config = config || {};
+			
+			this.lineColor = (config.lineColor !== undefined)? config.lineColor : 'black';
+			this.lineOpacity = (config.lineOpacity !== undefined)? config.lineOpacity : 1;
+			this.lineWidth = (config.lineWidth !== undefined)? config.lineWidth : 1;
+			
+			this.bandColor = (config.bandColor !== undefined)? config.bandColor : 'orange';
+			this.bandOpacity = (config.bandOpacity !== undefined)? config.bandOpacity : 0.4;
+			
+			this.Id = 'StockBollinger'+JenScript.sequenceId++;
+			this.bandId = this.Id+'_band';
+			this.upId = this.Id+'_up';
+			this.bottomId =  this.Id+'_bottom';
+			JenScript.StockLayer.call(this,{ name : "StockBollingerLayer"});
+		},
+		
+		solveLayer : function() {
+			this.clearGeometries();
+			var geom = new JenScript.BollingerStockGeometry();
+			geom.setLayer(this);
+//			for (var i = 0; i < this.plugin.getBoundedStocks().length; i++) {
+//				var stock = this.plugin.getBoundedStocks()[i];
+//				var itemGeom = new JenScript.StockItemGeometry();
+//				itemGeom.setStock(stock);
+//				itemGeom.setLayer(this);
+//				geom.addStockItemGeometries(itemGeom);
+//			}
+			geom.solveGeometry();
+			this.addGeometry(geom);
+		},
+		
+		paintCurve : function(layer,g2d,part,points,id) {
+			var proj = this.plugin.getProjection();
+			var stockCurve = new JenScript.SVGPath().Id(id);
+			for (var p = 0; p < points.length; p++) {
+				var point = points[p];
+				if(p == 0)
+					stockCurve.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+				else
+					stockCurve.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+			}
+			//g2d.deleteGraphicsElement(id);
+			//g2d.insertSVG(stockCurve.stroke(this.lineColor).strokeWidth(this.lineWidth).strokeOpacity(this.lineOpacity).fillNone().toSVG());
+			var c = stockCurve.stroke(this.lineColor).strokeWidth(this.lineWidth).strokeOpacity(this.lineOpacity).fillNone().toSVG();
+			layer.child(c);
+		},
+		
+		paintBand : function(layer,g2d,part,up,bo) {
+			var proj = this.plugin.getProjection();
+			var stockBand = new JenScript.SVGPath().Id(this.bandId);
+			for (var p = 0; p < up.length; p++) {
+				var point = up[p];
+				if(p == 0)
+					stockBand.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+				else
+					stockBand.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+			}
+			for (var p = bo.length-1; p >= 0; p--) {
+				var point = bo[p];
+				stockBand.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+			}
+			if(up.length > 0 && bo.length >0)
+				stockBand.close();
+			
+			//g2d.deleteGraphicsElement(this.bandId);
+			//g2d.insertSVG(stockBand.strokeNone().fill(this.bandColor).fillOpacity(this.bandOpacity).toSVG());
+			var c = stockBand.strokeNone().fill(this.bandColor).fillOpacity(this.bandOpacity).toSVG();
+			layer.child(c);
+		},
+
+		paintLayer : function(g2d,part) {
+			if (part === 'Device') {
+				for (var i = 0; i < this.getGeometries().length; i++) {
+					var svgLayer = new JenScript.SVGGroup().Id(this.Id).name('StockBollingerLayer');
+					
+					var geom = this.getGeometries()[i];
+					this.paintBand(svgLayer,g2d,part,geom.getCurveUp(),geom.getCurveBottom());
+					this.paintCurve(svgLayer,g2d,part,geom.getCurveBottom(),this.bottomId);
+					this.paintCurve(svgLayer,g2d,part,geom.getCurveUp(),this.upId);
+					g2d.deleteGraphicsElement(this.Id);
+					g2d.insertSVG(svgLayer.toSVG());
+				}
+			}
+		},
+	});
+})();
+(function(){
+	JenScript.StockMACDGeometry = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockMACDGeometry, JenScript.StockGeometry);
+
+	JenScript.Model.addMethods(JenScript.StockMACDGeometry, {
+		_init : function(config){
+			config = config || {};
+			this.moveCountMin=(config.moveCountMin !== undefined)? config.moveCountMin : 12;
+			this.moveCountMax=(config.moveCountMax !== undefined)? config.moveCountMax : 26;
+			this.moveCountSignal=(config.moveCountSignal !== undefined)? config.moveCountSignal : 9;
+			JenScript.StockGeometry.call(this,config);
+			this.fixingMap = [];
+		},
+		
+		
+		getFixing : function(stock){
+			for (var i = 0; i < this.fixingMap.length; i++) {
+				var f = this.fixingMap[i];
+				if(stock.getFixing().getTime() === f.stock.getFixing().getTime())
+					return f;
+			}
+			var nf = {stock : stock};
+			this.fixingMap[this.fixingMap.length] = nf;
+			return nf;
+		},
+		
+		_solveGeometry : function(tag,moveCount,stocks){	
+			
+			var alpha = 2/(moveCount+1);
+			for (var i = moveCount; i < stocks.length; i++) {
+				var root = stocks[i];
+				var sum = root.getClose();
+				var divider = 1;
+				for (var j = 1; j < moveCount; j++) {
+					var s = stocks[i - j];
+					sum = sum + Math.pow((1-alpha),j)*s.getClose();
+					divider = divider + Math.pow((1-alpha),j);
+				}
+				var movingAverage = sum / divider;
+				
+				if(tag === 'min')
+					this.getFixing(root).min = movingAverage;
+				if(tag === 'max')
+					this.getFixing(root).max = movingAverage;
+			}
+			
+		},
+		
+		_solveSignal : function(moveCount,stocks){
+			
+			var alpha = 2/(moveCount+1);
+			for (var i = moveCount; i < stocks.length; i++) {
+				var root = stocks[i];
+				var fmacd = this.getFixing(root);
+				var sum = fmacd.macd;
+				var divider = 1;
+				for (var j = 1; j < moveCount; j++) {
+					var s = stocks[i - j];
+					var fmacd2 = this.getFixing(s);
+					sum = sum + Math.pow((1-alpha),j)*fmacd2.macd;
+					divider = divider + Math.pow((1-alpha),j);
+				}
+				var movingAverage = sum / divider;
+				fmacd.signal = movingAverage;
+			}
+			
+		},
+		
+		solveGeometry : function(){
+			var stocks = this.getLayer().getHost().getStocks();
+			
+//			if(stocks){
+//				stocks.sort(function(s1,s2){
+//					if(s1.getFixing().getTime()>s2.getFixing().getTime())
+//						return 1;
+//					return -1;
+//				});
+//			}
+			//solve mme min and mme max
+			this._solveGeometry('min',this.moveCountMin,stocks);
+			this._solveGeometry('max',this.moveCountMax,stocks);
+			
+			var proj = this.getLayer().getHost().getProjection();
+			var minMillis = proj.minX;
+			var maxMillis = proj.maxX;
+
+//			var points= [];
+//			for (var i = 0; i < this.fixingMap.length; i++) {
+//				var f = this.fixingMap[i];
+//				var root = f.stock;
+//				var macd = f.min - f.max;
+//				f.macd = macd;
+//				var rootMillis = root.getFixing().getTime();
+//				//keep only bound point for drawing
+//				if(rootMillis>=minMillis && rootMillis<=maxMillis)
+//					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), macd);
+//			}
+			
+			//solve macd
+			for (var i = 0; i < stocks.length; i++) {
+				var root = stocks[i];
+				var fm = this.getFixing(root); 
+				if(fm.min !== undefined && fm.max !== undefined){
+					var macd = fm.min - fm.max;
+					fm.macd = macd;
+				}
+			}
+			
+			//solve signal
+			this._solveSignal(this.moveCountSignal,stocks);
+			
+		},
+		
+		
+		getMACD : function(){
+			var points = [];
+			var proj = this.getLayer().getHost().getProjection();
+			var minMillis = proj.minX;
+			var maxMillis = proj.maxX;
+			var stocks = this.getLayer().getHost().getStocks();
+			for (var i = 0; i < stocks.length; i++) {
+				var root = stocks[i];
+				var rootMillis = root.getFixing().getTime();
+				var fm = this.getFixing(root); 
+				if(rootMillis>=minMillis && rootMillis<=maxMillis)
+					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), fm.macd);
+			}
+			return points;
+		},
+		
+		getSignal : function(){
+			var points = [];
+			var proj = this.getLayer().getHost().getProjection();
+			var minMillis = proj.minX;
+			var maxMillis = proj.maxX;
+			var stocks = this.getLayer().getHost().getStocks();
+			for (var i = 0; i < stocks.length; i++) {
+				var root = stocks[i];
+				var rootMillis = root.getFixing().getTime();
+				var fm = this.getFixing(root); 
+				if(rootMillis>=minMillis && rootMillis<=maxMillis)
+					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), fm.signal);
+			}
+			return points;
+		},
+		
+		
+	});
+	
+	
+	/**
+	 * Stock MACD Layer
+	 */
+	JenScript.StockMACDLayer = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.StockMACDLayer, JenScript.StockLayer);
+	JenScript.Model.addMethods(JenScript.StockMACDLayer, {
+		_init : function(config){
+			config = config || {};
+			this.macdId='macdlayer'+JenScript.sequenceId++;
+			this.signalId='signallayer'+JenScript.sequenceId++;
+			
+			this.lineColor = (config.lineColor !== undefined)? config.lineColor : 'black';
+			this.lineOpacity = (config.lineOpacity !== undefined)? config.lineOpacity : 1;
+			this.lineWidth = (config.lineWidth !== undefined)? config.lineWidth : 1;
+			
+			this.signalColor = (config.signalColor !== undefined)? config.signalColor : 'red';
+			this.signalOpacity = (config.signalOpacity !== undefined)? config.signalOpacity : 1;
+			this.signalWidth = (config.signalWidth !== undefined)? config.signalWidth : 1;
+			
+			this.macdColor = (config.macdColor !== undefined)? config.macdColor : 'blue';
+			this.macdOpacity = (config.macdOpacity !== undefined)? config.macdOpacity : 1;
+			this.macdWidth = (config.macdWidth !== undefined)? config.macdWidth : 1;
+			
+			this.moveCountSignal=(config.moveCountSignal !== undefined)? config.moveCountSignal : 9;
+			this.moveCountMin=(config.moveCountMin !== undefined)? config.moveCountMin : 12;
+			this.moveCountMax=(config.moveCountMax !== undefined)? config.moveCountMax : 26;
+			config.name = "StockMACDLayer";
+			JenScript.StockLayer.call(this,config);
+		},
+		
+		solveLayer : function() {
+			this.clearGeometries();
+			var conf = {
+					moveCountSignal : this.moveCountSignal,
+					moveCountMin : this.moveCountMin,
+					moveCountMax : this.moveCountMax
+			};
+			var geom = new JenScript.StockMACDGeometry(conf);
+			geom.setLayer(this);
+			geom.solveGeometry();
+			this.addGeometry(geom);
+		},
+		
+		paintCurve : function(svgLayer,g2d,part,points,id,color,width,opacity) {
+			var proj = this.plugin.getProjection();
+			var curve = new JenScript.SVGPath().Id(id);
+			for (var p = 0; p < points.length; p++) {
+				var point = points[p];
+				if(p == 0)
+					curve.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+				else
+					curve.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+			}
+			//g2d.deleteGraphicsElement(id);
+			//g2d.insertSVG(curve.stroke(color).strokeWidth(width).strokeOpacity(opacity).fillNone().toSVG());
+			svgLayer.child(curve.stroke(color).strokeWidth(width).strokeOpacity(opacity).fillNone().toSVG());
+		},
+		
+		paintLayer : function(g2d,part) {
+			if (part === 'Device') {
+				for (var i = 0; i < this.getGeometries().length; i++) {
+					var svgLayer = new JenScript.SVGGroup().Id(this.Id).name('StockMACDLayer');
+					
+					var geom = this.getGeometries()[i];
+					var macd = geom.getMACD();
+					var signal = geom.getSignal();
+					this.paintCurve(svgLayer,g2d,part,macd,this.macdId,this.macdColor,this.macdWidth,this.macdOpacity);
+					this.paintCurve(svgLayer,g2d,part,signal,this.signalId,this.signalColor,this.signalWidth,this.signalOpacity);
+					g2d.deleteGraphicsElement(this.Id);
+					g2d.insertSVG(svgLayer.toSVG());
+				}
+			}
+		},
+	});
+	
+	
+})();
+(function(){
+	
+	/**
+	 * Object JenScript.RadialGaugePlugin()
+	 * Takes the responsability to paint gauge in view.
+	 * @param {Object} config
+	 */
+	JenScript.RadialGaugePlugin = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.RadialGaugePlugin,JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.RadialGaugePlugin,{
+		
+		/**
+		 * Initialize Gauge Plugin
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			config.name = 'JenScript.RadialGaugePlugin';
+			this.gauge = config.gauge;
+			JenScript.Plugin.call(this,config);
+		},
+		
+		/**
+		 * paint gauge plugin
+		 * @param {Object} graphics context
+		 * @param {String} view part
+		 */
+		paintPlugin : function(g2d, part) {
+			if (part !== JenScript.ViewPart.Device) {
+				return;
+			}
+			this.gauge.setProjection(this.getProjection());
+			if (this.gauge.getEnvelop() !== undefined) {
+				this.gauge.getEnvelop().paintPart(g2d, this.gauge);
+			}
+			if (this.gauge.getBackgrounds() !== undefined) {
+				for (var i = 0; i < this.gauge.getBackgrounds().length; i++) {
+					this.gauge.getBackgrounds()[i].paintPart(g2d,this.gauge);
+				}
+			}
+			if (this.gauge.getGlasses() !== undefined) {
+				for (var i = 0; i < this.gauge.getGlasses().length; i++) {
+					this.gauge.getGlasses()[i].paintPart(g2d,this.gauge);
+				}
+			}
+			if (this.gauge.getBodies() !== undefined) {
+				for (var i = 0; i < this.gauge.getBodies().length; i++) {
+					this.gauge.getBodies()[i].paintPart(g2d,this.gauge);
+				}
+			}
+		}
+	});
+	
+})();
+(function(){
+	/**
+	 * Object JenScript.GaugePart()
+	 * Defines Abstract Gauge Part like envelope, background, body or glass.
+	 * @param {Object} config
+	 */
+	JenScript.GaugePart = function(config){
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.GaugePart,{
+		/**
+		 * Initialize Gauge Part
+		 * @param {Object} config
+		 */
+		init : function(config){
+			this.gauge;
+			this.partBuffer;
+		},
+		
+		/**
+		 * get gauge of this path
+		 * @return {Object} gauge
+		 */
+		getGauge : function() {
+			return this.gauge;
+		},
+
+		/**
+		 * set gauge of this part
+		 * @param {Object} gauge
+		 */
+		setGauge : function(gauge) {
+			this.gauge = gauge;
+		},
+		
+		/**
+		 * Paint this part of the given gauge 
+		 * 
+		 * @param {Object} graphics context
+		 * @param {Object} radialGauge
+		 */
+		paintPart : function(g2d,radialGauge){throw new Error('JenScript.GaugePart, paintPart method should be provide by override.');},
+	});
+})();
+(function(){
+
+	/**
+	 * Object JenScript.GaugeEnvelope()
+	 * Defines Abstract Gauge envelope. Envelop is decorator of gauge that extends after gauge radius.
+	 * @param {Object} config
+	 */
+	JenScript.GaugeEnvelope = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.GaugeEnvelope,JenScript.GaugePart);
+	JenScript.Model.addMethods(JenScript.GaugeEnvelope,{
+		/**
+		 * Initialize Gauge Envelope
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			JenScript.GaugePart.call(this,config);
+		},
+		
+		/**
+		 * Paint this envelope part
+		 * @param {Object} graphics context
+		 * @param {Object} radialGauge
+		 */
+		paintEnvelope  : function( g2d,  radialGauge){},
+		
+		/**
+		 * Final, Paint this part
+		 * @param {Object} graphics context
+		 * @param {Object} radialGauge
+		 */
+		paintPart  : function(g2d,radialGauge){
+			this.paintEnvelope(g2d,radialGauge);
+		},
+	});
+	
+	/**
+	 * Object JenScript.Cisero()
+	 * Cisero Envelope.
+	 * @param {Object} config
+	 */
+	JenScript.Cisero = function(config){
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Cisero,JenScript.GaugeEnvelope);
+	JenScript.Model.addMethods(JenScript.Cisero,{
+		/**
+		 * Initialize Cisero Envelope
+		 * @param {Object} config
+		 * @param {Object} [config.extendsRatio] default value, 3
+		 * @param {Object} [config.alpha] cubic decoration apperture angle, default 10
+		 */
+		__init : function(config){
+			config = config || {};
+			/** extends ratio */
+			this.extendsRatio = (config.extendsRatio !== undefined)? config.extendsRatio :3;
+			/** alpha angle degree to crew place holder */
+			this.alpha = (config.alpha !== undefined)? config.alpha :10;
+			JenScript.GaugeEnvelope.call(this,config);
+		},
+		
+		/**
+		 * create cisero cubic fragment
+		 * @param {Object} path to append
+		 * @param {Number} theta
+		 * @param {Number} alpha
+		 * @param {Number} internalRadius
+		 * @param {Number} externalRadius
+		 */
+		createFragment : function(path, theta,  alpha,  internalRadius,  externalRadius,  radialGauge) {
+			var centerX = radialGauge.getProjection().userToPixelX(radialGauge.getX());
+			var centerY = radialGauge.getProjection().userToPixelY(radialGauge.getY());
+			var radius = radialGauge.getRadius();
+			var p1 = new JenScript.Point2D(centerX + internalRadius * Math.cos(JenScript.Math.toRadians(theta - alpha - alpha / 2)), centerY - internalRadius * Math.sin(JenScript.Math.toRadians(theta - alpha - alpha / 2)));
+			var p2 = new JenScript.Point2D(centerX + externalRadius * Math.cos(JenScript.Math.toRadians(theta - alpha / 2)), centerY - externalRadius * Math.sin(JenScript.Math.toRadians(theta - alpha / 2)));
+			var p3 = new JenScript.Point2D(centerX + externalRadius * Math.cos(JenScript.Math.toRadians(theta + alpha / 2)), centerY - externalRadius * Math.sin(JenScript.Math.toRadians(theta + alpha / 2)));
+			var p4 = new JenScript.Point2D(centerX + internalRadius * Math.cos(JenScript.Math.toRadians(theta + alpha + alpha / 2)), centerY - internalRadius * Math.sin(JenScript.Math.toRadians(theta + alpha + alpha / 2)));
+			var pc1 = new JenScript.Point2D(centerX + internalRadius * Math.cos(JenScript.Math.toRadians(theta - alpha)), centerY - internalRadius * Math.sin(JenScript.Math.toRadians(theta - alpha)));
+			var pc2 = new JenScript.Point2D(centerX + externalRadius * Math.cos(JenScript.Math.toRadians(theta - alpha)), centerY - externalRadius * Math.sin(JenScript.Math.toRadians(theta - alpha)));
+			var pc3 = new JenScript.Point2D(centerX + externalRadius * Math.cos(JenScript.Math.toRadians(theta + alpha)), centerY - externalRadius * Math.sin(JenScript.Math.toRadians(theta + alpha)));
+			var pc4 = new JenScript.Point2D(centerX + internalRadius * Math.cos(JenScript.Math.toRadians(theta + alpha)), centerY - internalRadius * Math.sin(JenScript.Math.toRadians(theta + alpha)));
+			if(this.first){
+				path.moveTo(p1.getX(), p1.getY());
+				this.first=false;
+			}
+			path.curveTo(pc1.getX(), pc1.getY(), pc2.getX(), pc2.getY(), p2.getX(), p2.getY());
+			var endX = centerX + externalRadius * Math.cos(JenScript.Math.toRadians(theta + alpha/2));
+			var endY = centerY - externalRadius * Math.sin(JenScript.Math.toRadians(theta + alpha/2));
+			path.arcTo(externalRadius,externalRadius,0,0,0,endX,endY);
+			path.curveTo(pc3.getX(), pc3.getY(), pc4.getX(), pc4.getY(), p4.getX(), p4.getY());
+		},
+
+		/**
+		 * create cisero arc fragment
+		 * @param {Object} path to append
+		 * @param {Number} theta1
+		 * @param {Number} theta2
+		 * @param {Number} alpha
+		 * @param {Number} internalRadius
+		 * @param {Number} externalRadius
+		 */
+		createArcFragment : function(path, theta1,  theta2,  alpha,  internalRadius,  externalRadius,  radialGauge) {
+			var centerX = radialGauge.getProjection().userToPixelX(radialGauge.getX());
+			var centerY = radialGauge.getProjection().userToPixelY(radialGauge.getY());
+			var angle =  theta2  - 2 * alpha +alpha / 2 ;
+			var endX = centerX + internalRadius * Math.cos(JenScript.Math.toRadians(angle));
+			var endY = centerY - internalRadius * Math.sin(JenScript.Math.toRadians(angle));
+			path.arcTo(internalRadius,internalRadius,0,0,0,endX,endY);
+		},
+
+		
+		/**
+		 * Paint this cisero envelop 
+		 * @param {Object} graphics context
+		 * @param {Object}  radialGauge
+		 */
+		paintEnvelope  : function( g2d,  radialGauge){
+			var deltaExternal = (radialGauge.getRadius() / this.extendsRatio);
+			var radiusExternal = radialGauge.getRadius() + deltaExternal;
+			var centerX = radialGauge.getProjection().userToPixelX(radialGauge.getX());
+			var centerY = radialGauge.getProjection().userToPixelY(radialGauge.getY());
+			var eExternal = new JenScript.SVGCircle().center(centerX,centerY).radius(radiusExternal);
+			var start = new JenScript.Point2D(centerX, centerY - radiusExternal);
+			var end = new JenScript.Point2D(centerX, centerY + radiusExternal);
+			var shader = {percents:['0%','50%','100%'],colors:['darkgray','lightgray','black']};
+			var gradient= new JenScript.SVGLinearGradient().Id('ciseroGd1').from(start.x,start.y).to(end.x,end.y).shade(shader.percents,shader.colors);
+			g2d.definesSVG(gradient.toSVG());
+			g2d.insertSVG(eExternal.fillURL('ciseroGd1').strokeNone().toSVG());
+			
+			
+			var alpha = this.alpha;
+			var path = new JenScript.SVGPath();
+			var epsilonPixel = 2;
+
+			var baseRadius = radialGauge.getRadius() + deltaExternal / 2;
+			var extendsRadius = radialGauge.getRadius() + deltaExternal - epsilonPixel;
+
+			this.first = true;
+			var s0 = this.createFragment(path,30, alpha, baseRadius, extendsRadius, radialGauge);
+			var a1 = this.createArcFragment(path,30, 90, alpha, baseRadius, extendsRadius, radialGauge);
+			var s1 = this.createFragment(path,90, alpha, baseRadius, extendsRadius, radialGauge);
+			var a2 = this.createArcFragment(path,90, 90 + 60, alpha, baseRadius, extendsRadius, radialGauge);
+			var s2 = this.createFragment(path,90 + 60, alpha, baseRadius, extendsRadius, radialGauge);
+			var a3 = this.createArcFragment(path,90 + 60, 180 + 30, alpha, baseRadius, extendsRadius, radialGauge);
+			var s3 = this.createFragment(path,180 + 30, alpha, baseRadius, extendsRadius, radialGauge);
+			var a4 = this.createArcFragment(path,180 + 30, 270, alpha, baseRadius, extendsRadius, radialGauge);
+			var s4 = this.createFragment(path,270, alpha, baseRadius, extendsRadius, radialGauge);
+			var a5 = this.createArcFragment(path,270, 270 + 60, alpha, baseRadius, extendsRadius, radialGauge);
+			var s5 = this.createFragment(path,270 + 60, alpha, baseRadius, extendsRadius, radialGauge);
+			var a0 = this.createArcFragment(path,-30, 30, alpha, baseRadius, extendsRadius, radialGauge);
+			
+			var start4 = new JenScript.Point2D(centerX, centerY - extendsRadius);
+			var end4 = new JenScript.Point2D(centerX, centerY + extendsRadius);
+			var shader2 = {percents:['0%','50%','100%'],colors:['black','gray','black']};
+			var gradient2= new JenScript.SVGLinearGradient().Id('ciseroGd2').from(start4.x,start4.y).to(end4.x,end4.y).shade(shader2.percents,shader2.colors);
+			g2d.definesSVG(gradient2.toSVG());
+			g2d.insertSVG(path.stroke(JenScript.RosePalette.MELON).attr('fill-rule','nonzero').fillURL('ciseroGd2').toSVG());
+		}
+	});
+})();
+(function(){
+
+	
+	/**
+	 * Object JenScript.GaugeBackground()
+	 * Gauge Background defines the area with is paintedafter envelope and before body.
+	 * It take the responsibility to decorate body background,should paint everything which is inside gauge radius
+	 * @param {Object} config
+	 */
+	JenScript.GaugeBackground = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.GaugeBackground,JenScript.GaugePart);
+	JenScript.Model.addMethods(JenScript.GaugeBackground,{
+		/**
+		 * Initialize Gauge Background
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			JenScript.GaugePart.call(this,config);
+		},
+		
+		/**
+		 * Paint this background part
+		 * @param {Object} graphics context
+		 * @param {Object} radialGauge
+		 */
+		paintBackground  : function(g2d,radialGauge){},
+		
+		/**
+		 * Final, Paint this gauge part
+		 * @param {Object} graphics context
+		 * @param {Object} radialGauge
+		 */
+		paintPart  : function( g2d,  radialGauge){
+			this.paintBackground(g2d,radialGauge);
+		},
+	});
+	
+	
+	/**
+	 * Object JenScript.CircularBackground()
+	 * Circular background defines circulat area that can be filled with gradient shader,
+	 * color or texture.
+	 * 
+	 * You should extends this class and provide fill method by override.
+	 * fill method passed parameters are graphics context, radial gauge and shpae background to fill
+	 * 
+	 * @param {Object} config
+	 * @param {Number} [config.radius], default gauge radius, for main body background, should be equal to gauge radius.
+	 * @param {Number} [config.polarRadius] polar radius for inner background body, default 0
+	 * @param {Number} [config.polarAngle]  polar angle for inner background body, default 0
+	 */
+	JenScript.CircularBackground = function(config){
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.CircularBackground,JenScript.GaugeBackground);
+	JenScript.Model.addMethods(JenScript.CircularBackground,{
+		/**
+		 * Initialize Circular Gauge Background
+		 * @param {Object} config
+		 * @param {Number} [config.radius], default gauge radius, for main body background, should be equal to gauge radius.
+		 * @param {Number} [config.polarRadius] polar radius for inner background body, default 0
+		 * @param {Number} [config.polarAngle]  polar angle for inner background body, default 0
+		 */
+		__init : function(config){
+			config = config || {};
+			this.radius = (config.radius !== undefined)?config.radius : 0;
+			this.polarRadius = (config.polarRadius !== undefined)?config.polarRadius : 0;
+			this.polarAngle = (config.polarAngle !== undefined)?config.polarAngle : 0;
+			JenScript.GaugeBackground.call(this,config);
+		},
+		
+		/**
+		 * get background radius
+		 * @return {Object} background radius
+		 */
+		getRadius : function() {
+			return this.radius;
+		},
+
+		/**
+		 * set background radius
+		 * @param {Object} background radius
+		 */
+		setRadius : function(radius) {
+			this.radius = radius;
+		},
+
+		/**
+		 * get background polar radius
+		 * @return {Object} background polar radius
+		 */
+		getPolarRadius : function() {
+			return this.polarRadius;
+		},
+
+		/**
+		 * set background polar radius
+		 * @param {Object} background polar radius
+		 */
+		setPolarRadius : function( polarRadius) {
+			this.polarRadius = polarRadius;
+		},
+
+		/**
+		 * get background polar angle
+		 * @return {Object} background polar angle
+		 */
+		getPolarAngle : function() {
+			return this.polarAngle;
+		},
+
+		/**
+		 * set background polar angle
+		 * @param {Object} background polar angle
+		 */
+		setPolarAngle : function( polarAngle) {
+			this.polarAngle = polarAngle;
+		},
+		
+		/**
+		 * fill the circular background shape
+		 * @param {Object} graphics context
+		 * @param {Object} gauge
+		 * @param {Object} shape to fill
+		 */
+		fill: function(g2d,radialGauge,shape){throw new Error('JenScript.CircularBackground, fill method should be provide by override.');},
+		
+		/**
+		 * Final, Paint this background part
+		 * @param {Object} graphics context
+		 * @param {Object} radialGauge
+		 */
+		paintBackground  : function( g2d,  radialGauge){
+			var centerDef = radialGauge.getRadialPointAt(this.polarRadius, this.polarAngle);
+			if (this.radius == 0) {
+				this.radius = radialGauge.getRadius();
+			}
+			var baseShape = new JenScript.SVGCircle().center(centerDef.getX(),centerDef.getY()).radius(this.radius);
+			this.fill(g2d,radialGauge,baseShape);
+		},
+	});
+	
+	/**
+	 * Object JenScript.GradientCircularBackground()
+	 * Defines a circular gradient background
+	 * @param {Object} config
+	 * @param {Object} [config.shader]
+	 * @param {Array} [config.shader.percents] array of percents
+	 * @param {Array} [config.shader.colors] array of colors
+	 */
+	JenScript.GradientCircularBackground = function(config){
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.GradientCircularBackground,JenScript.CircularBackground);
+	JenScript.Model.addMethods(JenScript.GradientCircularBackground,{
+		
+		/**
+		 * Initialize circular gradient background
+		 * @param {Object} config
+		 * @param {Object} [config.shader]
+		 * @param {Array} [config.shader.percents] array of percents
+		 * @param {Array} [config.shader.colors] array of colors
+		 */
+		___init : function(config){
+			config = config || {};
+			this.shader = (config.shader !== undefined)? config.shader : {percents : ['0%','100%'], colors : ['red','black']};
+			JenScript.CircularBackground.call(this,config);
+		},
+		
+		/**
+		 * fill the circular background shape with gradient shader
+		 * @param {Object} graphics context
+		 * @param {Object} gauge
+		 * @param {Object} shape to fill
+		 */
+		fill : function(g2d,radialGauge,shape) {
+			var gradient = this.getGradient(radialGauge);
+			var gradientId = 'gradient'+JenScript.sequenceId++;
+			gradient.Id(gradientId);
+			g2d.definesSVG(gradient.toSVG());
+			g2d.insertSVG(shape.fillURL(gradientId).toSVG());
+		},
+
+		/**
+		 * get the gradient paint to use
+		 * @return {Object} linear or radial gradient
+		 */
+		getGradient : function(radialGauge){throw new Error('JenScript.GradientCircularBackground, getGradient method should be provide by override');},
+	});
+	
+	
+	/**
+	 * Object JenScript.LinearGradientCircularBackground()
+	 * Defines a linear background paint
+	 * @param {Object} config
+	 * @param {Object} [config.gradientAngle] gradient incidence angle
+	 * @param {Object} [config.shader] gradient shader
+	 * @param {Array}  [config.shader.percents] array of percents
+	 * @param {Array}  [config.shader.colors] array of colors
+	 */
+	JenScript.LinearGradientCircularBackground = function(config){
+		this.____init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.LinearGradientCircularBackground,JenScript.GradientCircularBackground);
+	JenScript.Model.addMethods(JenScript.LinearGradientCircularBackground,{
+		/**
+		 * Initialize linear background paint
+		 * @param {Object} config
+		 * @param {Object} [config.gradientAngle] gradient incidence angle
+		 * @param {Object} [config.shader] gradient shader
+		 * @param {Array}  [config.shader.percents] array of percents
+		 * @param {Array}  [config.shader.colors] array of colors
+		 */
+		____init : function(config){
+			config = config || {};
+			/** gradient angle */
+			this.gradientAngle = (config.gradientAngle !== undefined )? config.gradientAngle: 90;
+			config.name='JenScript.LinearGradientCircularBackground';
+			JenScript.GradientCircularBackground.call(this,config);
+		},
+
+		/**
+		 * get the linear gradient to use
+		 * @return {Object} linear gradient gauge background
+		 */
+		getGradient : function(radialGauge){
+			var centerDef = radialGauge.getRadialPointAt(this.polarRadius, this.polarAngle);
+			var startX = centerDef.getX() + this.getRadius() * Math.cos(JenScript.Math.toRadians(this.gradientAngle));
+			var startY = centerDef.getY() - this.getRadius() * Math.sin(JenScript.Math.toRadians(this.gradientAngle));
+			var endX = centerDef.getX() + this.getRadius() * Math.cos(JenScript.Math.toRadians(this.gradientAngle) + Math.PI);
+			var endY = centerDef.getY() - this.getRadius() * Math.sin(JenScript.Math.toRadians(this.gradientAngle) + Math.PI);
+			var start = new JenScript.Point2D(startX, startY);
+			var end = new JenScript.Point2D(endX, endY);
+	        var gradient= new JenScript.SVGLinearGradient().from(start.x,start.y).to(end.x,end.y).shade(this.shader.percents,this.shader.colors);
+	        return gradient;
+		},
+	});
+	
+	
+	/**
+	 * Object JenScript.TextureCircularBackground()
+	 * Defines a circular texture background
+	 * @param {Object} config
+	 * @param {Object} [config.opacity] texture opacity, default 0.5
+	 * @param {Object} [config.texture] texture pattern, default triangle carbon texture
+	 */
+	JenScript.TextureCircularBackground = function(config){
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.TextureCircularBackground,JenScript.CircularBackground);
+	JenScript.Model.addMethods(JenScript.TextureCircularBackground,{
+		/**
+		 * Intialize circular texture background
+		 * @param {Object} config
+		 * @param {Object} [config.opacity] texture opacity, default 0.5
+		 * @param {Object} [config.texture] texture pattern, default triangle carbon texture
+		 */
+		___init : function(config){
+			config = config || {};
+			this.opacity = (config.opacity !== undefined)? config.opacity : 0.5;
+			this.texture = (config.texture !== undefined)? config.texture : JenScript.Texture.getTriangleCarbonFiber(5);
+			JenScript.CircularBackground.call(this,config);
+		},
+		
+		/**
+		 * fill the circular background shape with texture
+		 * @param {Object} graphics context
+		 * @param {Object} gauge
+		 * @param {Object} shape to fill
+		 */
+		fill : function(g2d,radialGauge,shape) {
+			g2d.definesTexture(this.texture);
+			g2d.insertSVG(shape.fillURL(this.texture.Id).opacity(this.opacity).toSVG());
+		},
+
+	});
+})();
+(function(){
+
+	/**
+	 * Object JenScript.GaugeBody()
+	 * Gauge Body defines a gauge part that belongs path metrics
+	 * 
+	 * @param {Object} config
+	 */
+	JenScript.GaugeBody = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.GaugeBody,JenScript.GaugePart);
+	JenScript.Model.addMethods(JenScript.GaugeBody,{
+		/**
+		 * Initialize Gauge Body
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			/** gauges metrics paths */
+			this.gaugeMetricsPaths = [];
+			/** gauges texts paths */
+			this.gaugeTextPaths = [];
+			JenScript.GaugePart.call(this,config);
+		},
+		
+		/**
+		 * paint this gauge body
+		 * @param {Object} graphics context
+		 * @param {Object} radialGauge
+		 */
+		paintBody  : function( g2d,  radialGauge){
+			for (var i = 0; i < this.getMetricsPaths().length; i++) {
+				var path = this.getMetricsPaths()[i];
+				path.setProjection(this.getGauge().getProjection());
+				if(path.getPathBinder() !== undefined){
+					var shape = path.getPathBinder().bindPath(radialGauge);
+					if (shape !== undefined) {
+						path.extPath = shape;
+						//path.append(path.getPathBinder().bindPath(radialGauge));
+						path.draw(g2d);
+						g2d.insertSVG(shape.stroke('black').strokeWidth(1).fillNone().toSVG());
+					}
+				}
+				if(path.getPathBinder() !== undefined && path.getPathBinder().isDebug()){
+					path.getPathBinder().paintDebug(g2d, radialGauge);
+				}
+			}
+			
+//			for (var i = 0; i < this.getTextPaths().length; i++) {
+//				var path = this.getTextPaths()[i];
+//				//if (path.getPartBuffer() == null) {
+//					path.setPath(path.getPathBinder().bindPath(radialGauge));
+//					path.createPartBuffer(g2d);
+//				//}
+//				//paintPart(g2d, path.getPartBuffer());
+//			}
+
+			for (var i = 0; i < this.getMetricsPaths().length; i++) {
+				var path = this.getMetricsPaths()[i];
+				if (path.getGaugeNeedlePainter() != undefined) {
+					//var needleBase = path.getNeedleBaseAnchorBinder().bindAnchor(gaugeMetricsPath.getBody().getGauge());
+					//gaugeMetricsPath.getNeedleValueAnchorBinder().baseAnchor = needleBase;
+					path.getGaugeNeedlePainter().paintNeedle(g2d, path);
+				}
+			}
+		},
+		
+		/**
+		 * register a gauge metrics path in this gauge
+		 * @param {Object} path metrics to add
+		 */
+		registerGaugeMetricsPath : function(pathMetrics) {
+			pathMetrics.setBody(this);
+			this.gaugeMetricsPaths[this.gaugeMetricsPaths.length] = pathMetrics;
+		},
+
+		/**
+		 * get gauge path metrics array
+		 * @return {Array} path metrics array
+		 */
+		getMetricsPaths : function() {
+			return this.gaugeMetricsPaths;
+		},
+
+		/**
+		 * register a gauge text path in this gauge
+		 * @param {Object} textPath
+		 */
+		registerGaugeTextPath : function(textPath) {
+			textPath.setBody(this);
+			this.gaugeTextPaths[this.gaugeTextPaths.length] = textPath;
+		},
+
+		/**
+		 * get gauge text paths array
+		 * @return {Array} gauge text paths
+		 */
+		getTextPaths : function() {
+			return this.gaugeTextPaths;
+		},
+
+		/**
+		 * Paint gauge part
+		 * @param {Object} graphics context
+		 * @param {Object} radialGauge
+		 */
+		paintPart  : function(g2d,gauge){
+			this.paintBody(g2d,gauge);
+		},
+	});
+})();
+(function(){
+
+	
+	/**
+	 * Object JenScript.AnchorBinder()
+	 * Defines a mechanism to bind needle anchor point
+	 * This anchor binder will be used by gauge to create needle anchor
+	 * 
+	 * @param {Object} config
+	 */
+	JenScript.AnchorBinder = function(config){
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.AnchorBinder,{
+		/**
+		 * Initialize anchor binder
+		 * @param {Object} config
+		 */
+		init : function(config){
+			config = config || {};
+			/** the gauge metrics path binded to this anchor */
+			this.metricsPath;
+		},
+		
+		/**
+		 * get the binded gauge metrics path
+		 * 
+		 * @return metrics path
+		 */
+		getMetricsPath : function() {
+			return this.metricsPath;
+		},
+
+		/**
+		 * set the gauge metrics path to this anchor
+		 * 
+		 * @param metricsPath
+		 */
+		setMetricsPath : function(metricsPath) {
+			this.metricsPath = metricsPath;
+		},
+
+		/**
+		 * bind the anchor to caller
+		 * @param {Object} gauge
+		 * @return {Object} anchor point
+		 */
+		bindAnchor  : function(gauge){throw new Error('JenScript.AnchorBinder, bindAnchor method should be provide by override');}
+	});
+	
+	
+	
+	
+	/** 
+	 * Object JenScript.AnchorBaseBinder()
+	 * Defines a mechanism to bind needle base anchor point
+	 * 
+	 * @param {Object} config
+	 * @param {Number} [config.radius] the shift radius
+	 * @param {Number} [config.angleDegree] the shift angle
+	 */
+	JenScript.AnchorBaseBinder = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.AnchorBaseBinder,JenScript.AnchorBinder);
+	JenScript.Model.addMethods(JenScript.AnchorBaseBinder,{
+		/**
+		 * Initialize anchor base binder
+		 * @param {Object} config
+		 * @param {Number} [config.radius] the shift radius
+		 * @param {Number} [config.angleDegree] the shift angle
+		 */
+		_init : function(config){
+			config = config || {};
+			this.radius = (config.radius !== undefined) ? config.radius:0;
+			this.angleDegree = (config.angleDegree !== undefined) ? config.angleDegree:0;
+			JenScript.AnchorBinder.call(this,config);
+		},
+		
+		/**
+		 * set anchor base binder radius
+		 * @return {Number} radius
+		 */
+		getRadius : function() {
+			return this.radius;
+		},
+
+		/**
+		 * set anchor base binder radius
+		 * @param {Number} radius to set
+		 */
+		setRadius : function(radius) {
+			this.radius = radius;
+		},
+
+		/**
+		 * get anchor base binder angle degree
+		 * @return {Number} angleDegree
+		 */
+		getAngleDegree : function() {
+			return this.angleDegree;
+		},
+
+		/**
+		 * set anchor base binder angle degree
+		 * @param {Number} angleDegree
+		 */
+		setAngleDegree : function(angleDegree) {
+			this.angleDegree = angleDegree;
+		},
+		
+		/**
+		 * bind base anchor for given gauge
+		 * @param {Object} gauge to bind
+		 */
+		bindAnchor : function(gauge) {
+			var anchorX = gauge.getCenterDevice().getX() + this.radius*Math.cos(JenScript.Math.toRadians(this.angleDegree));
+			var anchorY = gauge.getCenterDevice().getY() - this.radius*Math.sin(JenScript.Math.toRadians(this.angleDegree));
+			return new JenScript.Point2D(anchorX, anchorY);
+		}
+	});
+	
+	
+	/** 
+	 * Object JenScript.AnchorValueBinder()
+	 * Defines a mechanism to bind needle value anchor point
+	 * 
+	 * @param {Object} config
+	 * @param {Number} [config.radialOffset] the radial offset from the metrics path, default 10
+	 */
+	JenScript.AnchorValueBinder = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.AnchorValueBinder,JenScript.AnchorBinder);
+	JenScript.Model.addMethods(JenScript.AnchorValueBinder,{
+		/**
+		 * Initialize anchor value binder
+		 * @param {Object} config
+		 * @param {Number} [config.radialOffset] the radial offset from the metrics path, default 10
+		 */
+		_init : function(config){
+			config = config || {};
+			this.radialOffset = (config.radialOffset !== undefined) ? config.radialOffset:10;
+			JenScript.AnchorBinder.call(this,config);
+		},
+		
+		/**
+		 * get anchor radial offset 
+		 * @return {Number} radialOffset
+		 */
+		getRadialOffset : function() {
+			return this.radialOffset;
+		},
+
+		/**
+		 * set anchor radial offset 
+		 * @param {Number} radialOffset
+		 */
+		setRadialOffset : function(radialOffset) {
+			this.radialOffset = radialOffset;
+		},
+
+		/**
+		 * bind value anchor for given gauge
+		 * @param {Object} gauge to bind
+		 */
+		bindAnchor : function(gauge) {
+			this.baseAnchor = this.getMetricsPath().getNeedleBaseAnchorBinder().bindAnchor(gauge);
+			var needlePointValue = this.getMetricsPath().getMetricsPoint(this.getMetricsPath().getCurrentValue(), this.radialOffset);
+			var arcRadius = Math.sqrt((this.baseAnchor.x - needlePointValue.x)*(this.baseAnchor.x - needlePointValue.x)+(this.baseAnchor.y - needlePointValue.y)*(this.baseAnchor.y - needlePointValue.y));
+			var thetaRadian = JenScript.Math.getPolarAngle(this.baseAnchor.x,this.baseAnchor.y,needlePointValue.x,needlePointValue.y);
+			var nx = this.baseAnchor.x + (arcRadius - this.radialOffset)*Math.cos(thetaRadian);
+			var ny = this.baseAnchor.y - (arcRadius - this.radialOffset)*Math.sin(thetaRadian);
+			return new JenScript.Point2D(nx,ny);
+		}
+	});
+})();
+(function(){
+
+	
+	
+	/**
+	 * Object JenScript.PathBinder()
+	 * Defines a mechanism to bind path to a gauge.
+	 * This path will be used by gauge to lay out metrics on the binded path
+	 * 
+	 * @param {Object} config
+	 * @param {Boolean} [config.debug] debug flag
+	 */
+	JenScript.PathBinder = function(config){
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.PathBinder,{
+		/**
+		 * Initialize path binder
+		 * @param {Object} config
+		 * @param {Boolean} [config.debug] debug flag
+		 */
+		init : function(config){
+			config = config || {};
+			this.debug = (config.debug !== undefined)? config.debug :  false;
+			/** the metrics path that own this binder */
+			this.metricsPath;
+		},
+		
+		/**
+		 * true if debug enabled, false otherwise
+		 * @return {Boolean} the debug flag
+		 */
+		isDebug : function() {
+			return this.debug;
+		},
+
+		/**
+		 * set true to debug path binder
+		 * @param {Boolean} debug flag
+		 */
+		setDebug : function(debug) {
+			this.debug = debug;
+		},
+
+		/**
+		 * get metrics path that own this binder
+		 * @return {Object}  metrics path
+		 */
+		getMetricsPath : function() {
+			return this.metricsPath;
+		},
+
+		/**
+		 * set metrics path owner
+		 * @param {Object} metrics path to set
+		 */
+		setMetricsPath : function(metricsPath) {
+			this.metricsPath = metricsPath;
+		},
+
+		/**
+		 * bind path for given gauge, this method should be provide by override.
+		 * @param {Object} gauge
+		 * @return {Object} the given path to bind
+		 */
+		bindPath : function(gauge){throw new Error('JenScript.PathBinder, bindPath method should be provide by override.');},
+
+		/**
+		 * debug paint path binder by painting all geometries 
+		 * objects that makes sense to understand path binding
+		 * 
+		 * @param {Object} g2d
+		 * @param {Object} gauge
+		 */
+		paintDebug : function(g2d,gauge){}
+	});
+	
+	
+	/**
+	 * Object JenScript.AbstractPathAutoBinder()
+	 * Defines abstract automatic path binder that takes the responsibility 
+	 * to solve intersections with arc which is defined by input parameters.
+	 * 
+	 * After solving these points, provides a path by implementing createPath method.
+	 * Default implementation are provided for arc path, cubic path and quad path
+	 * 
+	 * @param {Object} config
+	 * @param {Number} [config.radius] arc radius
+	 * @param {Number} [config.polarRadius] polar radius
+	 * @param {Number} [config.polarAngle] polar angle
+	 * @param {String} [config.direction] path direction, Clockwise or AntiClockwise
+	 */
+	JenScript.AbstractPathAutoBinder = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.AbstractPathAutoBinder,JenScript.PathBinder);
+	JenScript.Model.addMethods(JenScript.AbstractPathAutoBinder,{
+		
+		/**
+		 * Initialize auto path binder
+		 * @param {Object} config
+		 * @param {Number} [config.radius] arc radius
+		 * @param {Number} [config.polarRadius] polar radius
+		 * @param {Number} [config.polarAngle] polar angle
+		 * @param {String} [config.direction] path direction, Clockwise or AntiClockwise
+		 */
+		_init : function(config){
+			config = config || {};
+			/** binder radius */
+			this.radius = config.radius;
+			/** polar radius */
+			this.polarRadius = config.polarRadius;
+			/** polar angle degree */
+			this.polarDegree = config.polarDegree;
+			/** direction */
+			this.direction = (config.direction !== undefined)? config.direction :'Clockwise';
+			this.x0;this.y0;this.r0;this.arc0;
+			this.x1;this.y1;this.r1;this.arc1;
+			this.intersectionPointStart;
+			this.theta1Radian1;
+			this.intersectionPointEnd;
+			this.theta1Radian2;
+			JenScript.PathBinder.call(this,config);
+		},
+		
+		/**
+		 * given the polar angle radian of point P(px,py) which is on the circle
+		 * define by its center C(refX,refY)
+		 * 
+		 * @param {Number} refX
+		 * @param {Number} refY
+		 * @param {Number} px
+		 * @param {Number} py
+		 * @return {Number} polar angle radian
+		 */
+		getPolarAngle : function( refX,  refY,  px,  py) {
+			var tethaRadian = -1;
+			if ((px - refX) > 0 && (refY - py) >= 0) {
+				tethaRadian = Math.atan((refY - py) / (px - refX));
+			} else if ((px - refX) > 0 && (refY - py) < 0) {
+				tethaRadian = Math.atan((refY - py) / (px - refX)) + 2 * Math.PI;
+			} else if ((px - refX) < 0) {
+				tethaRadian = Math.atan((refY - py) / (px - refX)) + Math.PI;
+			} else if ((px - refX) == 0 && (refY - py) > 0) {
+				tethaRadian = Math.PI / 2;
+			} else if ((px - refX) == 0 && (refY - py) < 0) {
+				tethaRadian = 3 * Math.PI / 2;
+			}
+			return tethaRadian;
+		},
+		
+		/**
+		 * bind path for given gauge
+		 * @param {Object} gaug
+		 * @returns binded path
+		 */
+		bindPath : function(gauge) {
+			if(this.solveIntersectionPoints())
+				return this.createPath();
+			else
+				return undefined;
+		},
+
+		/**
+		 * create the shape according to the binder
+		 * @return {Object} path to bind 
+		 */
+		createPath : function(){throw new Error('JenScript.AbstractPathAutoBinder, createPath should be supplied by override.');},
+
+		/**
+		 * solve the arc0 (gauge arc) and arc1(path arc) intersection
+		 */
+		solveIntersectionPoints : function() {
+			var gauge = this.getMetricsPath().getBody().getGauge();
+			
+			// define first circle which is gauge outline circle
+			this.x0 = gauge.getCenterDevice().getX();
+			this.y0 = gauge.getCenterDevice().getY();
+			this.r0 = gauge.getRadius();
+			this.arc0 = new JenScript.SVGCircle().center(this.x0,this.y0).radius(this.r0);
+			
+			// define the second circle with given parameters
+			this.x1 = this.x0 + this.polarRadius * Math.cos(JenScript.Math.toRadians(this.polarDegree));
+			this.y1 = this.y0 - this.polarRadius * Math.sin(JenScript.Math.toRadians(this.polarDegree));
+			this.r1 = this.radius;
+
+			this.arc1 = new JenScript.SVGCircle().center(this.x1,this.y1).radius(this.r1);
+			var x0 =this.x0;
+			var y0 =this.y0;
+			var r0 =this.r0;
+			var x1 =this.x1;
+			var y1 =this.y1;
+			var r1 =this.r1;
+			if (this.polarDegree != 0 && this.polarDegree != 180) {
+				// Ax²+Bx+B = 0
+				var N = (r1 * r1 - r0 * r0 - x1 * x1 + x0 * x0 - y1 * y1 + y0 * y0) / (2 * (y0 - y1));
+				var A = Math.pow((x0 - x1) / (y0 - y1), 2) + 1;
+				var B = 2 * y0 * (x0 - x1) / (y0 - y1) - 2 * N * (x0 - x1) / (y0 - y1) - 2 * x0;
+				var C = x0 * x0 + y0 * y0 + N * N - r0 * r0 - 2 * y0 * N;
+				var delta = Math.sqrt(B * B - 4 * A * C);
+
+				if (delta < 0) {
+					return false;
+				} else if (delta >= 0) {
+
+					// p1
+					var p1x = (-B - delta) / (2 * A);
+					var p1y = N - p1x * (x0 - x1) / (y0 - y1);
+					this.intersectionPointStart = new JenScript.Point2D(p1x, p1y);
+
+					// p2
+					var p2x = (-B + delta) / (2 * A);
+					var p2y = N - p2x * (x0 - x1) / (y0 - y1);
+					this.intersectionPointEnd = new JenScript.Point2D(p2x, p2y);
+
+					this.theta1Radian1 = this.getPolarAngle(x1, y1, p1x, p1y);
+					this.theta1Radian2 = this.getPolarAngle(x1, y1, p2x, p2y);
+					return true;
+
+				}
+			} else if (this.polarDegree == 0 || this.polarDegree == 180) {
+				// polar degree = 0|180 -> y0=y1
+				// Ay²+By + C = 0;
+				var x = (r1 * r1 - r0 * r0 - x1 * x1 + x0 * x0) / (2 * (x0 - x1));
+				var A = 1;
+				var B = -2 * y1;
+				var C = x1 * x1 + x * x - 2 * x1 * x + y1 * y1 - r1 * r1;
+				var delta = Math.sqrt(B * B - 4 * A * C);
+
+				if (delta < 0) {
+					//alert("no solution");
+					return false;
+				} else if (delta >= 0) {
+
+					// p1
+					var p1x = x;
+					var p1y = (-B - delta) / 2 * A;
+					this.intersectionPointStart = new JenScript.Point2D(p1x, p1y);
+
+					// p2
+					var p2x = x;
+					var p2y = (-B + delta) / 2 * A;
+					this.intersectionPointEnd = new JenScript.Point2D(p2x, p2y);
+
+					this.theta1Radian1 = this.getPolarAngle(x1, y1, p1x, p1y);
+					this.theta1Radian2 = this.getPolarAngle(x1, y1, p2x, p2y);
+					return true;
+
+				}
+			}
+		},
+
+		/**
+		 * paint debug for this auto path binder
+		 * @param {Object} graphics context
+		 * @param {Object} gauge
+		 */
+		paintDebug : function(g2d,gauge) {
+		
+			var p =this.createPath();
+			if(p === undefined)
+				return;
+			this.solveIntersectionPoints();
+
+			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
+			g2d.insertSVG(line3.stroke(JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,30).toHexString()).fillNone().toSVG());
+			
+			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
+			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
+			
+			if(this.intersectionPointStart === undefined || this.intersectionPointEnd === undefined)
+				return;
+			
+			var line1 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.intersectionPointStart.x,this.intersectionPointStart.y);
+			g2d.insertSVG(line1.stroke('yellow').fillNone().toSVG());
+			
+			var line2 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.intersectionPointEnd.x,this.intersectionPointEnd.y);
+			g2d.insertSVG(line2.stroke('yellow').fillNone().toSVG());
+			
+			var i1 = new JenScript.SVGCircle().center(this.intersectionPointStart.getX(), this.intersectionPointStart.getY()).radius(4);
+			var i2 = new JenScript.SVGCircle().center(this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY()).radius(4);
+			
+			var color = (this.direction == 'Clockwise')? 'cyan' : 'orange';
+			this.drawPath(g2d, p, color);
+			
+			g2d.insertSVG(i1.fill(JenScript.RosePalette.LIME).toSVG());
+			g2d.insertSVG(i2.fill(JenScript.RosePalette.LIME).toSVG());
+			
+		},
+
+		/**
+		 * draw the given path with given color
+		 * @param {Object} graphics context
+		 * @param {Object} path
+		 * @param {String} color
+		 */
+		drawPath : function(g2d,path,c) {
+			if (path == undefined)
+				return;
+			g2d.insertSVG(path.stroke(c).strokeWidth(2).fillNone().toSVG());
+			var geom = new JenScript.GeometryPath(path.toSVG());
+			var s1 = this.creatTickDirection(path, geom.lengthOfPath() / 2, 5);
+			var s2 = this.creatTickDirection(path, geom.lengthOfPath() / 4, 4);
+			var s3 = this.creatTickDirection(path, geom.lengthOfPath() * 3 / 4, 4);
+			if (s1 != undefined)
+				g2d.insertSVG(s1.fill(c).toSVG());
+			if (s2 != undefined)
+				g2d.insertSVG(s2.fill(c).toSVG());
+			if (s3 != undefined)
+				g2d.insertSVG(s3.fill(c).toSVG());
+		},
+
+		/**
+		 * create tick direction according to path direction
+		 * @param {Object} shape
+		 * @param {Number} length
+		 * @param {Number} size
+		 * @return {Object} tick shape
+		 */
+		creatTickDirection : function(shape,length,size) {
+			var geom = new JenScript.GeometryPath(shape.toSVG());
+			var div = size;
+			if (length - div > 0 && length + 2 * div < geom.lengthOfPath()) {
+				var path = new JenScript.SVGPath();
+				var p1 = geom.pointAtLength(length + 2 * div);
+				var pl = geom.orthoLeftPointAtLength(length - div, div);
+				var pr = geom.orthoRightPointAtLength(length - div, div);
+				path.moveTo(p1.getX(), p1.getY());
+				path.lineTo(pr.getX(), pr.getY());
+				path.lineTo(pl.getX(), pl.getY());
+				path.close();
+				return path;
+			}
+			return undefined;
+		}
+	});
+	
+	
+	/**
+	 * Object JenScript.PathArcAutoBinder()
+	 * Auto Path Binder for gauge arc metrics
+	 * 
+	 * @param {Object} config
+	 * @param {Number} [config.radius] arc radius
+	 * @param {Number} [config.polarRadius] polar radius
+	 * @param {Number} [config.polarAngle] polar angle
+	 * @param {String} [config.direction] path direction, Clockwise or AntiClockwise
+	 */
+	JenScript.PathArcAutoBinder = function(config){
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.PathArcAutoBinder,JenScript.AbstractPathAutoBinder);
+	JenScript.Model.addMethods(JenScript.PathArcAutoBinder,{
+		
+		/**
+		 * Initialize Arc Auto Path Binder
+		 * 
+		 * @param {Object} config
+		 * @param {Number} [config.radius] arc radius
+		 * @param {Number} [config.polarRadius] polar radius
+		 * @param {Number} [config.polarAngle] polar angle
+		 * @param {String} [config.direction] path direction, Clockwise or AntiClockwise
+		 */
+		__init : function(config){
+			config = config || {};
+			/** the arc which is bind by this binder */
+			this.intersectionArc;
+			JenScript.AbstractPathAutoBinder.call(this,config);
+		},
+		
+		/**
+		 * get intersected arc 
+		 * @return {Object} the intersectionArc
+		 */
+		getIntersectionArc : function() {
+			return this.intersectionArc;
+		},
+
+		/**
+		 * set intersected arc
+		 * @param {Object} intersectionArc
+		 */
+		setIntersectionArc : function(intersectionArc) {
+			this.intersectionArc = intersectionArc;
+		},
+
+		/**
+		 * create path for this auto arc path binder
+		 * @returns {Object} arc to bind
+		 */
+		createPath : function() {
+			var polar = function (anchor,radius, angleRadian){
+				return {
+					x : anchor.x +radius*Math.cos(angleRadian),
+					y : anchor.y -radius*Math.sin(angleRadian)
+				};
+			};
+			var x1 =this.x1;
+			var y1 =this.y1;
+			var r1 =this.r1;
+			var theta1Radian1 = this.theta1Radian1;
+			var theta1Radian2 = this.theta1Radian2; 
+			var path = new JenScript.SVGPath();
+			if (this.polarDegree > 0 && this.polarDegree < 180) {
+				if (this.theta1Radian2 > this.theta1Radian1) {
+					var extendsDegree = JenScript.Math.toDegrees(this.theta1Radian2) - JenScript.Math.toDegrees(this.theta1Radian1);
+					var largeArcFlag = (extendsDegree >=180 || extendsDegree <= -180)? 1:0;
+					if (this.direction == 'AntiClockwise') {
+						var m = polar({x:x1,y:y1},r1,theta1Radian1);
+						var a = polar({x:x1,y:y1},r1,theta1Radian1 + JenScript.Math.toRadians(extendsDegree));
+						path.moveTo(m.x,m.y).arcTo(r1,r1,0,largeArcFlag,0,a.x,a.y);
+					} else if (this.direction == 'Clockwise') {
+						var m = polar({x:x1,y:y1},r1,theta1Radian2);
+						var a = polar({x:x1,y:y1},r1,theta1Radian2 - JenScript.Math.toRadians(extendsDegree));
+						path.moveTo(m.x,m.y).arcTo(r1,r1,0,largeArcFlag,1,a.x,a.y);
+					}
+				} else {
+					var extendsDegree = Math.abs(JenScript.Math.toDegrees(2 * Math.PI + theta1Radian2) - JenScript.Math.toDegrees(theta1Radian1));
+					var largeArcFlag = (extendsDegree >=180 || extendsDegree <= -180)? 1:0;
+					if (this.direction == 'AntiClockwise') {
+						var m = polar({x:x1,y:y1},r1,theta1Radian1);
+						var a = polar({x:x1,y:y1},r1,theta1Radian1 + JenScript.Math.toRadians(extendsDegree));
+						path.moveTo(m.x,m.y).arcTo(r1,r1,0,largeArcFlag,0,a.x,a.y);
+						
+					} else if (this.direction == 'Clockwise') {
+						var m = polar({x:x1,y:y1},r1,theta1Radian2);
+						var a = polar({x:x1,y:y1},r1,theta1Radian2 - JenScript.Math.toRadians(extendsDegree));
+						path.moveTo(m.x,m.y).arcTo(r1,r1,0,largeArcFlag,1,a.x,a.y);
+					}
+				}
+			} 
+			else if (this.polarDegree > 180 && this.polarDegree < 360) {
+				if (this.theta1Radian2 > this.theta1Radian1) {
+					var extendsDegree = (360 - (JenScript.Math.toDegrees(theta1Radian2) - JenScript.Math.toDegrees(theta1Radian1)));
+					var largeArcFlag = (extendsDegree >=180 || extendsDegree <= -180)? 1:0;
+					if (this.direction == 'AntiClockwise') {
+						var m = polar({x:x1,y:y1},r1,theta1Radian2);
+						var a = polar({x:x1,y:y1},r1,theta1Radian2 + JenScript.Math.toRadians(extendsDegree));
+						path.moveTo(m.x,m.y).arcTo(r1,r1,0,largeArcFlag,0,a.x,a.y);
+					} else if (this.direction == 'Clockwise') {
+						var m = polar({x:x1,y:y1},r1,theta1Radian1);
+						var a = polar({x:x1,y:y1},r1,theta1Radian1 - JenScript.Math.toRadians(extendsDegree));
+						path.moveTo(m.x,m.y).arcTo(r1,r1,0,largeArcFlag,1,a.x,a.y);
+					}
+				} else {
+					var extendsDegree = (JenScript.Math.toDegrees(theta1Radian1) - JenScript.Math.toDegrees(theta1Radian2));
+					var largeArcFlag = (extendsDegree >=180 || extendsDegree <= -180)? 1:0;
+					if (this.direction == 'AntiClockwise') {
+						var m = polar({x:x1,y:y1},r1,theta1Radian2);
+						var a = polar({x:x1,y:y1},r1,theta1Radian2 + JenScript.Math.toRadians(extendsDegree));
+						path.moveTo(m.x,m.y).arcTo(r1,r1,0,largeArcFlag,0,a.x,a.y);
+					} else if (this.direction == 'Clockwise') {
+						var m = polar({x:x1,y:y1},r1,theta1Radian1);
+						var a = polar({x:x1,y:y1},r1,theta1Radian1 - JenScript.Math.toRadians(extendsDegree));
+						path.moveTo(m.x,m.y).arcTo(r1,r1,0,largeArcFlag,1,a.x,a.y);
+					}
+				}
+			} 
+			else if (this.polarDegree === 0) {
+				var extendsDegree = JenScript.Math.toDegrees(theta1Radian2) - JenScript.Math.toDegrees(theta1Radian1);
+				var largeArcFlag = (extendsDegree >=180 || extendsDegree <= -180)? 1:0;
+				if (this.direction === 'AntiClockwise') {
+					var m = polar({x:x1,y:y1},r1,theta1Radian1);
+					var a = polar({x:x1,y:y1},r1,theta1Radian1 + JenScript.Math.toRadians(extendsDegree));
+					path.moveTo(m.x,m.y).arcTo(r1,r1,0,largeArcFlag,0,a.x,a.y);
+				} else if (this.direction === 'Clockwise') {
+					var m = polar({x:x1,y:y1},r1,theta1Radian2);
+					var a = polar({x:x1,y:y1},r1,theta1Radian2 - JenScript.Math.toRadians(extendsDegree));
+					path.moveTo(m.x,m.y).arcTo(r1,r1,0,largeArcFlag,1,a.x,a.y);
+				}
+			}
+			else if (this.polarDegree === 180) {
+				var extendsDegree = 360 - JenScript.Math.toDegrees(theta1Radian2) + JenScript.Math.toDegrees(theta1Radian1);
+				var largeArcFlag = (extendsDegree >=180 || extendsDegree <= -180)? 1:0;
+				if (this.direction === 'AntiClockwise') {
+					var m = polar({x:x1,y:y1},r1,theta1Radian2);
+					var a = polar({x:x1,y:y1},r1,theta1Radian2 + JenScript.Math.toRadians(extendsDegree));
+					path.moveTo(m.x,m.y).arcTo(r1,r1,0,largeArcFlag,0,a.x,a.y);
+				} else if (this.direction === 'Clockwise') {
+					var m = polar({x:x1,y:y1},r1,theta1Radian1);
+					var a = polar({x:x1,y:y1},r1,theta1Radian1 - JenScript.Math.toRadians(extendsDegree));
+					path.moveTo(m.x,m.y).arcTo(r1,r1,0,largeArcFlag,1,a.x,a.y);
+				}
+			}
+			this.intersectionArc = path;
+			return this.intersectionArc;
+		}
+	});
+	
+	
+	/**
+	 * Object JenScript.PathArcManualBinder()
+	 * Manual Arc path binder for arc metrics.
+	 * 
+	 * @param {Object} config
+	 * @param {Number} [config.startAngleDegree] manual start angle degree
+	 * @param {Number} [config.extendsAngleDegree] manual extends angle degree
+	 * @param {Number} [config.radius] arc radius
+	 * @param {Number} [config.polarRadius] polar radius, default 0
+	 * @param {Number} [config.polarAngle] polar angle, default 0
+	 */
+	JenScript.PathArcManualBinder = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.PathArcManualBinder,JenScript.PathBinder);
+	JenScript.Model.addMethods(JenScript.PathArcManualBinder,{
+		/**
+		 * Initialize Manual Arc Path Binder.
+		 * @param {Object} config
+		 * @param {Number} [config.startAngleDegree] manual start angle degree
+		 * @param {Number} [config.extendsAngleDegree] manual extends angle degree
+		 * @param {Number} [config.radius] arc radius
+		 * @param {Number} [config.shiftRadius] polar radius, default 0
+		 * @param {Number} [config.shiftAngleDegree] polar angle, default 0
+		 */
+		_init : function(config){
+			config = config || {};
+			/** binder radius */
+			this.radius = config.radius;
+			/** binder start angle degree */
+			this.startAngleDegree = config.startAngleDegree;
+			/** binder extends angle degree */
+			this.extendsAngleDegree = config.extendsAngleDegree;
+			/** shift radius */
+			this.shiftRadius = (config.shiftRadius !== undefined) ? config.shiftRadius: 0;
+			/** shift angle degree */
+			this.shiftAngleDegree = (config.shiftAngleDegree !== undefined) ? config.shiftAngleDegree: 0;
+		},
+		
+		/**
+		 * bind the arc for the given gauge
+		 * @param {Object} gauge
+		 */
+		bindPath : function(gauge) {
+			var centerX = gauge.getCenterDevice().getX();
+			var centerY = gauge.getCenterDevice().getY();
+			var shiftCenterX = centerX + this.shiftRadius * Math.cos(JenScript.Math.toRadians(this.shiftAngleDegree));
+			var shiftCenterY = centerY - this.shiftRadius * Math.sin(JenScript.Math.toRadians(this.shiftAngleDegree));
+			var polar = function(anchor, radius,angle){
+				return {
+					x : anchor.x +radius * Math.cos(JenScript.Math.toRadians(angle)),
+					y : anchor.y -radius * Math.sin(JenScript.Math.toRadians(angle)),
+				};
+			};
+			var anchor =  {x : shiftCenterX,y:shiftCenterY};
+			var p1 = polar(anchor,this.radius,this.startAngleDegree);
+			var p2 = polar(anchor,this.radius,this.startAngleDegree+this.extendsAngleDegree);
+			var path = new JenScript.SVGPath();
+			var largeArcFlag = (this.extendsAngleDegree >=180 || this.extendsAngleDegree <= -180)? 1:0;
+			var sweepFlag = (this.extendsAngleDegree < 0)? 1:0;
+			path.moveTo(p1.x,p1.y).arcTo(this.radius,this.radius,0,largeArcFlag,sweepFlag,p2.x,p2.y);
+			
+//			if(this.extendsAngleDegree >= 0){
+//				//alert("case 1");
+//				path.moveTo(p1.x,p1.y).arcTo(this.radius,this.radius,0,largeArcFlag,sweepFlag,p2.x,p2.y);
+//			}
+//			else{
+//				//alert("case 2");
+//				path.moveTo(p2.x,p2.y).arcTo(this.radius,this.radius,0,largeArcFlag,sweepFlag,p1.x,p1.y);
+//			}
+			return path;
+		}
+	});
+	
+	
+	
+	
+	/**
+	 * Object JenScript.PathCubicAutoBinder()
+	 * Auto Cubic Path Binder for gauge metrics
+	 * 
+	 * @param {Object} config
+	 * @param {Number} [config.controlOffsetRadius] offset radius for control points
+	 * @param {Number} [config.controlOffsetAngleDegree] offset angle for control points
+	 * @param {Number} [config.radius] arc radius
+	 * @param {Number} [config.polarRadius] polar radius
+	 * @param {Number} [config.polarAngle] polar angle
+	 * @param {String} [config.direction] path direction, Clockwise or AntiClockwise
+	 */
+	JenScript.PathCubicAutoBinder = function(config){
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.PathCubicAutoBinder,JenScript.AbstractPathAutoBinder);
+	JenScript.Model.addMethods(JenScript.PathCubicAutoBinder,{
+		
+		/**
+		 * Initialize Cubic Auto Path Binder
+		 * 
+		 * @param {Object} config
+		 * @param {Number} [config.controlOffsetRadius] offset radius for control points
+		 * @param {Number} [config.controlOffsetAngleDegree] offset angle for control points
+		 * @param {Number} [config.radius] arc radius
+		 * @param {Number} [config.polarRadius] polar radius
+		 * @param {Number} [config.polarAngle] polar angle
+		 * @param {String} [config.direction] path direction, Clockwise or AntiClockwise
+		 */
+		__init : function(config){
+			config = config || {};
+			/** the cubic curve which is bind by this binder */
+			this.intersectionCubicCurve;
+			/** control offset radius */
+			this.controlOffsetRadius = 10;
+			/** control offset angle degree */
+			this.controlOffsetAngleDegree = 10;
+			config.name='JenScript.PathCubicAutoBinder';
+			JenScript.AbstractPathAutoBinder.call(this,config);
+		},
+		
+		/**
+		 * get cubic intersection curve
+		 * @return {Object} the intersectionCubicCurve
+		 */
+		getIntersectionCubicCurve  : function() {
+			return this.intersectionCubicCurve;
+		},
+
+		/**
+		 * set cubic intersection curve
+		 * @param {Object} intersectionCubicCurve
+		 */
+		setIntersectionCubicCurve  : function(intersectionCubicCurve) {
+			this.intersectionCubicCurve = intersectionCubicCurve;
+		},
+
+		/**
+		 * get cubic control offset radius
+		 * @return {Number} controlOffsetRadius
+		 */
+		getControlOffsetRadius  : function() {
+			return this.controlOffsetRadius;
+		},
+
+		/**
+		 * set cubic control offset radius
+		 * @param {Number} controlOffsetRadius
+		 */
+		setControlOffsetRadius  : function(controlOffsetRadius) {
+			if (controlOffsetRadius < 0)
+				throw new Error('control offset radius must be positive');
+			this.controlOffsetRadius = controlOffsetRadius;
+		},
+
+		/**
+		 * get cubic cubic offset angle
+		 * @return {Number} the controlOffsetAngleDegree
+		 */
+		getControlOffsetAngleDegree  : function() {
+			return this.controlOffsetAngleDegree;
+		},
+
+		/**
+		 * set offset angle degree for cubic control point
+		 * @param {Number} controlOffsetAngleDegree
+		 */
+		setControlOffsetAngleDegree  : function( controlOffsetAngleDegree) {
+			if (controlOffsetAngleDegree < 0)
+				throw new Error('control offset angle must be positive');
+			this.controlOffsetAngleDegree = controlOffsetAngleDegree;
+		},
+
+		/**
+		 * create cubic curve segment from start to end point
+		 * @return {Object} cubic curve segment
+		 */
+		createCubicStart2End  : function() {
+			return new JenScript.SVGPath().moveTo(this.intersectionPointStart.getX(), this.intersectionPointStart.getY()).cubicTo(this.getControlPoint1().getX(), this.getControlPoint1().getY(), this.getControlPoint2().getX(), this.getControlPoint2().getY(), this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY());
+		},
+
+		/**
+		 * create cubic curve segment from end to start point
+		 * @return {Object} cubic curve segment
+		 */
+		createCubicEnd2Start  : function() {
+			return new JenScript.SVGPath().moveTo(this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY()).cubicTo(this.getControlPoint1().getX(), this.getControlPoint1().getY(), this.getControlPoint2().getX(), this.getControlPoint2().getY(), this.intersectionPointStart.getX(), this.intersectionPointStart.getY());
+		},
+
+		/**
+		 * create cubic curve to bind
+		 */
+		createPath  : function() {
+			if (this.intersectionPointStart === undefined || this.intersectionPointEnd === undefined)
+				return undefined;
+			if (this.polarDegree >= 0 && this.polarDegree < 180) {
+				if (this.direction === 'AntiClockwise') {
+					this.intersectionCubicCurve = this.createCubicStart2End();
+				} else if(this.direction === 'Clockwise') {
+					this.intersectionCubicCurve = this.createCubicEnd2Start();
+				}
+			} else if (this.polarDegree >= 180 && this.polarDegree < 360) {
+				if (this.direction === 'AntiClockwise') {
+					this.intersectionCubicCurve = this.createCubicEnd2Start();
+				} else if(this.direction === 'Clockwise') {
+					this.intersectionCubicCurve = this.createCubicStart2End();
+				}
+			}
+			return this.intersectionCubicCurve;
+		},
+
+		/**
+		 * return the control point 1 according the cubic binder configuration
+		 * @return {Object} control point 1
+		 */
+		getControlPoint1 : function() {
+			if (this.direction === 'Clockwise'){
+				var x = this.x1 + (this.radius + this.controlOffsetRadius) * Math.cos(JenScript.Math.toRadians(this.polarDegree) + Math.PI + JenScript.Math.toRadians(this.controlOffsetAngleDegree));
+				var y = this.y1 - (this.radius + this.controlOffsetRadius) * Math.sin(JenScript.Math.toRadians(this.polarDegree) + Math.PI + JenScript.Math.toRadians(this.controlOffsetAngleDegree));
+				return new JenScript.Point2D(x, y);
+			} else if(this.direction === 'AntiClockwise'){
+				var x = this.x1 + (this.radius + this.controlOffsetRadius) * Math.cos(JenScript.Math.toRadians(this.polarDegree) + Math.PI - JenScript.Math.toRadians(this.controlOffsetAngleDegree));
+				var y = this.y1 - (this.radius + this.controlOffsetRadius) * Math.sin(JenScript.Math.toRadians(this.polarDegree) + Math.PI - JenScript.Math.toRadians(this.controlOffsetAngleDegree));
+				return new JenScript.Point2D(x, y);
+			}
+		},
+
+		/**
+		 * return the control point 2 according the cubic binder configuration
+		 * @return {Object} control point 2
+		 */
+		getControlPoint2 : function() {
+			if (this.direction === 'Clockwise'){
+				var x = this.x1 + (this.radius + this.controlOffsetRadius) * Math.cos(JenScript.Math.toRadians(this.polarDegree) + Math.PI - JenScript.Math.toRadians(this.controlOffsetAngleDegree));
+				var y = this.y1 - (this.radius + this.controlOffsetRadius) * Math.sin(JenScript.Math.toRadians(this.polarDegree) + Math.PI - JenScript.Math.toRadians(this.controlOffsetAngleDegree));
+				return new JenScript.Point2D(x, y);
+			} else if(this.direction === 'AntiClockwise'){
+				var x = this.x1 + (this.radius + this.controlOffsetRadius) * Math.cos(JenScript.Math.toRadians(this.polarDegree) + Math.PI + JenScript.Math.toRadians(this.controlOffsetAngleDegree));
+				var y = this.y1 - (this.radius + this.controlOffsetRadius) * Math.sin(JenScript.Math.toRadians(this.polarDegree) + Math.PI + JenScript.Math.toRadians(this.controlOffsetAngleDegree));
+				return new JenScript.Point2D(x, y);
+			}
+		},
+
+		/**
+		 * paint cubic debug path finder
+		 * @param {Object} graphics context
+		 * @param {Object} gauge
+		 */
+		paintDebug : function(g2d,gauge) {
+			
+			//TODO : super block, waiting for super method impl
+			var p =this.createPath();
+			if(p === undefined)
+				return;
+			this.solveIntersectionPoints();
+
+			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
+			g2d.insertSVG(line3.stroke(JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,30).toHexString()).fillNone().toSVG());
+			
+			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
+			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
+			
+			if(this.intersectionPointStart === undefined || this.intersectionPointEnd === undefined)
+				return;
+			
+			var line1 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.intersectionPointStart.x,this.intersectionPointStart.y);
+			g2d.insertSVG(line1.stroke('yellow').fillNone().toSVG());
+			
+			var line2 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.intersectionPointEnd.x,this.intersectionPointEnd.y);
+			g2d.insertSVG(line2.stroke('yellow').fillNone().toSVG());
+			
+			var i1 = new JenScript.SVGCircle().center(this.intersectionPointStart.getX(), this.intersectionPointStart.getY()).radius(4);
+			var i2 = new JenScript.SVGCircle().center(this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY()).radius(4);
+			
+			var color = (this.direction == 'Clockwise')? 'cyan' : 'orange';
+			this.drawPath(g2d, p, color);
+			
+			g2d.insertSVG(i1.fill(JenScript.RosePalette.LIME).toSVG());
+			g2d.insertSVG(i2.fill(JenScript.RosePalette.LIME).toSVG());
+			
+			//this debug block
+			//super.debug(g2d, gauge);
+
+//			g2d.setColor(NanoChromatique.BLUE);
+//			g2d.draw(new Ellipse2D.Double(getControlPoint1().getX() - 2, getControlPoint1().getY() - 2, 4, 4));
+//			g2d.drawString("C1", (int) getControlPoint1().getX(), (int) getControlPoint1().getY());
+//
+//			g2d.setColor(NanoChromatique.RED);
+//			g2d.draw(new Ellipse2D.Double(getControlPoint2().getX() - 2, getControlPoint2().getY() - 2, 4, 4));
+//			g2d.drawString("C2", (int) getControlPoint2().getX(), (int) getControlPoint2().getY());
+//
+//			g2d.setColor(new Alpha(NanoChromatique.GREEN, 80));
+//			g2d.draw(new Ellipse2D.Double(x1 - (r1 + controlOffsetRadius), y1 - (r1 + controlOffsetRadius), 2 * (r1 + controlOffsetRadius), 2 * (r1 + controlOffsetRadius)));
+		}
+	});
+	
+	/**
+	 * Object JenScript.PathQuadAutoBinder()
+	 * Auto Quadratic Path Binder for gauge metrics
+	 * 
+	 * @param {Object} config
+	 * @param {Number} [config.controlOffsetRadius] offset radius for control points
+	 * @param {Number} [config.radius] arc radius
+	 * @param {Number} [config.polarRadius] polar radius
+	 * @param {Number} [config.polarAngle] polar angle
+	 * @param {String} [config.direction] path direction, Clockwise or AntiClockwise
+	 */
+	JenScript.PathQuadAutoBinder = function(config){
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.PathQuadAutoBinder,JenScript.AbstractPathAutoBinder);
+	JenScript.Model.addMethods(JenScript.PathQuadAutoBinder,{
+		
+		/**
+		 * Initialize Quadratic Auto Path Binder
+		 * 
+		 * @param {Object} config
+		 * @param {Number} [config.controlOffsetRadius] offset radius for quadratic control points
+		 * @param {Number} [config.radius] arc radius
+		 * @param {Number} [config.polarRadius] polar radius
+		 * @param {Number} [config.polarAngle] polar angle
+		 * @param {String} [config.direction] path direction, Clockwise or AntiClockwise
+		 */
+		__init : function(config){
+			config = config || {};
+			/** the quadratic curve which is bind by this binder */
+			this.intersectionQuadCurve;
+			/** control offset radius */
+			this.controlOffsetRadius = 10;
+			config.name='JenScript.PathQuadAutoBinder';
+			JenScript.AbstractPathAutoBinder.call(this,config);
+		},
+		
+		/**
+		 * get intersection quad curve
+		 * @return {Object} intersectionQuadCurve
+		 */
+		getIntersectionQuadCurve : function() {
+			return this.intersectionQuadCurve;
+		},
+
+		/**
+		 * set intersection quad curve
+		 * @param {Object} intersectionQuadCurve
+		 */
+		setIntersectionQuadCurve : function(intersectionQuadCurve) {
+			this.intersectionQuadCurve = intersectionQuadCurve;
+		},
+
+		/**
+		 * get control offset radius
+		 * @return {Number} controlOffsetRadius
+		 */
+		getControlOffsetRadius : function() {
+			return this.controlOffsetRadius;
+		},
+
+		/**
+		 * set control offset radius
+		 * @param {Number} controlOffsetRadius
+		 */
+		setControlOffsetRadius : function(controlOffsetRadius) {
+			if (this.controlOffsetRadius < 0)
+				throw new Error('control offset radius must be positive');
+			this.controlOffsetRadius = controlOffsetRadius;
+		},
+
+		/**
+		 * create quadratic segment from start to end point
+		 * @return {Object} quadratic segment
+		 */
+		createQuadStart2End : function() {
+			return new JenScript.SVGPath().moveTo(this.intersectionPointStart.getX(),this.intersectionPointStart.getY()).quadTo(this.getControlPoint().getX(), this.getControlPoint().getY(), this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY());
+		},
+
+		/**
+		 * create quadratic segment from end to start point
+		 * @return {Object} quadratic segment
+		 */
+		createQuadEnd2Start : function() {
+			return new JenScript.SVGPath().moveTo(this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY()).quadTo(this.getControlPoint().getX(), this.getControlPoint().getY(), this.intersectionPointStart.getX(), this.intersectionPointStart.getY());
+		},
+
+		/**
+		 * create quad path to bind
+		 */
+		createPath : function() {
+			if (this.intersectionPointStart === undefined || this.intersectionPointEnd == undefined)
+				return undefined;
+			if (this.polarDegree >= 0 && this.polarDegree < 180) {
+				if (this.direction === 'AntiClockwise') {
+					this.intersectionQuadCurve = this.createQuadStart2End();
+				} else if (this.direction == Direction.Clockwise) {
+					this.intersectionQuadCurve = this.createQuadEnd2Start();
+				}
+			} else if (this.polarDegree >= 180 && this.polarDegree < 360) {
+				if (this.direction === 'AntiClockwise') {
+					this.intersectionQuadCurve = this.createQuadEnd2Start();
+				} else if (this.direction == Direction.Clockwise) {
+					this.intersectionQuadCurve = this.createQuadStart2End();
+				}
+			}
+			return this.intersectionQuadCurve;
+		},
+
+		/**
+		 * return the control point according the quadratic binder configuration
+		 * @return {Object} control point
+		 */
+		getControlPoint : function() {
+			var x = this.x1 + (this.radius + this.controlOffsetRadius) * Math.cos(JenScript.Math.toRadians(this.polarDegree) + Math.PI);
+			var y = this.y1 - (this.radius + this.controlOffsetRadius) * Math.sin(JenScript.Math.toRadians(this.polarDegree) + Math.PI);
+			return new JenScript.Point2D(x, y);
+		},
+
+		/**
+		 * paint quad debug path finder
+		 * @param {Object} graphics context
+		 * @param {Object} gauge
+		 */
+		paintDebug : function(g2d,gauge) {
+			//TODO : super block, waiting for super method impl
+			var p =this.createPath();
+			if(p === undefined)
+				return;
+			this.solveIntersectionPoints();
+
+			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
+			g2d.insertSVG(line3.stroke(JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,30).toHexString()).fillNone().toSVG());
+			
+			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
+			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
+			
+			if(this.intersectionPointStart === undefined || this.intersectionPointEnd === undefined)
+				return;
+			
+			var line1 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.intersectionPointStart.x,this.intersectionPointStart.y);
+			g2d.insertSVG(line1.stroke('yellow').fillNone().toSVG());
+			
+			var line2 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.intersectionPointEnd.x,this.intersectionPointEnd.y);
+			g2d.insertSVG(line2.stroke('yellow').fillNone().toSVG());
+			
+			var i1 = new JenScript.SVGCircle().center(this.intersectionPointStart.getX(), this.intersectionPointStart.getY()).radius(4);
+			var i2 = new JenScript.SVGCircle().center(this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY()).radius(4);
+			
+			var color = (this.direction == 'Clockwise')? 'cyan' : 'orange';
+			this.drawPath(g2d, p, color);
+			
+			g2d.insertSVG(i1.fill(JenScript.RosePalette.LIME).toSVG());
+			g2d.insertSVG(i2.fill(JenScript.RosePalette.LIME).toSVG());
+			
+			//this quad debug
+//			g2d.setColor(NanoChromatique.GREEN);
+//
+//			g2d.draw(new Ellipse2D.Double(getControlPoint().getX() - 2, getControlPoint().getY() - 2, 4, 4));
+//
+//			g2d.setColor(new Alpha(NanoChromatique.GREEN, 100));
+//			g2d.draw(new Ellipse2D.Double(x1 - (r1 + controlOffsetRadius), y1 - (r1 + controlOffsetRadius), 2 * (r1 + controlOffsetRadius), 2 * (r1 + controlOffsetRadius)));
+		}
+	});
+})();
+(function(){
+
+	
+	
+	
+	
+	
+	/**
+	 * Object JenScript.GaugeNeedlePainter()
+	 * 
+	 * Defines a gauge needle painter taht takes the responsibility to paint a needle
+	 * which is based on anchors binders declared in gauge path metrics
+	 * @param {Object} config
+	 */
+	JenScript.GaugeNeedlePainter = function(config){
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.GaugeNeedlePainter,{
+		/**
+		 * Initialize gauge needle painter
+		 * 
+		 * @param {Object} config
+		 */
+		init : function(config){
+			config = config || {};
+		},
+		
+		/**
+		 * paint needle for the given gauge metrics path anchor configuration
+		 * 
+		 * @param {Object} graphics context
+		 * @param {Object} gaugeMetricsPath
+		 */
+		paintNeedle : function(g2d,metricsPath){throw new Error('JenScript.GaugeNeedlePainter, paintNeedle method should be provide by override');}
+	});
+	
+	
+	/**
+	 * Object JenScript.GaugeNeedleClassicPainter()
+	 * 
+	 * Defines classic needle
+	 * @param {Object} config
+	 */
+	JenScript.GaugeNeedleClassicPainter = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.GaugeNeedleClassicPainter,JenScript.GaugeNeedlePainter);
+	JenScript.Model.addMethods(JenScript.GaugeNeedleClassicPainter,{
+		/**
+		 * Initialize classic gauge needle
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			JenScript.GaugeNeedlePainter.call(this,config);
+		},
+
+		/**
+		 * paint classic needle for the given gauge metrics path anchor configuration
+		 * @param {Object} graphics context
+		 * @param {Object} gauge metrics path
+		 */
+		paintNeedle : function(g2d,gaugeMetricsPath) {
+			var needleBase = gaugeMetricsPath.getNeedleBaseAnchorBinder().bindAnchor(gaugeMetricsPath.getBody().getGauge());
+			var needleValue = gaugeMetricsPath.getNeedleValueAnchorBinder().bindAnchor(gaugeMetricsPath.getBody().getGauge());
+			var needleLine = new JenScript.SVGPath().moveTo(needleBase.x,needleBase.y).lineTo(needleValue.x,needleValue.y);
+			var s1 = needleLine.strokeWidth(4).strokeLineCap('round').opacity(0.6).stroke('black').toSVG();
+			var s2 = needleLine.strokeWidth(10).strokeLineCap('round').opacity(0.4).stroke(JenScript.RosePalette.AEGEANBLUE).toSVG();
+			g2d.insertSVG(s2);
+			g2d.insertSVG(s1);
+			var centerRadius =14;
+			var shader = {percents:['0%','100%'],colors:[JenScript.RosePalette.AEGEANBLUE,'black']};
+			var gradientId = "gradient"+JenScript.sequenceId++;
+			var gradient= new JenScript.SVGRadialGradient().Id(gradientId).center(needleBase.getX(),needleBase.getY()).focus(needleBase.getX(),needleBase.getY()).radius(centerRadius).shade(shader.percents,shader.colors).toSVG();
+			g2d.definesSVG(gradient);
+			var center = new JenScript.SVGCircle().center(needleBase.getX(),needleBase.getY()).radius(centerRadius);
+			g2d.insertSVG(center.fillURL(gradientId).fillOpacity(0.6).strokeOpacity(0.5).strokeWidth(2).stroke(JenScript.RosePalette.AEGEANBLUE).toSVG());
+		}
+	});
+	
+})();
+(function(){
+
+	
+	/**
+	 * Object JenScript.GaugeMetricsPath()
+	 * Defines a gauge metrics path
+	 * @param {Object} config
+	 */
+	JenScript.GaugeMetricsPath = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.GaugeMetricsPath,JenScript.GeneralMetricsPath);
+	JenScript.Model.addMethods(JenScript.GaugeMetricsPath,{
+		_init : function(config){
+			console.log('create gauge metrics path');
+			config = config || {};
+			config.nature = 'Device';
+			/** current value */
+			this.currentValue;
+			/** needle base anchor binder */
+			this.needleBaseAnchorBinder;
+			/** needle value anchor binder */
+			this.needleValueAnchorBinder;
+			/** gauge body this metrics path */
+			this.body;
+			/** path binder */
+			this.pathBinder;
+			/** gauge needle painter */
+			this.gaugeNeedlePainter;
+			JenScript.GeneralMetricsPath.call(this,config);
+		},
+		
+		/**
+		 * get gauge needle painter
+		 * @returns {Object} needle painter
+		 */
+		getGaugeNeedlePainter : function() {
+			return this.gaugeNeedlePainter;
+		},
+
+		/**
+		 * set gauge needle painter
+		 * @param {Object} gauge needle painter
+		 */
+		setGaugeNeedlePainter : function(gaugeNeedlePainter) {
+			this.gaugeNeedlePainter = gaugeNeedlePainter;
+		},
+
+		/**
+		 * get the current user value
+		 * @returns {Number} current value
+		 */
+		getCurrentValue : function() {
+			return this.currentValue;
+		},
+
+		/**
+		 * set current user value
+		 * @param {Number} currentValue
+		 */
+		setCurrentValue : function(currentValue) {
+			if (this.currentValue < this.getMin() || this.currentValue > this.getMax())
+				throw new Error("Gauge Metrics out of range. " + this.currentValue + " [min,max] path range.");
+			this.currentValue = currentValue;
+		},
+
+		/**
+		 * get path binder
+		 * 
+		 * @return path binder
+		 */
+		getPathBinder : function() {
+			return this.pathBinder;
+		},
+
+		/**
+		 * get path binder
+		 * 
+		 * @param pathBinder
+		 */
+		setPathBinder : function(pathBinder) {
+			if(pathBinder !== undefined){
+				pathBinder.setMetricsPath(this);
+			}
+			this.pathBinder = pathBinder;
+		},
+
+		/**
+		 * get needle base anchor binder
+		 * 
+		 * @return needle base anchor binder
+		 */
+		getNeedleBaseAnchorBinder : function() {
+			return this.needleBaseAnchorBinder;
+		},
+
+		/**
+		 * set needle anchor binder
+		 * 
+		 * @param needleAnchorBinder
+		 */
+		setNeedleBaseAnchorBinder : function(needleAnchorBinder) {
+			needleAnchorBinder.setMetricsPath(this);
+			this.needleBaseAnchorBinder = needleAnchorBinder;
+		},
+
+		/**
+		 * get needle value anchor binder
+		 * 
+		 * @return needle value anchor binder
+		 */
+		getNeedleValueAnchorBinder : function() {
+			return this.needleValueAnchorBinder;
+		},
+
+		/**
+		 * set needle value anchor binder
+		 * 
+		 * @param needleValueAnchorBinder
+		 */
+		setNeedleValueAnchorBinder : function(needleValueAnchorBinder) {
+			needleValueAnchorBinder.setMetricsPath(this);
+			this.needleValueAnchorBinder = needleValueAnchorBinder;
+		},
+
+		/**
+		 * @return the body
+		 */
+		getBody : function() {
+			return this.body;
+		},
+
+		/**
+		 * @param body
+		 *            the body to set
+		 */
+		setBody : function(body) {
+			this.body = body;
+		},
+
+		/**
+		 * create part buffer of this metrics path from original context.
+		 * 
+		 * @param g2d
+		 */
+		draw : function(g2d) {
+			console.log('gauge metrics path draw');
+			this.graphicsContext = g2d;
+			this.getMetrics();
+
+
+//			if (getPathPainter() != null) {
+//				getPathPainter().paintPath(g2dPart, this);
+//			}
+//
+//			List<GlyphMetric> metrics = getMetrics();
+//			for (GlyphMetric m : metrics) {
+//
+//				if (m.getGlyphMetricMarkerPainter() != null) {
+//					m.getGlyphMetricMarkerPainter().paintGlyphMetric(g2dPart, m);
+//				}
+//				if (m.getGlyphMetricFill() != null) {
+//					m.getGlyphMetricFill().paintGlyphMetric(g2dPart, m);
+//				}
+//				if (m.getGlyphMetricDraw() != null) {
+//					m.getGlyphMetricDraw().paintGlyphMetric(g2dPart, m);
+//				}
+//				if (m.getGlyphMetricEffect() != null) {
+//					m.getGlyphMetricEffect().paintGlyphMetric(g2dPart, m);
+//				}
+//			}
+		},
+	});
+})();
+(function(){
+
+	/**
+	 * Object JenScript.RadialGauge()
+	 * Defines a radial gauge.
+	 * @param {Object} config
+	 * @param {Number} [config.x] the gauge center x position
+	 * @param {Number} [config.y] the gauge center y position
+	 * @param {Number} [config.radius] the gauge radius
+	 */
+	JenScript.RadialGauge = function(config){
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.RadialGauge,{
+		/**
+		 * Initailize this radial gauge.
+		 * @param {Object} config
+		 * @param {Number} [config.x] the gauge center x position
+		 * @param {Number} [config.y] the gauge center y position
+		 * @param {Number} [config.radius] the gauge radius
+		 */
+		init : function(config){
+			/** gauge center x */
+			this.x = (config.x !== undefined )? config.x : 0;
+			/** gauge center y */
+			this.y = (config.y !== undefined )? config.y :0;
+			/** gauge radius */
+			this.radius = config.radius;
+			/** gauge projection */
+			this.projection;
+			/** gauge envelop */
+			this.envelop;
+			/** gauge glass effects */
+			this.glasses = [];
+			/** gauge backgrounds */
+			this.backgrounds=[];
+			/** gauge bodies */
+			this.bodies=[];
+		},
+		
+		/**
+		 * get the gauge center in the device system coordinate according to the
+		 * given x and y coordinate define in user coordinate
+		 * @return {Object} gauge center device
+		 */
+		getCenterDevice : function() {
+			var centerX = this.getProjection().userToPixelX(this.x);
+			var centerY = this.getProjection().userToPixelY(this.y);
+			return new JenScript.Point2D(centerX, centerY);
+		},
+
+		/**
+		 * get radial point from center gauge according to given polar coordiante given
+		 * @param {Number} radius
+		 * @param {Number} angle degree
+		 * @return {Object} radial point
+		 */
+		getRadialPointAt : function(radius,angleDegree) {
+			var bc = this.getCenterDevice();
+			var centerX = bc.getX();
+			var centerY = bc.getY();
+			var shiftCenterX = centerX + radius * Math.cos(JenScript.Math.toRadians(angleDegree));
+			var shiftCenterY = centerY - radius * Math.sin(JenScript.Math.toRadians(angleDegree));
+			return new JenScript.Point2D(shiftCenterX, shiftCenterY);
+		},
+
+		/**
+		 * get gauge backgrounds
+		 * @return {Array} gauge backgrounds array
+		 */
+		getBackgrounds : function() {
+			return this.backgrounds;
+		},
+
+		/**
+		 * set gauge backgrounds array
+		 * @param {Array} backgrounds
+		 */
+		setBackgrounds : function(backgrounds) {
+			this.backgrounds = backgrounds;
+		},
+
+		/**
+		 * add gauge background
+		 * @param {Object} background
+		 */
+		addBackground : function(background) {
+			this.backgrounds[this.backgrounds.length] = background;
+		},
+
+		/**
+		 * get gauge projection
+		 * @return {Object} projection
+		 */
+		getProjection : function() {
+			return this.projection;
+		},
+
+		/**
+		 * set gauge projection
+		 * @param {Object} projection
+		 */
+		setProjection : function(projection) {
+			this.projection = projection;
+		},
+
+		/**
+		 * get gauge radius
+		 * @return {Number} gauge radius
+		 */
+		getRadius : function() {
+			return this.radius;
+		},
+
+		/**
+		 * set gauge radius
+		 * @param {Number} radius
+		 */
+		setRadius : function(radius) {
+			this.radius = radius;
+		},
+
+		/**
+		 * get gauge center x
+		 * @return {Number} center x
+		 */
+		getX : function() {
+			return this.x;
+		},
+
+		/**
+		 * set gauge center x
+		 * @param {Number} x
+		 */
+		setX : function(x) {
+			this.x = x;
+		},
+
+		/**
+		 * get gauge center y
+		 * @return {Number} center y
+		 */
+		getY : function() {
+			return this.y;
+		},
+
+		/**
+		 * set gauge center y
+		 * @param {Number} y
+		 */
+		setY : function( y) {
+			this.y = y;
+		},
+
+		/**
+		 * get gauge envelop
+		 * @return {Object} gauge envelop
+		 */
+		getEnvelop : function() {
+			return this.envelop;
+		},
+
+		/**
+		 * set gauge envelop
+		 * @param {Object} envelop
+		 */
+		setEnvelop : function(envelop) {
+			envelop.setGauge(this);
+			this.envelop = envelop;
+		},
+
+		/**
+		 * get gauge glasses array
+		 * @return {Array} glasses
+		 */
+		getGlasses : function() {
+			return this.glasses;
+		},
+
+		/**
+		 * set gauge glasses array
+		 * @param {Array} glasses
+		 */
+		setGlasses : function(glasses) {
+			for (var i = 0; i < glasses.length; i++) {
+				this.addGlass(glasses[i]);
+			}
+		},
+
+		/**
+		 * add given glass
+		 * @param {Object} glass
+		 */
+		addGlass : function(glass) {
+			glass.setGauge(this);
+			this.glasses[this.glasses.length] = glass;
+		},
+		
+		/**
+		 * get gauge bodies array
+		 * @return {Array} gauge bodies array
+		 */
+		getBodies:function() {
+			return this.bodies;
+		},
+
+		/**
+		 * set gauge bodies array 
+		 * @param {Array} bodies array
+		 */
+		setBodies : function(bodies) {
+			for (var i = 0; i < bodies.length; i++) {
+				this.addBody(bodies[i]);
+			}
+		},
+
+		/**
+		 * add given body in this gauge
+		 * @param {Object} body
+		 */
+		addBody : function( body) {
+			body.setGauge(this);
+			this.bodies[this.bodies.length] = body;
+		},
+	});
+})();
+(function(){
+
+
+	
+	JenScript.GaugeCompass = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.GaugeCompass,JenScript.RadialGauge);
+	JenScript.Model.addMethods(JenScript.GaugeCompass,{
+		_init : function(config){
+			config = config || {};
+			this.gaugeRadius = 110;
+			config.radius = 110;
+			JenScript.RadialGauge.call(this,config);
+			
+			var env = new JenScript.Cisero();
+			this.setEnvelop(env);
+			//var bg = new JenScript.LinearGradientCircularBackground();
+			var bg = new JenScript.TextureCircularBackground();
+			
+			this.addBackground(bg);
+			
+			
+			this.body = new JenScript.GaugeBody();
+			this.addBody(this.body);
+			
+			this.createSecondaryMetrics();
+		},
+		
+		/**
+		 * create secondary metrics label
+		 */
+		createSecondaryMetrics : function() {
+
+			
+			this.secondaryPathManager = new JenScript.GaugeMetricsPath();
+			//this.secondaryPathManager.setAutoReverseGlyph(false);
+			//this.secondaryPathManager.setReverseAll(true);
+			this.secondaryPathManager.setRange(0, 360);
+			
+			this.secondaryPathManager.setPathBinder(new JenScript.PathArcManualBinder({radius : this.gaugeRadius - 50, startAngleDegree :  0, extendsAngleDegree : 359}));
+			this.body.registerGaugeMetricsPath(this.secondaryPathManager);
+
+			//GlyphMetric metric;
+			//Font f = InputFonts.getElements(12);
+			var metric = new JenScript.GlyphMetric();
+			metric.setValue(30);
+			//metric.setStylePosition('Tangent');
+			//metric.setMetricsNature('Median');
+			metric.setMetricsLabel("30");
+			//metric.setDivergence(0);
+			//metric.setGlyphMetricFill(new GlyphFill(Color.WHITE, NanoChromatique.YELLOW.brighter()));
+			//metric.setFont(f);
+			this.secondaryPathManager.addMetric(metric);
+
+			metric = new  JenScript.GlyphMetric();
+			metric.setValue(60);
+			//metric.setStylePosition('Tangent');
+			//metric.setMetricsNature(GlyphMetricsNature.Median);
+			metric.setMetricsLabel("60");
+			//metric.setDivergence(0);
+			//metric.setGlyphMetricFill(new GlyphFill(Color.WHITE, NanoChromatique.BLUE));
+			//metric.setFont(f);
+			this.secondaryPathManager.addMetric(metric);
+
+			metric = new JenScript.GlyphMetric();
+			metric.setValue(120);
+			//metric.setStylePosition('Tangent');
+			//metric.setMetricsNature(GlyphMetricsNature.Median);
+			metric.setMetricsLabel("120");
+			//metric.setDivergence(0);
+			//metric.setGlyphMetricFill(new GlyphFill(Color.WHITE, NanoChromatique.BLUE));
+			//metric.setFont(f);
+			this.secondaryPathManager.addMetric(metric);
+
+			metric = new JenScript.GlyphMetric();
+			metric.setValue(150);
+			//metric.setStylePosition('Tangent');
+			//metric.setMetricsNature(GlyphMetricsNature.Median);
+			metric.setMetricsLabel("150");
+			//metric.setDivergence(0);
+			//metric.setGlyphMetricFill(new GlyphFill(Color.WHITE, NanoChromatique.ORANGE.brighter()));
+			//metric.setFont(f);
+			this.secondaryPathManager.addMetric(metric);
+
+			metric = new JenScript.GlyphMetric();
+			metric.setValue(210);
+			//metric.setStylePosition('Tangent');
+			//metric.setMetricsNature(GlyphMetricsNature.Median);
+			metric.setMetricsLabel("210");
+			//metric.setDivergence(0);
+			//metric.setGlyphMetricFill(new GlyphFill(Color.WHITE, NanoChromatique.ORANGE.brighter()));
+			//metric.setFont(f);
+			this.secondaryPathManager.addMetric(metric);
+
+			metric = new JenScript.GlyphMetric();
+			metric.setValue(240);
+			//metric.setStylePosition('Tangent');
+			//metric.setMetricsNature(GlyphMetricsNature.Median);
+			metric.setMetricsLabel("240");
+			//metric.setDivergence(0);
+			//metric.setGlyphMetricFill(new GlyphFill(Color.WHITE, NanoChromatique.RED));
+			//metric.setFont(f);
+			this.secondaryPathManager.addMetric(metric);
+
+			metric = new JenScript.GlyphMetric();
+			metric.setValue(300);
+			//metric.setStylePosition('Tangent');
+			//metric.setMetricsNature(GlyphMetricsNature.Median);
+			//metric.setMetricsLabel("300");
+			//metric.setDivergence(0);
+			//metric.setGlyphMetricFill(new GlyphFill(Color.WHITE, NanoChromatique.RED));
+			//metric.setFont(f);
+			this.secondaryPathManager.addMetric(metric);
+
+			metric = new JenScript.GlyphMetric();
+			metric.setValue(330);
+			//metric.setStylePosition('Tangent');
+			//metric.setMetricsNature(GlyphMetricsNature.Median);
+			metric.setMetricsLabel("330");
+			//metric.setDivergence(0);
+			//metric.setGlyphMetricFill(new GlyphFill(Color.WHITE, NanoChromatique.YELLOW.brighter()));
+			//metric.setFont(f);
+			this.secondaryPathManager.addMetric(metric);
+		}
+	});
+})();
+(function(){
+	
+	/**
+	 * Object BubblePlugin()
+	 * Defines a plugin that takes the responsibility to manage bubble
+	 * @param {Object} config
+	 */
+	JenScript.BubblePlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.BubblePlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.BubblePlugin, {
+		
+		/**
+		 * Initialize Function Plugin
+		 * Defines a plugin that takes the responsibility to manage function
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			config.priority = 100;
+			config.name = 'BubblePlugin';
+		    JenScript.Plugin.call(this,config);
+		    this.bubbles = [];
+		},
+		
+		/**
+		 * add the given bubble in this bubble plugin and return this plugin
+		 * @param {Object} bubble
+		 */
+		addBubble : function(bubble){
+			bubble.plugin = this;
+			this.bubbles[this.bubbles.length] = bubble;
+			this.repaintPlugin();
+			return this;
+		},
+		
+		/**
+		 * create a bubble with given properties and return this plugin
+		 *  @param {Object} bubble properties
+		 */
+		bubble : function(properties){
+			var b = new JenScript.Bubble(properties);
+			this.addBubble(b);
+			return this;
+		},
+		
+		/**
+		 * remove the given bubble in this bubble plugin
+		 * @param {Object} bubble
+		 */
+		removeBubble : function(bubble){
+			var nb = [];
+			for (var i = 0; i < this.bubbles.length; i++) {
+				if(!this.bubbles[i].equals(bubble))
+					nb[nb.length]=this.bubbles[i];
+			}
+			this.bubbles = nb;
+		},
+		
+		/**
+		 * on projection register add 'bound changed' projection listener that invoke repaint plugin
+		 * when projection bound changed event occurs.
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'BubblePlugin projection bound changed');
+		},
+		
+		
+		/**
+		 * paint bubble plugin
+		 */
+		 paintPlugin : function(g2d,viewPart) {
+			 if(viewPart !== 'Device') return;
+			 for (var i = 0; i < this.bubbles.length; i++) {
+				 var bubble = this.bubbles[i];
+				 
+				 var cp = this.getProjection().userToPixel(bubble.center);
+				 var svg = new JenScript.SVGCircle().Id(bubble.Id).center(cp.x,cp.y).radius(bubble.radius);
+				 
+				 svg.fill(bubble.fillColor).fillOpacity(bubble.fillOpacity);
+				 if(bubble.strokeColor !== undefined)
+					 svg.stroke(bubble.strokeColor).strokeWidth(bubble.strokeWidth).strokeOpacity(bubble.strokeOpacity);
+				 
+				 g2d.deleteGraphicsElement(bubble.Id);
+				 g2d.insertSVG(svg.toSVG());
+			 }
+		 } 
+		
+	});
+	
+})();
+(function(){
+	
+	/**
+	 * Object Bubble()
+	 * Defines a plugin that takes the responsibility to manage bubble
+	 * @param {Object} config
+	 */
+	JenScript.Bubble = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Bubble, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.Bubble, {
+		
+		/**
+		 * Initialize Bubble
+		 * Defines bubble
+		 * @param {Object} config
+		 */
+		init : function(config){
+			config = config || {};
+			config.priority = 100;
+			this.Id = 'bubble'+JenScript.sequenceId++;
+			this.center = (config.center !== undefined)?config.center : new JenScript.Point2D(0,0);
+			this.radius = (config.radius !== undefined)?config.radius : 50;
+			
+			this.fillColor = (config.fillColor !== undefined)?config.fillColor : JenScript.RosePalette.INDIGO;
+			this.fillOpacity = (config.fillOpacity !== undefined)?config.fillOpacity : 1;
+			this.strokeColor = config.strokeColor;
+			this.strokeWidth = (config.strokeWidth !== undefined)?config.strokeWidth : 1;
+			this.strokeOpacity = (config.strokeOpacity !== undefined)?config.strokeOpacity : 1;
+		},
+		
+		/**
+		 * get bubble center in user coordiante
+		 * @returns bubble center
+		 */
+		getCenter : function(){
+			return this.center;
+		},
+		
+		/**
+		 * set bubble center in user coordinate
+		 * @param {Object} bubble center
+		 */
+		setCenter : function(center){
+			this.center = center;
+		},
+		
+		/**
+		 * get bubble radius in pixel
+		 * @returns bubble radius
+		 */
+		getRadius : function(){
+			return this.radius;
+		},
+		
+		/**
+		 * set bubble radius in pixel
+		 * @param {Number} bubble radius
+		 */
+		setRadius : function(radius){
+			this.radius = radius;
+		},
+		
+		/**
+		 * equals bubble if this bubble id match with the given bubble o
+		 * @param {Object} o
+		 */
+		equals : function(o){
+			if(!(o instanceof JenScript.Bubble))
+				return false;
+			if(o.Id === this.Id)
+				return true;
+		}
+		
+		
+	});
+	
+})();
+(function(){
+	/**
+	 * <code>UnivariateRealFunction</code>
+	 * <p>
+	 * An interface representing a univariate real function.
+	 * </p>
+	 * <p>
+	 * an univariate real function computes the corresponding value for the given x value
+	 * </p>
+	 */
+	JenScript.UnivariateRealFunction = function(config){
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.UnivariateRealFunction,{
+		init : function(config){
+		},
+		
+		
+		/**
+	     * Compute the value for the function.
+	     * 
+	     * @param x
+	     *            the point for which the function value should be computed
+	     * @return the value
+	     * @throws AnalysisException
+	     *             if the function evaluation fails
+	     */
+		value : function(x){},
+	   
+	});
+	
+	
+	/**
+	 * <code>DifferentiableUnivariateRealFunction</code> representing a
+	 * differentiable univariate real function.
+	 * 
+	 */
+	JenScript.DifferentiableUnivariateRealFunction = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.DifferentiableUnivariateRealFunction,JenScript.UnivariateRealFunction);
+	JenScript.Model.addMethods(JenScript.DifferentiableUnivariateRealFunction,{
+		_init : function(config){
+			JenScript.UnivariateRealFunction.call(this,config);
+		},
+		
+		/**
+		 * Returns the derivative of the function
+		 * 
+		 * @return the derivative function
+		 */
+		 derivative : function(){},
+	});
+	
+	
+
+	/**
+	 * <code>UnivariateRealInterpolator</code>
+	 * <p>
+	 * Interface representing a univariate real interpolator
+	 * </p>
+	 * <p>
+	 * an interpolator defines an univariate function for a given set of points
+	 * </p>
+	 */
+	JenScript.UnivariateRealInterpolator = function(config){
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.UnivariateRealInterpolator,{
+		init : function(config){
+		},
+		
+		
+		 /**
+	     * Computes an interpolating function for the data set.
+	     * 
+	     * @param xval
+	     *            the arguments for the interpolation points
+	     * @param yval
+	     *            the values for the interpolation points
+	     * @return a function which interpolates the data set
+	     * @throws AnalysisException
+	     *             if arguments violate assumptions made by the interpolation
+	     *             algorithm
+	     */
+		interpolate : function(xval,yval){},
+	           
+	});
+	
+	
+	/**
+	 * <code>PolynomialFunction</code>
+	 */
+	JenScript.PolynomialFunction = function(config){
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.PolynomialFunction,JenScript.DifferentiableUnivariateRealFunction);
+	JenScript.Model.addMethods(JenScript.PolynomialFunction,{
+		__init : function(config){
+			config = config || {};
+			
+			/**
+		     * Construct a polynomial with the given coefficients. The first element of
+		     * the coefficients array is the constant term. Higher degree coefficients
+		     * follow in sequence. The degree of the resulting polynomial is the index
+		     * of the last non-null element of the array, or 0 if all elements are null.
+		     */
+			
+			
+			/**
+		     * The coefficients of the polynomial, ordered by degree -- i.e.,
+		     * coefficients[0] is the constant term and coefficients[n] is the
+		     * coefficient of x^n where n is the degree of the polynomial.
+		     */
+		    var c = config.coefficients;
+		    var n = c.length;
+	        if (n == 0) {
+	            throw new Error("coefficients should be supplied");
+	                                               
+	        }
+	        while (n > 1 && c[n - 1] == 0) {
+	            --n;
+	        }
+	        
+	        this.coefficients = [];
+	        for (var i = 0; i < n; i++) {
+	        	this.coefficients[i] = c[i];
+			}
+		    
+		    JenScript.DifferentiableUnivariateRealFunction.call(this,config);
+		},
+		
+		
+		/**
+	     * Compute the value of the function for the given argument.
+	     * <p>
+	     * The value returned is <br>
+	     * <code>coefficients[n] * x^n + ... + coefficients[1] * x  + coefficients[0]</code>
+	     * </p>
+	     * 
+	     * @param x
+	     *            the argument for which the function value should be computed
+	     * @return the value of the polynomial at the given point
+	     * @see UnivariateRealFunction#value(double)
+	     */
+	    value : function(x) {
+	        return this.evaluate(this.coefficients, x);
+	    },
+
+	    /**
+	     * Returns the degree of the polynomial
+	     * 
+	     * @return the degree of the polynomial
+	     */
+		degree : function() {
+	        return this.coefficients.length - 1;
+	    },
+
+	    /**
+	     * Returns a copy of the coefficients array.
+	     * <p>
+	     * Changes made to the returned copy will not affect the coefficients of the polynomial.
+	     * </p>
+	     * 
+	     * @return a fresh copy of the coefficients array
+	     */
+	    getCoefficients : function() {
+	        return this.coefficients.clone();
+	    },
+
+	    /**
+	     * Uses Horner's Method to evaluate the polynomial with the given
+	     * coefficients at the argument.
+	     * 
+	     * @param coefficients
+	     *            the coefficients of the polynomial to evaluate
+	     * @param argument
+	     *            the input value
+	     * @return the value of the polynomial
+	     * @throws NullPointerException
+	     *             if coefficients is null
+	     */
+	   evaluate : function(coefficients,argument) {
+	        var n = coefficients.length;
+	        if (n == 0) {
+	            throw new Error("coefficients should be supplied");
+	        }
+	        var result = coefficients[n - 1];
+	        for (var j = n - 2; j >= 0; j--) {
+	            result = argument * result + coefficients[j];
+	        }
+	        return result;
+	    },
+
+	    /**
+	     * Add a polynomial to the instance.
+	     * 
+	     * @param p
+	     *            polynomial to add
+	     * @return a new polynomial which is the sum of the instance and p
+	     */
+	    add :function(p) {
+
+	        // identify the lowest degree polynomial
+	        var lowLength = this.min(this.coefficients.length, p.coefficients.length);
+	        var highLength = this.max(this.coefficients.length, p.coefficients.length);
+
+	        // build the coefficients array
+	        //var newCoefficients =[highLength];
+	        var newCoefficients =[];
+	        for (var i = 0; i < lowLength; ++i) {
+	            newCoefficients[i] = this.coefficients[i] + p.coefficients[i];
+	        }
+	        
+	        if(coefficients.length < p.coefficients.length){
+	        	for (var i = lowLength; i < highLength - lowLength; i++) {
+	        		var coef = p.coefficients[i];
+	        		newCoefficients[newCoefficients.length] = coef;
+				}
+	        }else{
+	        	for (var i = lowLength; i < highLength - lowLength; i++) {
+	        		var coef = this.coefficients[i];
+	        		newCoefficients[newCoefficients.length] = coef;
+				}
+	        }
+
+	        return new JenScript.PolynomialFunction(newCoefficients);
+	    },
+	    
+	    /**
+	     * Subtract a polynomial from the instance.
+	     * 
+	     * @param p
+	     *            polynomial to subtract
+	     * @return a new polynomial which is the difference the instance minus p
+	     */
+	    subtract : function(p) {
+
+	        // identify the lowest degree polynomial
+	        var lowLength = this.min(this.coefficients.length, p.coefficients.length);
+	        var highLength = this.max(this.coefficients.length, p.coefficients.length);
+
+	        // build the coefficients array
+	        var newCoefficients = [];
+	        for (var i = 0; i < lowLength; ++i) {
+	            newCoefficients[i] = this.coefficients[i] - p.coefficients[i];
+	        }
+	        if (this.coefficients.length < p.coefficients.length) {
+	            for (var i = lowLength; i < highLength; ++i) {
+	                newCoefficients[i] = -p.coefficients[i];
+	            }
+	        }
+	        else {
+	        	
+	        	for (var i = lowLength; i < highLength - lowLength; i++) {
+	        		var coef = this.coefficients[i];
+	        		newCoefficients[newCoefficients.length] = coef;
+				}
+	        }
+
+	        return new JenScript.PolynomialFunction(newCoefficients);
+	    },
+	    
+	    /**
+	     * Negate the instance.
+	     * 
+	     * @return a new polynomial
+	     */
+	    negate : function() {
+	        var newCoefficients = [];
+	        for (var i = 0; i < this.coefficients.length; ++i) {
+	            newCoefficients[i] = -this.coefficients[i];
+	        }
+	        return new JenScript.PolynomialFunction(newCoefficients);
+	    },
+
+	    /**
+	     * Multiply the instance by a polynomial.
+	     * 
+	     * @param p
+	     *            polynomial to multiply by
+	     * @return a new polynomial
+	     */
+	    multiply : function(p) {
+	    	var newCoefficients = [];
+	        for (var i = 0; i < (this.coefficients.length + p.coefficients.length - 1); ++i) {
+	            newCoefficients[i] = 0.0;
+	            for (var j = this.max(0, i + 1 - p.coefficients.length); j < this.min(this.coefficients.length, i + 1); ++j) {
+	                newCoefficients[i] += this.coefficients[j] * p.coefficients[i - j];
+	            }
+	        }
+	        return new JenScript.PolynomialFunction(newCoefficients);
+	    },
+
+	    /**
+	     * Returns the coefficients of the derivative of the polynomial with the
+	     * given coefficients.
+	     * 
+	     * @param coefficients
+	     *            the coefficients of the polynomial to differentiate
+	     * @return the coefficients of the derivative or null if coefficients has
+	     *         length 1.
+	     * @throws NullPointerException
+	     *             if coefficients is null
+	     */
+	   differentiate : function(coefficients) {
+	        var n = coefficients.length;
+	        if (n == 0) {
+	            throw new Error("coefficients should be supplied");
+	        }
+	        if (n == 1) {
+	            return [0];
+	        }
+	        var result = [];
+	        for (var i = n - 1; i > 0; i--) {
+	            result[i - 1] = i * this.coefficients[i];
+	        }
+	        return result;
+	    },
+
+	    /**
+	     * Returns the derivative as a PolynomialRealFunction
+	     * 
+	     * @return the derivative polynomial
+	     */
+	   polynomialDerivative : function() {
+	        return new JenScript.PolynomialFunction({coefficients: this.differentiate(this.coefficients)});
+	    },
+
+	    /**
+	     * Returns the derivative as a UnivariateRealFunction
+	     * 
+	     * @return the derivative function
+	     */
+	    derivative : function() {
+	        return this.polynomialDerivative();
+	    },
+	    
+	    
+	    /**
+	     * Compute the minimum of two values
+	     * 
+	     * @param a
+	     *            first value
+	     * @param b
+	     *            second value
+	     * @return a if a is lesser or equal to b, b otherwise
+	     */
+	    min : function(a,b) {
+	        return a <= b ? a : b;
+	    },
+
+
+	    /**
+	     * Compute the maximum of two values
+	     * 
+	     * @param a
+	     *            first value
+	     * @param b
+	     *            second value
+	     * @return b if a is lesser or equal to b, a otherwise
+	     */
+	    max : function(a,b) {
+	        return a <= b ? b : a;
+	    },
+
+
+	    /**
+	     * Absolute value.
+	     * 
+	     * @param x
+	     *            number from which absolute value is requested
+	     * @return abs(x)
+	     */
+	    abs : function(x) {
+	        return x < 0.0 ? -x : x == 0.0 ? 0.0 : x; // -0.0 => +0.0
+	    },
+	    
+
+	    toString : function() {
+	    	return 'JenScript.PolynomialFunction';
+	    }
+	});
+	
+	
+	/**
+	 * <code>PolynomialSplineFunction</code>
+	 * Represents a polynomial spline function.
+	 * <p>
+	 * A <strong>polynomial spline function</strong> consists of a set of <i>interpolating polynomials</i> and an ascending
+	 * array of domain <i>knot points</i>, determining the intervals over which the spline function is defined by the
+	 * constituent polynomials. The polynomials are assumed to have been computed to match the values of another function at
+	 * the knot points. The value consistency constraints are not currently enforced by
+	 * <code>PolynomialSplineFunction</code> itself, but are assumed to hold among the polynomials and knot points passed to
+	 * the constructor.
+	 * </p>
+	 * <p>
+	 * N.B.: The polynomials in the <code>polynomials</code> property must be centered on the knot points to compute the
+	 * spline function values. See below.
+	 * </p>
+	 * <p>
+	 * The domain of the polynomial spline function is <code>[smallest knot, largest knot]</code>. Attempts to evaluate the
+	 * function at values outside of this range generate IllegalArgumentExceptions.
+	 * </p>
+	 * <p>
+	 * The value of the polynomial spline function for an argument <code>x</code> is computed as follows:
+	 * <ol>
+	 * <li>The knot array is searched to find the segment to which <code>x</code> belongs. If <code>x</code> is less than
+	 * the smallest knot point or greater than the largest one, an <code>IllegalArgumentException</code> is thrown.</li>
+	 * <li>Let <code>j</code> be the index of the largest knot point that is less than or equal to <code>x</code>. The value
+	 * returned is <br>
+	 * <code>polynomials[j](x - knot[j])</code></li>
+	 * </ol>
+	 * </p>
+	 */
+	JenScript.PolynomialSplineFunction = function(config){
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.PolynomialSplineFunction,JenScript.DifferentiableUnivariateRealFunction);
+	JenScript.Model.addMethods(JenScript.PolynomialSplineFunction,{
+		__init : function(config){
+			config = config || {};
+			
+			/**
+		     * Construct a polynomial spline function with the given segment delimiters
+		     * and interpolating polynomials.
+		     * <p>
+		     * The constructor copies both arrays and assigns the copies to the knots and polynomials properties, respectively.
+		     * </p>
+		     * 
+		     * @param knots
+		     *            spline segment interval delimiters
+		     * @param polynomials
+		     *            polynomial functions that make up the spline
+		     * @throws NullPointerException
+		     *             if either of the input arrays is null
+		     * @throws IllegalArgumentException
+		     *             if knots has length less than 2, <code>polynomials.length != knots.length - 1 </code>, or the
+		     *             knots array is not strictly increasing.
+		     */
+			
+			 /** Spline segment interval delimiters (knots). Size is n+1 for n segments. */
+			this.knots = [];
+
+		    /**
+		     * The polynomial functions that make up the spline. The first element
+		     * determines the value of the spline over the first subinterval, the second
+		     * over the second, etc. Spline function values are determined by evaluating
+		     * these functions at <code>(x - knot[i])</code> where i is the knot segment
+		     * to which x belongs.
+		     */
+			this.polynomials = [];
+
+		    /**
+		     * Number of spline segments = number of polynomials = number of partition
+		     * points - 1
+		     */
+			this.n;
+			
+			
+			this.knots = config.knots;
+			this.polynomials = config.polynomials;
+			if (this.knots.length < 2) {
+		        throw new Error("spline partition must have at least 2 points");
+	        }
+	        if (this.knots.length - 1 != this.polynomials.length) {
+	            throw new Error("number of polynomial interpolants must match the number of segments");
+	                                               
+	        }
+	        if (!this.isStrictlyIncreasing(this.knots)) {
+	            throw new Error("knot values must be strictly increasing");
+	        }
+
+	        this.n = this.knots.length - 1;
+		},
+		
+		binarySearch : function(a,key){
+			 	var low = 0;
+		        var high = a.length - 1;
+
+		        while (low <= high) {
+		            var mid = (low + high) >>> 1;
+		            var midVal = a[mid];
+
+		            if (midVal < key)
+		                low = mid + 1;
+		            else if (midVal > key)
+		                high = mid - 1;
+		            else
+		                return mid; // key found
+		        }
+		        return -(low + 1);  // key not found.
+		},
+		
+		/**
+	     * Compute the value for the function. See {@link PolynomialSplineFunction} for details on the algorithm for
+	     * computing the value of the function.</p>
+	     * 
+	     * @param v
+	     *            the point for which the function value should be computed
+	     * @returns the value
+	     */
+	    value : function(v) {
+	        if (v < this.knots[0] || v > this.knots[this.n]) {
+	            throw new Error("value "+v+" is outside function domain.");
+	        }
+	        var i = this.binarySearch(this.knots,v);
+	        if (i < 0) {
+	            i = -i - 2;
+	        }
+	        // This will handle the case where v is the last knot value
+	        // There are only n-1 polynomials, so if v is the last knot
+	        // then we will use the last polynomial to calculate the value.
+	        if (i >= this.polynomials.length) {
+	            i--;
+	        }
+	        return this.polynomials[i].value(v - this.knots[i]);
+	    },
+
+	    /**
+	     * Returns the derivative of the polynomial spline function as a
+	     * UnivariateRealFunction
+	     * 
+	     * @return the derivative function
+	     */
+	   
+	    derivative : function() {
+	        return this.polynomialSplineDerivative();
+	    },
+
+	    /**
+	     * Returns the derivative of the polynomial spline function as a
+	     * PolynomialSplineFunction
+	     * 
+	     * @return the derivative function
+	     */
+	    polynomialSplineDerivative : function() {
+	        var derivativePolynomials = [];
+	        for (var i = 0; i < this.n; i++) {
+	            derivativePolynomials[i] = this.polynomials[i].polynomialDerivative();
+	        }
+	        return new JenScript.PolynomialSplineFunction({knots : knots, polynomials :  derivativePolynomials});
+	    },
+
+	    /**
+	     * Returns the number of spline segments = the number of polynomials = the
+	     * number of knot points - 1.
+	     * 
+	     * @return the number of spline segments
+	     */
+	    getN : function() {
+	        return this.n;
+	    },
+
+	    /**
+	     * Returns a copy of the interpolating polynomials array.
+	     * <p>
+	     * Returns a fresh copy of the array. Changes made to the copy will not affect the polynomials property.
+	     * </p>
+	     * 
+	     * @return the interpolating polynomials
+	     */
+	    getPolynomials : function() {
+	        var p = [];
+	        for (var i = 0; i < this.polynomials.length; i++) {
+				p[i] = this.polynomials[i];
+			}
+	        return p;
+	    },
+
+	    /**
+	     * Returns an array copy of the knot points.
+	     * <p>
+	     * Returns a fresh copy of the array. Changes made to the copy will not affect the knots property.
+	     * </p>
+	     * 
+	     * @return the knot points
+	     */
+	    getKnots : function() {
+	        var out = [];
+	        for (var i = 0; i < this.knots.length; i++) {
+				out[i] = this.knots[i];
+			}
+	        return out;
+	    },
+
+	    /**
+	     * Determines if the given array is ordered in a strictly increasing
+	     * fashion.
+	     * 
+	     * @param x
+	     *            the array to examine.
+	     * @return <code>true</code> if the elements in <code>x</code> are ordered
+	     *         in a stricly increasing manner. <code>false</code>, otherwise.
+	     */
+	    isStrictlyIncreasing : function(x) {
+	        for (var i = 1; i < x.length; ++i) {
+	            if (x[i - 1] >= x[i]) {
+	                return false;
+	            }
+	        }
+	        return true;
+	    }
+		
+	});
+	
+	
+	
+	/**
+	 * <code>SplineInterpolator</code>
+	 * Computes a natural (also known as "free", "unclamped") cubic spline
+	 * interpolation for the data set.
+	 * <p>
+	 * The interpolate(number[], number[]) method returns a
+	 * PolynomialSplineFunction consisting of n cubic polynomials, defined
+	 * over the subintervals determined by the x values, x[0] < x[i] ... < x[n]. The
+	 * x values are referred to as "knot points."
+	 * </p>
+	 * <p>
+	 * The value of the PolynomialSplineFunction at a point x that is greater than
+	 * or equal to the smallest knot point and strictly less than the largest knot
+	 * point is computed by finding the subinterval to which x belongs and computing
+	 * the value of the corresponding polynomial at <code>x - x[i] </code> where
+	 * <code>i</code> is the index of the subinterval. See
+	 *  PolynomialSplineFunction for more details.
+	 * </p>
+	 * <p>
+	 * The interpolating polynomials satisfy:
+	 * <ol>
+	 * <li>The value of the PolynomialSplineFunction at each of the input x values
+	 * equals the corresponding y value.</li>
+	 * <li>Adjacent polynomials are equal through two derivatives at the knot points
+	 * (i.e., adjacent polynomials "match up" at the knot points, as do their first
+	 * and second derivatives).</li>
+	 * </ol>
+	 * </p>
+	 * <p>
+	 * The cubic spline interpolation algorithm implemented is as described in R.L.
+	 * Burden, J.D. Faires, <u>Numerical Analysis</u>, 4th Ed., 1989, PWS-Kent, ISBN
+	 * 0-53491-585-X, pp 126-131.
+	 * </p>
+	 */
+	JenScript.SplineInterpolator = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SplineInterpolator,JenScript.UnivariateRealInterpolator);
+	JenScript.Model.addMethods(JenScript.SplineInterpolator,{
+		_init : function(config){
+			config = config || {};
+		},
+		
+		/**
+		 * Computes an interpolating function for the data set.
+		 * 
+		 * @param x
+		 *            the arguments for the interpolation points
+		 * @param y
+		 *            the values for the interpolation points
+		 * @return a function which interpolates the data set
+		 */
+		interpolate : function(x,y) {
+			if (x.length != y.length) {
+				throw new Error("x and y array values dimensions mismatch");
+			}
+
+			if (x.length < 3) {
+				throw new Error("the number of points must be greater than 3");
+			}
+
+			// Number of intervals. The number of data points is n + 1.
+			var n = x.length - 1;
+
+			this.checkOrder(x, 'INCREASING', true);
+
+			var h = [];
+			for (var i = 0; i < n; i++) {
+				h[i] = x[i + 1] - x[i];
+			}
+
+
+			var mu = [];
+			var z = [] ;
+			mu[0] = 0;
+			z[0] = 0;
+			var g = 0;
+			for (var i = 1; i < n; i++) {
+				g = 2 * (x[i + 1] - x[i - 1]) - h[i - 1] * mu[i - 1];
+				mu[i] = h[i] / g;
+				z[i] = (3 * (y[i + 1] * h[i - 1] - y[i] * (x[i + 1] - x[i - 1]) + y[i - 1] * h[i]) / (h[i - 1] * h[i]) - h[i - 1] * z[i - 1]) / g;
+			}
+
+			// cubic spline coefficients -- b is linear, c quadratic, d is cubic
+			// (original y's are constants)
+			var b = [];
+			var c = [];
+			var d = [];
+			
+			z[n] = 0;
+			c[n] = 0;
+
+			for (var j = n - 1; j >= 0; j--) {
+				c[j] = z[j] - mu[j] * c[j + 1];
+				b[j] = (y[j + 1] - y[j]) / h[j] - h[j] * (c[j + 1] + 2 * c[j]) / 3;
+				d[j] = (c[j + 1] - c[j]) / (3 * h[j]);
+			}
+
+			var polynomials = [];
+			var coefficients = [];
+			for (var i = 0; i < n; i++) {
+				coefficients[0] = y[i];
+				coefficients[1] = b[i];
+				coefficients[2] = c[i];
+				coefficients[3] = d[i];
+				polynomials[i] = new JenScript.PolynomialFunction({coefficients : coefficients});
+			}
+			
+			return new JenScript.PolynomialSplineFunction({knots : x, polynomials : polynomials});
+		},
+
+
+		/**
+		 * Checks that the given array is sorted.
+		 * 
+		 * @param val
+		 *            Values.
+		 * @param dir
+		 *            Ordering direction.
+		 * @param strict
+		 *            Whether the order should be strict.
+		 */
+		checkOrder : function(val,dir,strict) {
+			var previous = val[0];
+			var ok = true;
+
+			var max = val.length;
+			for (var i = 1; i < max; i++) {
+				switch (dir) {
+				case 'INCREASING':
+					if (strict) {
+						if (val[i] <= previous) {
+							ok = false;
+						}
+					} else {
+						if (val[i] < previous) {
+							ok = false;
+						}
+					}
+					break;
+				case 'DECREASING':
+					if (strict) {
+						if (val[i] >= previous) {
+							ok = false;
+						}
+					} else {
+						if (val[i] > previous) {
+							ok = false;
+						}
+					}
+					break;
+				default:
+					// Should never happen.
+					throw new Error("checkOrder error");
+				}
+
+				if (!ok) {
+					throw new Error("Spline interpolator can not be used with values which are not order");
+				}
+				previous = val[i];
+			}
+		}
+		
+	});
+})();
+(function(){
+	JenScript.FunctionNature = function(nature){
+		this.nature = nature;
+		
+		this.isXFunction = function (){
+			if(this.nature === undefined)
+				return false;
+			if(this.nature instanceof JenScript.FunctionNature){
+				return this.nature.isXFunction();
+			}
+			if(this.nature.toLowerCase() === 'xfunction' || this.nature.toLowerCase() === 'x')
+				return true;
+			return false;
+		};
+		
+		this.isYFunction = function (){
+			if(this.nature === undefined)
+				return false;
+			if(this.nature instanceof JenScript.FunctionNature){
+				return this.nature.isYFunction();
+			}
+			if(this.nature.toLowerCase() === 'yfunction' || this.nature.toLowerCase() === 'y')
+				return true;
+			return false;
+		};
+		
+		this.toString = function(){
+			if(this.isXFunction())
+				return 'x';
+			if(this.isYFunction())
+				return 'y';
+			return 'undefined nature';
+		};
+	};
+})();
+(function(){
+
+	JenScript.PathSegment = function(config){
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.PathSegment,{
+		
+		/**
+		 * create a new segment with specified projections coordinates
+		 * 
+		 * @param segmentUserStart
+		 *            the start segment in user projection
+		 * @param segmentUserEnd
+		 *            the end segment in user projection
+		 * @param segmentDeviceStart
+		 *            the start segment in device projection
+		 * @param segmentDeviceEnd
+		 *            the end segment in device projection
+		 */
+		init : function(config){
+			/** segment start in user projection */
+			this.segmentUserStart=config.userStart;
+			/** segment end in user projection */
+			this.segmentUserEnd=config.userEnd;
+			/** segment start in device projection */
+			this.segmentDeviceStart=config.deviceStart;
+			/** segment end in device projection */
+			this.segmentDeviceEnd=config.deviceEnd;
+		},
+		/**
+		 * get segment start in device projection
+		 * 
+		 * @return segment start in device projection
+		 */
+		getSegmentDeviceStart : function() {
+			return this.segmentDeviceStart;
+		},
+
+		/**
+		 * set segment start in device projection
+		 * 
+		 * @param segmentStart
+		 *            the segment start to set
+		 */
+		setSegmentDeviceStart : function(segmentStart) {
+			this.segmentDeviceStart = segmentStart;
+		},
+
+		/**
+		 * get segment end in device projection
+		 * 
+		 * @return segment end in device projection
+		 */
+		getSegmentDeviceEnd : function() {
+			return this.segmentDeviceEnd;
+		},
+
+		/**
+		 * set segment end in device projection
+		 * 
+		 * @param segmentEnd
+		 *            the segment end to set
+		 */
+		setSegmentDeviceEnd : function(segmentEnd) {
+			this.segmentDeviceEnd = segmentEnd;
+		},
+
+		/**
+		 * return true if segment range contains specified user value, false
+		 * otherwise
+		 * 
+		 * @param value
+		 *            the user value coordinate to test
+		 * @return true if segment range contains specified user  value,
+		 *         false otherwise
+		 */
+		match : function(value) {
+			if(this.sourceFunction.getNature().isXFunction()){
+				return value >= this.segmentUserStart.getX() && value <= this.segmentUserEnd.getX();
+			}else if(this.sourceFunction.getNature().isYFunction()){
+				return value >= this.segmentUserStart.getY() && value <= this.segmentUserEnd.getY();
+			}
+		},
+
+		/**
+		 * get segment point for the specified value in user projection
+		 * 
+		 * @param value
+		 *            the user value in user projection to evaluate
+		 * @return evaluate point for specified x in user projection
+		 */
+		getUserPoint : function(value) {
+			//console.log('coef : '+this.getCoefficient());
+			//console.log('constant : '+this.getConstant());
+			if(this.sourceFunction.getNature().isXFunction()){
+				var userY = this.getCoefficient() * value + this.getConstant();
+				return new JenScript.Point2D(value, userY);	
+			}else if(this.sourceFunction.getNature().isYFunction()){
+				var userX = this.getCoefficient() * value + this.getConstant();
+				return new JenScript.Point2D(userX, value);
+			}
+		},
+
+		/**
+		 * get start point of this segment in user projection
+		 * 
+		 * @return start point of this segment in user projection
+		 */
+		getSegmentUserStart : function() {
+			return this.segmentUserStart;
+		},
+
+		/**
+		 * set start point of this segment in user projection
+		 * 
+		 * @param segmentUserStart
+		 *            the segment start in user projection
+		 */
+		setSegmentUserStart : function(segmentUserStart) {
+			this.segmentUserStart = segmentUserStart;
+		},
+
+		/**
+		 * get end point of this segment in user projection
+		 * 
+		 * @return end point of this segment in user projection
+		 */
+		getSegmentUserEnd : function() {
+			return this.segmentUserEnd;
+		},
+
+		/**
+		 * set end point of this segment in user projection
+		 * 
+		 * @param segmentUserEnd
+		 *            the segment end in user projection
+		 */
+		setSegmentUserEnd : function(segmentUserEnd) {
+			this.segmentUserEnd = segmentUserEnd;
+		},
+
+		/**
+		 * get the length of this segment in device projection
+		 * 
+		 * @return length of this segment in device projection
+		 */
+		deviceLength : function() {
+			var X = Math.pow((this.segmentDeviceStart.getX()-this.segmentDeviceEnd.getX()),2);
+			var Y = Math.pow((this.segmentDeviceStart.getY()-this.segmentDeviceEnd.getY()),2);
+			return Math.sqrt(X + Y);
+		},
+
+		/**
+		 * <p>
+		 * get A slope coefficient of this segment, depends on function nature
+		 * </p>
+		 * <p>
+		 * y = Ax + B (x function) or x = Ay + B (y function)
+		 * </p>
+		 * 
+		 * @return coefficient of this segment
+		 */
+		getCoefficient : function() {
+			if(this.sourceFunction.getNature().isXFunction()){
+				return (this.segmentUserEnd.getY() - this.segmentUserStart.getY()) / (this.segmentUserEnd.getX() - this.segmentUserStart.getX());
+			}else if(this.sourceFunction.getNature().isYFunction()){
+				return (this.segmentUserEnd.getX() - this.segmentUserStart.getX()) / (this.segmentUserEnd.getY() - this.segmentUserStart.getY());
+			}
+		},
+
+		/**
+		 * <p>
+		 * get B constant, the y-intercept of this segment
+		 * </p>
+		 * <p>
+		 * y = Ax + B
+		 * </p>
+		 * 
+		 * @return the y-intercept of this segment
+		 */
+		getConstant : function() {
+			if(this.sourceFunction.getNature().isXFunction()){
+				return this.segmentUserStart.getY() - this.getCoefficient() * this.segmentUserStart.getX();	
+			}else if(this.sourceFunction.getNature().isYFunction()){
+				return this.segmentUserStart.getX() - this.getCoefficient() * this.segmentUserStart.getY();
+			}
+		},
+
+		toString : function() {
+			return "PathSegment [segmentUserStart=" + this.segmentUserStart + ", segmentUserEnd=" + this.segmentUserEnd + "]";
+		},
+
+		/**
+		 * equals point is based on user coordinate value
+		 */
+		equals : function(obj) {
+			if (obj === undefined) {
+				return false;
+			}
+			if (!obj instanceof JenScript.PathSegment) {
+				return false;
+			}
+			if(this.segmentUserStart.equals(obj.segmentUserStart) && this.segmentUserEnd.equals(obj.segmentUserEnd))
+				return true;
+			return false;
+		}
+
+	});
+})();
+(function(){
+	/***
+	 * SOURCE FUNCTION
+	 */
+	JenScript.AbstractSourceFunction = function(config){
+		//JenScript.AbstractSourceFunction
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.AbstractSourceFunction,{
+		init : function(config){
+			config = config || {};
+			/** the function that hosts this source function */
+			this.hostFunction;
+			/** source id */
+			this.id;
+			/** source name */
+			this.name;
+			/** function x or function y nature */
+			this.nature = (config.nature !== undefined)?new JenScript.FunctionNature(config.nature): new JenScript.FunctionNature('x');
+			/** current solved source for the current projection */
+			this.currentFunction = undefined;
+		},
+		
+		/**
+		 * clear current function
+		 */
+		clearCurrentFunction : function(){
+			this.currentFunction = [];
+		},
+
+		/**
+		 * get the current solved function
+		 * @returns solved function
+		 */
+		getCurrentFunction : function() {
+			if(this.currentFunction === undefined || this.currentFunction.length === 0){
+				var proj = this.getHostFunction().getProjection();
+				if(this.getNature().isXFunction()){
+					this.currentFunction = this.solveFunction(proj.getMinX(), proj.getMaxX());
+				}
+				else if(this.getNature().isYFunction()){
+					this.currentFunction = this.solveFunction(proj.getMinY(), proj.getMaxY());
+				}			
+			}
+			return this.currentFunction;
+		},
+
+
+		/**
+		 * solve the function on the given interval. this abstract method is called
+		 * by getCurrentFunction if current function is null or empty
+		 * @param start the range start to evaluate function
+		 * @param end the range end to evaluate function
+		 * 
+		 */
+		solveFunction : function(start,end){throw new Error('SourceFunction Error, solveFunction method should be provided.');},
+
+		
+		/**
+		 * evaluate the function at teh given point value
+		 * @param value the x or y value according to function nature
+		 */
+		evaluate : function(value){},
+
+		/**
+		 * @return the host function
+		 */
+		getHostFunction : function() {
+			return this.hostFunction;
+		},
+
+		/**
+		 * @param hostFunction
+		 *            the host function to set
+		 */
+		setHostFunction : function(hostFunction) {
+			this.hostFunction = hostFunction;
+		},
+
+		/**
+		 * @return the source id
+		 */
+		getId : function() {
+			return this.id;
+		},
+
+		/**
+		 * @param id
+		 *            the source id to set
+		 */
+		setId : function(id) {
+			this.id = id;
+		},
+
+		/**
+		 * @return the source name
+		 */
+		getName : function() {
+			return this.name;
+		},
+
+		/**
+		 * @param name
+		 *            the source name to set
+		 */
+		setName : function(name) {
+			this.name = name;
+		},
+
+		/**
+		 * @return the source nature
+		 */
+		getNature : function() {
+			return this.nature;
+		},
+
+		/**
+		 * @param nature
+		 *            the source nature to set
+		 */
+		setNature : function(nature) {
+			this.nature = nature;
+		}
+	});
+	
+	
+	
+	/***
+	 * USER SOURCE FUNCTION
+	 */
+	JenScript.UserSourceFunction = function(config){
+		//JenScript.UserSourceFunction
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.UserSourceFunction,JenScript.AbstractSourceFunction);
+	JenScript.Model.addMethods(JenScript.UserSourceFunction,{
+		_init : function(config){
+			config = config || {};
+			JenScript.AbstractSourceFunction.call(this,config);
+		},
+	});
+	
+	
+
+	/***
+	 * LINE SOURCE FUNCTION
+	 */
+	JenScript.LineSource = function(config){
+		//JenScript.LineSource
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.LineSource,JenScript.UserSourceFunction);
+	JenScript.Model.addMethods(JenScript.LineSource,{
+		__init : function(config){
+			config = config || {};
+			/** source x,y values*/
+			this.xValues = config.xValues;
+			this.yValues = config.yValues;
+			/** source */
+			this.source = this.createPointsFromArray(this.xValues,this.yValues);
+			JenScript.UserSourceFunction.call(this,config);
+		},
+		
+		/**
+		 * create list of points from x and y arrays.
+		 * 
+		 * @param xValues
+		 * @param yValues
+		 * @return list of points
+		 */
+		createPointsFromArray : function(xValues,yValues) {
+			//console.log('createPointsFromArray');
+			if (xValues.length !== yValues.length) {
+				throw new Error(" x and y  array values length does not match");
+			}
+			var source = [];
+			for (var i = 0; i < xValues.length; i++) {
+				source[source.length] = new JenScript.Point2D(xValues[i], yValues[i]);
+			}
+			return source;
+		},
+		
+		/**
+		 * set original source of this function
+		 * 
+		 * @param source
+		 *            the source to set
+		 */
+		setSource : function(source) {
+			this.source = source;
+			this.clearCurrentFunction();
+			this.sortFunction();
+		},
+
+		/**
+		 * @return the original source of this function
+		 */
+		getSource : function() {
+			return this.source;
+		},
+
+		/**
+		 * solve the line function on the given range interval
+		 */
+		solveFunction : function(start,end) {
+			var newFunction = [];
+			var source = this.getSource();
+			if(this.getNature().isXFunction()){
+				for (var i = 0; i < source.length; i++) {
+					var p = source[i];
+					if (p.x >= start && p.x <= end) {
+						newFunction[newFunction.length] = p;
+					}
+				}
+			} else if(this.getNature().isYFunction()){
+				for (var i = 0; i < source.length; i++) {
+					var p = source[i];
+					if (p.y >= start && p.y <= end) {
+						newFunction[newFunction.length] = p;
+					}
+				}
+			}
+
+			if (newFunction.length >= 1) {
+				var previous = undefined;
+				var next = undefined;
+				if (this.getNature().isXFunction()) {
+					previous = this.previous(newFunction[0].x);
+					next = this.next(newFunction[newFunction.length - 1].x);
+
+				} else if (this.getNature().isYFunction()) {
+					previous = this.previous(newFunction[0].y);
+					next = this.next(newFunction[newFunction.length - 1].y);
+				}
+				//console.log("previous:"+previous);
+				//console.log("next    :"+next);
+				if (previous != undefined && !previous.equals(newFunction[0])) {
+					var c = [previous].concat(newFunction);
+					newFunction = c;
+					
+				}
+				if (next != undefined && !next.equals(newFunction[newFunction.length - 1])) {
+					newFunction[newFunction.length]=next;
+				}
+			} else {
+				var previous = this.previous(start);
+				var next = this.next(end);
+
+				if (previous != undefined) {
+					var c = [previous].concat(newFunction);
+					newFunction = c;
+				}
+				if (next != null) {
+					newFunction[newFunction.length]=next;
+				}
+			}
+			return newFunction;
+		},
+
+		/**
+		 * get next source point greater than the given value
+		 * @param value
+		 */
+		next : function(value) {
+			var functionPoints = this.getSource();
+			for (var i = 0; i < functionPoints.length; i++) {
+				//console.log('iter for next point:'+i);
+				var p = functionPoints[i];
+				if(this.getNature().isXFunction()){
+					if (p.x > value) {
+						return new JenScript.Point2D(p.x, p.y);
+					}
+				} else 	if(this.getNature().isYFunction()){
+					if (p.y > value) {
+						return new JenScript.Point2D(p.x, p.y);
+					}
+				}
+			}
+			return undefined;
+		},
+
+		/**
+		 * get previous source point lesser than the given value
+		 * @param value
+		 */
+		previous : function(value) {
+			var functionPoints = this.getSource();
+			for (var i = functionPoints.length - 1; i >= 0; i--) {
+				//console.log('iter for previous point:'+i);
+				var p = functionPoints[i];
+				if(this.getNature().isXFunction()){
+					if (p.x < value) {
+						return new JenScript.Point2D(p.x, p.y);
+					}
+				} 
+				else if(this.getNature().isYFunction()){
+					if (p.y < value) {
+						return new JenScript.Point2D(p.x, p.y);
+					}
+				}
+			}
+			return undefined;
+		},
+
+		/**
+		 * evaluate line function at the given value
+		 * @param value
+		 */
+		evaluate  : function(value) {
+			var previous = this.previous(value);
+			var next = this.next(value);
+			if (previous != undefined && next != undefined) {
+				var coefficient = 0;
+				var constant = 0;
+				if(this.getNature().isXFunction()){
+					coefficient = (next.getY() - previous.getY()) / (next.getX() - previous.getX());
+					constant = previous.getY() - coefficient * previous.getX();
+					return new JenScript.Point2D(value, coefficient * value + constant);
+				} else 	if(this.getNature().isYFunction()){
+					coefficient = (next.getX() - previous.getX()) / (next.getY() - previous.getY());
+					constant = previous.getX() - coefficient * previous.getY();
+					return new JenScript.Point2D(coefficient * value + constant, value);
+				}
+			} else {
+				return undefined;
+			}
+		},
+		
+		sortFunction : function(){
+			var that = this;
+			this.getSource().sort(function(p2d1,p2d2){
+				if(that.getNature().isXFunction()){
+					if (p2d1.x > p2d2.x) {
+						return 1;
+					} else if (p2d1.x < p2d2.x) {
+						return -1;
+					}
+					return 0;
+				} else 	if(that.getNature().isYFunction()){
+					if (p2d1.y > p2d2.y) {
+						return 1;
+					} else if (p2d1.y < p2d2.y) {
+						return -1;
+					}
+					return 0;
+				}
+			});
+		}
+	});
+	
+	
+	/***
+	 * SPLINE SOURCE FUNCTION
+	 */
+	JenScript.SplineSource = function(config){
+		//JenScript.SplineSource
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SplineSource,JenScript.LineSource);
+	JenScript.Model.addMethods(JenScript.SplineSource,{
+		___init : function(config){
+			config = config || {};
+			/**delta step increment*/
+			this.delta=config.delta;
+			/**evaluate spline function*/
+			this.evaluateFunction = undefined;
+			/** source */
+			JenScript.LineSource.call(this,config);
+		},
+		
+		setSource : function(source) {
+			this.source = source;
+			this.clearCurrentFunction();
+			this.sortFunction();
+			this.evaluateFunction = undefined;
+		},
+
+		evaluate : function(value) {
+			if (this.evaluateFunction === undefined) {
+				this.createInterpolateFunction();
+			}
+			var evaluatePoint = undefined;
+			try {
+				if(this.getNature().isXFunction()){
+					evaluatePoint = new JenScript.Point2D(value,this.evaluateFunction.value(value));
+				} else 	if(this.getNature().isYFunction()){
+					evaluatePoint = new Point2D.Double(this.evaluateFunction.value(value),value);
+				}
+			} catch (err) {
+				console.log(err);
+			}
+			return evaluatePoint;
+		},
+
+		solveFunction : function(start,end) {
+			this.sortFunction();
+			var interpolateSource = [];
+			var superSource = this.getSource();
+
+			if (this.evaluateFunction === undefined) {
+				this.createInterpolateFunction();
+			}
+			if (this.evaluateFunction === undefined) {
+				return this.getSource();
+			}
+			var pd2Min = superSource[0];
+			var pd2Max = superSource[superSource.length - 1];
+			if(this.getNature().isXFunction()){
+				for (var x = pd2Min.x; x <= pd2Max.x; x = x + this.delta) {
+					try {
+						if (x >= pd2Min.x && x <= pd2Max.x) {
+							interpolateSource[interpolateSource.length] = new JenScript.Point2D(x, this.evaluateFunction.value(x));
+						}
+					} catch (err) {
+						//console.log(err);
+						return this.getSource();
+					}
+				}
+			} else 	if(this.getNature().isYFunction()){
+				for (var y = pd2Min.y; y <= pd2Max.y; y = y + this.delta) {
+					try {
+						if (y >= pd2Min.y && y <= pd2Max.y) {
+							interpolateSource[interpolateSource.length] = new JenScript.Point2D(this.evaluateFunction.value(y), y);
+						}
+					} catch (err) {
+						//console.log(err);
+						return this.getSource();
+					}
+				}
+			}
+
+			return interpolateSource;
+		},
+
+		/**
+		 * create interpolate function for given source.
+		 */
+		createInterpolateFunction : function() {
+			try {
+				var superSource = this.getSource();
+				var len = superSource.length;
+				var xValues = [];
+				var yValues =  [];
+				for (var i = 0; i < len; i++) {
+					var p2dUser = superSource[i];
+					xValues[i] = p2dUser.x;
+					yValues[i] = p2dUser.y;
+				}
+				var interpolator = new JenScript.SplineInterpolator();
+				if(this.getNature().isXFunction()){
+					this.evaluateFunction = interpolator.interpolate(xValues, yValues);
+				} else 	if(this.getNature().isYFunction()){
+					this.evaluateFunction = interpolator.interpolate(yValues, xValues);
+				}
+			} catch (err) {
+				console.log(err);
+			}
+		}
+
+	});
+})();
+(function(){
+	
+
+	/***
+	 * Abstract Path function
+	 */
+	JenScript.AbstractPathFunction = function(config){
+		//JenScript.AbstractPathFunction
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.AbstractPathFunction,{
+		init : function(config){
+			config = config || {};
+			this.name = (config.name !== undefined)? config.name :'Abstract Path Function';
+			this.themeColor=(config.themeColor !== undefined)? config.themeColor:'red';
+			this.strokeWidth=(config.strokeWidth !== undefined)? config.strokeWidth:1;
+		    /** source function */
+		    this.source=config.source;
+		    this.source.hostFunction = this;
+			this.hostPlugin;
+			this.Id = 'pathfunction'+JenScript.sequenceId++;
+			/** the geometry path */
+			this.geometryPath;
+			/** length of path in the device space */
+			this.lengthPathDevice;
+			/** input metrics registered for this path */
+			this.metrics = [];
+			this.segments = [];
+			this.pathSegments = [];
+			this.graphicsContext;
+		},
+		
+		/**
+		 * get the projection
+		 * @returns projection
+		 */
+		getProjection : function() {
+			return this.hostPlugin.getProjection();
+		},
+
+		
+		/**
+		 * get the function host plugin
+		 * @returns hostPlugin
+		 */
+		getHostPlugin : function() {
+			return this.hostPlugin;
+		},
+
+		/**
+		 * set the function host plugin
+		 * @param hostPlugin
+		 */
+		setHostPlugin : function(hostPlugin) {
+			this.hostPlugin = hostPlugin;
+		},
+		
+	    /**
+	     * @return the themeColor
+	     */
+	    getThemeColor : function() {
+	        return this.themeColor;
+	    },
+
+	    /**
+	     * @param themeColor
+	     *            the themeColor to set
+	     */
+	    setThemeColor : function(themeColor) {
+	        this.themeColor = themeColor;
+	    },
+
+	    /**
+	     * get function name
+	     * 
+	     * @return the name
+	     */
+	    getName : function() {
+	        return this.name;
+	    },
+
+	    /**
+	     * set function name
+	     * 
+	     * @param name
+	     *            the name to set
+	     */
+	    setName : function(name) {
+	        this.name = name;
+	    },
+		
+		
+		/**
+		 * set the source function
+		 * 
+		 * @param source
+		 */
+		setSource : function(source) {
+			this.source = source;
+			this.source.hostFunction = this;
+		},
+		
+		
+		/**
+		 * return the min peak of the current function
+		 * @returns minimum peak
+		 */
+		minFunction : function() {
+			var currentFunction = this.source.getCurrentFunction();
+			var minFunction = currentFunction[0];
+			if (this.source.getNature().isXFunction()) {
+				for (var i = 0; i < currentFunction.length; i++) {
+					var p = currentFunction[i];
+					if (p.getY() < minFunction.getY()) {
+						minFunction = p;
+					}
+				}
+			}
+			if (this.source.getNature().isYFunction()) {
+				for (var i = 0; i < currentFunction.length; i++) {
+					var p = currentFunction[i];
+					if (p.getX() < minFunction.getX()) {
+						minFunction = p;
+					}
+				}
+			}
+			return minFunction;
+		},
+		
+		/**
+		 * return the max peak of the current function
+		 * @returns minimum peak
+		 */
+		maxFunction : function() {
+			var currentFunction = this.source.getCurrentFunction();
+			var maxFunction = currentFunction[0];
+			if (this.source.getNature().isXFunction()) {
+				for (var i = 0; i < currentFunction.length; i++) {
+					var p = currentFunction[i];
+					if (p.getY() > maxFunction.getY()) {
+						maxFunction = p;
+					}
+				}
+			}
+			if (this.source.getNature().isYFunction()) {
+				for (var i = 0; i < currentFunction.length; i++) {
+					var p = currentFunction[i];
+					if (p.getX() > maxFunction.getX()) {
+						maxFunction = p;
+					}
+				}
+			}
+			return maxFunction;
+		},
+		
+		
+		/**
+		 * scale the manager between two space and assign delegate super geometry
+		 * path for all method that have to use geometry.
+		 */
+		createPath : function() {
+			this.svgPathElement = new JenScript.SVGElement().attr('id',this.Id).name('path').attr('stroke','none').attr('fill','none').attr('d',this.buildPath()).buildHTML();
+			this.geometryPath = new JenScript.GeometryPath(this.svgPathElement);
+			this.lengthPathDevice = this.geometryPath.lengthOfPath();
+			return this.svgPathElement;
+		},
+
+		/**
+		 * add pre initialized metric {@link GlyphMetric} to this general path.
+		 * @param metric
+		 */
+		addMetric : function(metric) {
+			this.metrics[this.metrics.length]= metric;
+			if(this.hostPlugin !== undefined)
+			this.hostPlugin.repaintPlugin();
+		},
+
+		/**
+		 * clear metrics
+		 */
+		clearMetric : function() {
+			this.metrics = [];
+		},
+		
+		/**
+		 * get metrics on this path
+		 */
+		getMetrics : function(){
+			this.createPath();
+			
+			var pp = new JenScript.SVGElement().attr('id',(this.Id+'_path')).name('path').attr('stroke','none').attr('fill','none').attr('d',this.buildPath()).buildHTML();
+			this.graphicsContext.deleteGraphicsElement((this.Id+'_path'));
+			this.graphicsContext.definesSVG(pp);
+			if(this.svgPathElement === undefined)
+				return;
+			
+			if (this.geometryPath.lengthOfPath() === 0) {
+				return [];
+			}
+			for (var i = 0; i < this.metrics.length; i++) {
+				var m = this.metrics[i];
+				var proj = this.getProjection();
+				if (this.source.getNature().isXFunction()) {
+					if (m.getValue() < proj.getMinX() || m.getValue() > proj.getMaxX()) {
+						return;
+					}
+				}else if (this.source.getNature().isYFunction()) {
+					if (m.getValue() < proj.getMinY() || m.getValue() > proj.getMaxY()) {
+						return;
+					}
+				}
+				
+				
+				
+				
+				var userVal = m.getValue(); //x or y according to function nature
+				var pathSegment = this.getPathSegment(userVal);
+				if(pathSegment === undefined)
+					continue;
+				var userPoint = pathSegment.getUserPoint(userVal);
+				
+				var devicePointX = function(){
+					return proj.userToPixelX(userPoint.x);
+				};
+				var devicePointY = function(){
+						return proj.userToPixelY(userPoint.y);
+				};
+				
+				var baseLength = this.getLengthAtSegment(pathSegment);
+				var p0 = this.geometryPath.pointAtLength(this.getLengthAtSegment(pathSegment));
+				//var recUserPoint0 = new JenScript.SVGRect().origin(p0.x,p0.y).size(3,3).fill('yellow');
+				//this.graphicsContext.insertSVG(recUserPoint0.toSVG());
+				
+				var X = Math.pow((p0.x-devicePointX()),2);
+				var Y = Math.pow((p0.y-devicePointY()),2);
+				var distDelta= Math.sqrt(X + Y);
+				
+				//ortho right point
+				//var r3 = m.getOrthoRightPoint(0,15);
+				var recUserPoint = new JenScript.SVGRect().origin(devicePointX(),devicePointY()).size(3,3).fill('pink');
+				this.graphicsContext.insertSVG(recUserPoint.toSVG());
+				
+				var deviceLength = (baseLength+distDelta);
+				var percent = deviceLength/this.lengthPathDevice*100;
+
+				m.setLengthOnPath(deviceLength);
+				m.setPercentOnPath(percent);
+				m.setMetricPointRef(this.geometryPath.pointAtLength((baseLength+distDelta)));
+				m.setMetricAngle(this.geometryPath.angleAtLength((baseLength+distDelta)).deg);
+				
+				
+				
+//				//point base
+//				var r = m.getMetricPointRef();
+//				var svgRect = new JenScript.SVGCircle().center(r.x,r.y).radius(3).fill('black');
+//				this.graphicsContext.insertSVG(svgRect.toSVG());
+//				
+//				//radial point
+//				var r2 = m.getRadialPoint(10,'Right');
+//				//alert('r2:'+r2);
+//				var svgRect2 = new JenScript.SVGRect().origin(r2.x,r2.y).size(3,3).fill('red');
+//				this.graphicsContext.insertSVG(svgRect2.toSVG());
+//				
+//				//ortho right point
+//				var r3 = m.getOrthoRightPoint(0,15);
+//				var svgRect3 = new JenScript.SVGRect().origin(r3.x,r3.y).size(3,3).fill('green');
+//				this.graphicsContext.insertSVG(svgRect3.toSVG());
+//				
+//				//ortho right point
+//				var r4 = m.getOrthoRightPoint(0,-10);
+//				var svgRect4 = new JenScript.SVGRect().origin(r4.x,r4.y).size(3,3).fill('blue');
+//				this.graphicsContext.insertSVG(svgRect4.toSVG());
+
+
+
+				//.attr('transform','rotate(0 '+m.getMetricPointRef().x+' '+m.getMetricPointRef().y+')')
+				var svgText = new JenScript.SVGText().textAnchor('middle').attr('id',this.Id+'_metrics'+i).attr('transform','rotate('+m.getRotate()+' ' +m.getMetricPointRef().x+' '+m.getMetricPointRef().y+')').fill(m.getFillColor()).stroke('white').strokeWidth(0.5).fontSize(m.getFontSize());
+				var svgTextPath = new JenScript.SVGTextPath().xlinkHref('#'+this.Id+'_path').startOffset(m.getPercentOnPath()+'%');
+				var tspan = new JenScript.SVGTSpan().dy(m.getDy()).textContent(m.getMetricsLabel());
+				//group.child(tspan.toSVG());
+				
+				
+//				methodAlign
+//				methodStretch
+//				spacingAuto
+//				spacingExact
+				svgTextPath.methodStretch();
+				svgTextPath.spacingExact();
+				svgTextPath.child(tspan.toSVG());
+				var s = svgTextPath.toSVG();
+				svgText.child(s);
+				//alert("::"+svgText.toSVG().outerHTML);
+				var svg = svgText.toSVG();
+				
+				this.graphicsContext.insertSVG(svg);
+				
+			}
+
+			return this.metrics;
+		},
+
+		/**
+		 * get the device metrics point for the given metrics value in device coordinate
+		 * 
+		 * @param {Number} the metric value
+		 *            metrics value
+		 * @return metrics device pixel point
+		 */
+		getMetricsPoint : function(metricsValue) {
+			if (this.source.getNature().isXFunction()) {
+				if (m.getValue() < proj.getMinX() || m.getValue() > proj.getMaxX()) {
+					return;
+				}
+			}else if (this.source.getNature().isYFunction()) {
+				if (m.getValue() < proj.getMinY() || m.getValue() > proj.getMaxY()) {
+					return;
+				}
+			}
+			var pathSegment = this.getPathSegment(metricsValue);
+			var userPoint = pathSegment.getUserPoint(metricsValue);
+			var baseLength = this.getLengthAtSegment(pathSegment);
+			var p0 = this.geometryPath.pointAtLength(this.getLengthAtSegment(pathSegment));
+			var X = Math.pow((p0.x-proj.userToPixelX(userPoint.x)),2);
+			var Y = Math.pow((p0.y-proj.userToPixelY(userPoint.y)),2);
+			var distDelta= Math.sqrt(X + Y);
+			return this.geometryPath.pointAtLength((baseLength+distDelta));
+		},
+
+		
+		/**
+		 * get path segments
+		 */
+		getSegments : function(){
+			return this.segments;
+		},
+		
+		
+		/**
+		 * get the curve segment that contains the specified x in user projection
+		 * system
+		 * 
+		 * @param value
+		 *            the value in user projection
+		 * @return the curve segment that contains the specified x in user
+		 *         projection system
+		 */
+		getPathSegment : function(value) {
+			for (var p = 0; p < this.pathSegments.length; p++) {
+				if (this.pathSegments[p].match(value)) {
+					return this.pathSegments[p];
+				}
+			}
+			return undefined;
+		},
+
+		/**
+		 * get the length in device coordinate at the specified segment, excluding matched segment.
+		 * 
+		 * @param segment
+		 *            the curve segment
+		 * @return the length in device coordinate at the specified segment
+		 */
+		getLengthAtSegment : function(segment) {
+			var length = 0;
+			for (var p = 0; p < this.pathSegments.length; p++) {
+				var cs = this.pathSegments[p];
+				if (cs.equals(segment)) {
+					return length;
+				}
+				length = length + cs.deviceLength();
+			}
+			return 0;
+		},
+		
+		/**
+		 * build user segment point from function in user coordinate
+		 */
+//		buildSegment : function(){
+//			this.segments=[];
+//			this.pathSegments=[];
+//			this.source.clearCurrentFunction();
+//			var userPointsFunction = this.source.getCurrentFunction();
+//			//console.log("spline points number : "+userPointsFunction.length);
+//			for (var i = 0; i < userPointsFunction.length; i++) {
+//				var p = userPointsFunction[i];
+//				if(i == 0)
+//					this.moveTo(p.x,p.y);
+//				else
+//					this.lineTo(p.x,p.y);
+//			}
+//		},
+		
+		
+		/**
+		 * build the path based on segments
+		 */
+		buildPath : function(){
+			
+			this.segments=[];
+			this.pathSegments=[];
+			this.source.clearCurrentFunction();
+			var userPointsFunction = this.source.getCurrentFunction();
+			//console.log("spline points number : "+userPointsFunction.length);
+			for (var i = 0; i < userPointsFunction.length; i++) {
+				var p = userPointsFunction[i];
+				if(i == 0)
+					this.moveTo(p.x,p.y);
+				else
+					this.lineTo(p.x,p.y);
+			}
+
+			
+			
+			var path='';
+			var segments = this.segments;
+			var proj = this.getProjection();
+			
+			var toX = function(x){
+					return proj.userToPixelX(x);
+			};
+			var toY = function(y){
+					return proj.userToPixelY(y);
+			};
+			for (var i = 0; i < segments.length; i++) {
+				
+				var x = segments[i].x;
+				var y = segments[i].y;
+				var dx = toX(x);
+				var dy = toY(y);
+				
+				//path
+				if(segments[i].type === 'M')
+					path = path  + segments[i].type+dx+','+dy+' ';
+				if(segments[i].type === 'L')
+					path = path  + segments[i].type+dx+','+dy+' ';
+				if(segments[i].type === 'Z')
+					path = path  + segments[i].type+' ';
+				
+				
+				//path segment
+				if(i<segments.length-1){
+					
+					//i+1
+					//console.log('si:'+segments[i+1]);
+					var x2 = segments[i+1].x;
+					var y2 = segments[i+1].y;
+					var dx2 = toX(x2);
+					var dy2 = toY(y2);
+					
+					var ps = new JenScript.PathSegment({
+						userStart : new JenScript.Point2D(x,y),
+						userEnd : new JenScript.Point2D(x2,y2),
+						deviceStart : new JenScript.Point2D(dx,dy),
+						deviceEnd : new JenScript.Point2D(dx2,dy2),
+					});
+					ps.sourceFunction = this.source;
+					this.pathSegments[this.pathSegments.length]=ps;
+				}
+			}
+			this.pathdata = path;
+			return path;
+		},
+		
+		/**
+		 * paint path function
+		 */
+		paintPathFunction : function(g2d) {
+			this.createPath();
+			g2d.deleteGraphicsElement(this.Id);
+			var path = new JenScript.SVGElement().attr('id',this.Id).name('path').attr('stroke',this.themeColor).attr('stroke-width',this.strokeWidth).attr('fill','none').attr('d',this.buildPath()).buildHTML();
+			g2d.insertSVG(path);
+		},
+		
+		
+		/**
+		 * provides method for function painting operation
+		 * @param g2d the graphics context
+		 */
+		paintFunction : function(g2d){throw new Error('Paint function should be supplied.');},
+		
+		
+		/**
+		 * register path segment like move, line or close path in user coordinate
+		 */
+		registerSegment : function(fragment){
+			this.segments[this.segments.length] = fragment;
+			return this;
+		},
+		
+		/**
+		 * path move to in user coordinate
+		 * @param x
+		 * @param y
+		 */
+		moveTo : function(x,y){
+			this.registerSegment({type : 'M',x:x,y:y});
+			return this;
+		},
+		
+		/**
+		 * path line to in user coordinate
+		 * @param x
+		 * @param y
+		 */
+		lineTo : function(x,y){
+			this.registerSegment({type : 'L',x:x,y:y});
+			return this;
+		},
+		
+		/**
+		 * path close
+		 */
+		close : function(){
+			this.registerSegment({type : 'Z'});
+			return this;
+		}
+		
+	});
+	
+})();
+(function(){
+	/**
+	 * Object Curve()
+	 * Defines curve function
+	 * @param {Object} config
+	 */
+	JenScript.Curve = function(config) {
+		//JenScript.Curve
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Curve, JenScript.AbstractPathFunction);
+	JenScript.Model.addMethods(JenScript.Curve, {
+		/**
+		 * Initialize Curve Function
+		 * Defines a curve function
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			config.name = 'CurvePathFunction';
+		    JenScript.AbstractPathFunction.call(this,config);
+		},
+		
+		/**
+		 * paint curve function
+		 * @param g2d the graphics context
+		 */
+		paintFunction : function(g2d){
+			this.paintPathFunction(g2d);
+		}
+	});
+})();
+(function(){
+	
+	/**
+	 * Object Area()
+	 * Defines area function
+	 * @param {Object} config
+	 */
+	JenScript.Area = function(config) {
+		//JenScript.Area
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Area, JenScript.AbstractPathFunction);
+	JenScript.Model.addMethods(JenScript.Area, {
+		/**
+		 * Initialize Area Function
+		 * Defines a area function
+		 * @param {Object} config
+		 * @param {Number} config.areaBase
+		 * @param {Object} config.shader
+		 */
+		_init : function(config){
+			config = config || {};
+			config.name = 'AreaPathFunction';
+			this.areaBase = config.areaBase;
+			this.shader = config.shader;
+		    JenScript.AbstractPathFunction.call(this,config);
+		},
+		
+		
+		createAreaPath : function (){
+			var pathData = this.buildPath();
+			var p = this.getProjection();
+			if (this.source.getNature().isXFunction()) {
+				if(this.areaBase === undefined)
+				this.areaBase = this.minFunction().y; //assume XFunction
+				this.base = p.userToPixelY(this.areaBase);
+				var areaMax = this.maxFunction().y; //assume XFunction
+				this.max = p.userToPixelY(areaMax);
+				var userPointsFunction = this.source.getCurrentFunction();			
+				var first = userPointsFunction[0];
+				var last  = userPointsFunction[userPointsFunction.length-1];
+				pathData = pathData+'L'+p.userToPixelX(last.x)+','+this.base+'L'+p.userToPixelX(first.x)+','+this.base+'Z';
+				
+			}else if(this.source.getNature().isYFunction()){
+				if(this.areaBase === undefined)
+				this.areaBase = this.minFunction().x; //assume YFunction
+				var base = p.userToPixelX(this.areaBase);
+				var areaMax = this.maxFunction().x; //assume YFunction
+				this.max = p.userToPixelX(areaMax);
+				var userPointsFunction = this.source.getCurrentFunction();			
+				var first = userPointsFunction[0];
+				var last  = userPointsFunction[userPointsFunction.length-1];
+				pathData = pathData+'L'+this.base+','+p.userToPixelY(last.y)+'L'+this.base+','+p.userToPixelY(first.y)+'Z';
+			}
+			return pathData;
+		},
+		
+		/**
+		 * paint area function
+		 * @param g2d the graphics context
+		 */
+		paintFunction : function(g2d){
+			var pd = this.createAreaPath();
+			var gradientId = this.Id+'_areagradient';
+			g2d.deleteGraphicsElement(gradientId);
+			 /** default shader fractions */
+			if(this.shader === undefined)
+				this.shader = {percents : [ '0%', '100%' ],opacity:[1,0.2], colors : [this.themeColor,this.themeColor]};
+		    var gradient   = new JenScript.SVGLinearGradient().Id(gradientId).from(0,this.max).to(0, this.base).shade(this.shader.percents,this.shader.colors,this.shader.opacity);
+		    if(this.source.getNature().isXFunction()){
+		    	 gradient.from(0,this.max).to(0, this.base);
+		    }
+			else if(this.source.getNature().isYFunction()){
+				gradient.from(this.max,0).to(this.base, 0);
+			}
+			g2d.definesSVG(gradient.toSVG());
+			var path = new JenScript.SVGElement().attr('id',this.Id).name('path').attr('stroke',this.strokeWidth).attr('fill','url(#'+gradientId+')').attr('d',pd).buildHTML();
+			g2d.insertSVG(path);
+		}
+	});
+})();
+(function(){
+
+	
+	/**
+	 * Object Scatter()
+	 * Defines scatter function
+	 * @param {Object} config
+	 */
+	JenScript.Scatter = function(config) {
+		//JenScript.Scatter
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.Scatter, JenScript.AbstractPathFunction);
+	JenScript.Model.addMethods(JenScript.Scatter, {
+		/**
+		 * Initialize Scatter Function
+		 * Defines a scatter function
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			config.name = 'ScatterPathFunction';
+		    JenScript.AbstractPathFunction.call(this,config);
+		},
+		
+		/**
+		 * paint scatter function
+		 * @param g2d the graphics context
+		 */
+		paintFunction : function(g2d){
+			//this.paintPathFunction(g2d);
+			this.source.clearCurrentFunction();
+			var userPointsFunction = this.source.getCurrentFunction();
+			var proj = this.getProjection();
+			for (var i = 0; i < userPointsFunction.length; i++) {
+				var p = userPointsFunction[i];
+				var scatter = new JenScript.SVGRect().origin(proj.userToPixelX(p.x),proj.userToPixelY(p.y)).size(3,3).fill(this.getThemeColor());
+				g2d.insertSVG(scatter.toSVG());
+			}
+		}
+	});
+})();
+(function(){
+	/**
+	 * Object FunctionPlugin()
+	 * Defines a plugin that takes the responsibility to manage functions
+	 * @param {Object} config
+	 */
+	JenScript.FunctionPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.FunctionPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.FunctionPlugin, {
+		
+		/**
+		 * Initialize Function Plugin
+		 * Defines a plugin that takes the responsibility to manage function
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			config.priority = 100;
+			config.name='FunctionPlugin';
+			/** functions */
+		    this.functions = [];
+		    JenScript.Plugin.call(this,config);
+		},
+		
+		/**
+		 * on projection register add 'bound changed' projection listener that invoke repaint plugin
+		 * when projection bound changed event occurs.
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'FunctionPlugin projection bound changed');
+		},
+		
+		/**
+	     * register function
+	     * @param fn
+	     */
+	    addFunction : function(fn) {
+    		fn.setHostPlugin(this);
+            this.functions[this.functions.length] = fn;
+            this.repaintPlugin();
+	    },
+	    
+	    /**
+	     * @return the functions
+	     */
+	    getFunctions : function() {
+	        return this.functions;
+	    },
+	    
+	    /**
+	     * @param g2d
+	     * @param viewPart
+	     */
+	    paintFunctions : function(g2d,viewPart){
+	    	 if (viewPart !== JenScript.ViewPart.Device) {
+		        return;
+		     }
+	    	 for (var c = 0; c < this.getFunctions().length; c++) {
+            	var pathFunction = this.getFunctions()[c];
+            	pathFunction.paintFunction(g2d);
+	         }
+	    },
+	    
+	    
+	    /**
+	     * paint metrics path function
+	     * 
+	     * @param g2d
+	     * @param viewPart
+	     */
+	    paintMetricsGlyphFunction : function(g2d,viewPart) {
+	        if (viewPart !== JenScript.ViewPart.Device) {
+	            return;
+	        }
+	        for (var c = 0; c < this.getFunctions().length; c++) {
+            	var pathFunction = this.getFunctions()[c];
+            	pathFunction.graphicsContext = g2d;
+	            var metrics = pathFunction.getMetrics();
+//	            for (GlyphMetric glyphMetric : metrics) {
+//	                if (glyphMetric.getGlyphMetricMarkerPainter() != null) {
+//	                    glyphMetric.getGlyphMetricMarkerPainter().paintGlyphMetric(g2d, glyphMetric);
+//	                }
+//
+//	                if (glyphMetric.getGlyphMetricFill() != null) {
+//	                    glyphMetric.getGlyphMetricFill().paintGlyphMetric(g2d, glyphMetric);
+//	                }
+//
+//	                if (glyphMetric.getGlyphMetricDraw() != null) {
+//	                    glyphMetric.getGlyphMetricDraw().paintGlyphMetric(g2d, glyphMetric);
+//	                }
+//	            }
+	        }
+
+	    },
+	   
+	   /**
+	    * paint function plugin
+	    */
+	   paintPlugin : function(g2d,viewPart) {
+		   if (viewPart !== JenScript.ViewPart.Device) {
+               return;
+           }
+		  
+	       this.paintFunctions(g2d,viewPart);
+	       this.paintMetricsGlyphFunction(g2d,viewPart);
+	   }
+	    
+	});
+})();
+(function(){
+	
+	/**
+	 * Object PlotPlugin()
+	 * Defines a plugin that takes the responsibility to manage plot
+	 * @param {Object} config
+	 */
+	JenScript.PlotPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.PlotPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.PlotPlugin, {
+		
+		/**
+		 * Initialize Plot Plugin
+		 * Defines a plugin that takes the responsibility to manage function
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			config.priority = 100;
+			config.name='PlotPlugin';
+		    JenScript.Plugin.call(this,config);
+		    this.plots = [];
+		},
+		
+		/**
+		 * add the given plot in this plot plugin
+		 * @param {Object} plot
+		 */
+		addPlot : function(plot){
+			plot.plugin = this;
+			this.plots[this.plots.length] = plot;
+			this.repaintPlugin();
+		},
+		
+		/**
+		 * remove the given plot in this plot plugin
+		 * @param {Object} bubble
+		 */
+		removePlot : function(plot){
+			var nb = [];
+			for (var i = 0; i < this.plots.length; i++) {
+				if(!this.plots[i].equals(plot))
+					nb[nb.length]=this.plots[i];
+			}
+			this.plots = nb;
+		},
+		
+		/**
+		 * on projection register add 'bound changed' projection listener that invoke repaint plugin
+		 * when projection bound changed event occurs.
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'PlotPlugin projection bound changed');
+		},
+		
+		
+		/**
+		 * paint plot plugin
+		 */
+		 paintPlugin : function(g2d,viewPart) {
+			 if(viewPart!== 'Device')return;
+			 for (var i = 0; i < this.plots.length; i++) {
+				 var plot = this.plots[i];
+				 plot.solvePlot();
+				
+				 var pixelsPoints = plot.devicePoints;
+				 var svgPath = new JenScript.SVGPath().Id(plot.Id);
+				 for (var i = 0; i < pixelsPoints.length; i++) {
+					var p = pixelsPoints[i];
+					if(i === 0)
+						svgPath.moveTo(p.x,p.y);
+					else
+						svgPath.lineTo(p.x,p.y);
+				}
+				g2d.deleteGraphicsElement(plot.Id);
+				g2d.insertSVG(svgPath.fillNone().stroke(plot.plotColor).strokeWidth(plot.plotWidth).toSVG());
+			 }
+		 } 
+		
+	});
+	
+})();
+(function(){
+	
+	/**
+	 * Object Plot()
+	 * Defines a plot
+	 * @param {Object} config
+	 */
+	JenScript.Plot = function(config) {
+		this.init(config);
+	};
+	JenScript.Model.addMethods(JenScript.Plot, {
+		init : function(config){
+			this.Id = 'plot'+JenScript.sequenceId++;
+			/** plot points in the user coordinates system */
+			this.userPoints=[];
+			/** plot points in the pixel coordinates system */
+			this.devicePoints=[];
+			/** plot anchors */
+			this.anchorsPoints=[];
+			/** plot host plugin for this plot */
+			this.plugin;
+			/** plot draw color */
+			this.plotColor = (config.plotColor !== undefined)?config.plotColor : 'red';
+			this.plotWidth = (config.plotWidth !== undefined)?config.plotWidth : 2;
+		},
+		
+		/**
+		 * add a control point in this plot
+		 * 
+		 * @param x
+		 * @param y
+		 */
+		addPoint : function(x,y) {
+			this.userPoints[this.userPoints.length] = new JenScript.Point2D(x,y);
+		},
+		
+		getPoints : function(){
+			return this.userPoints;
+		},
+	
+		solvePlot : function(){
+			throw new Error('SolvePlot should be provided');
+		},
+		
+	});
+})();
+(function(){
+	/**
+	 * Object LinePlot()
+	 * Defines a LINE Plot
+	 * @param {Object} config
+	 */
+	JenScript.LinePlot = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.LinePlot, JenScript.Plot);
+	JenScript.Model.addMethods(JenScript.LinePlot, {
+		
+		/**
+		 * Initialize Bezier Plot 
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+		    JenScript.Plot.call(this,config);
+		},
+		
+		solvePlot : function() {
+			var devicePoints = [];
+			for (var i = 0; i < this.getPoints().length; i++) {
+				var uq = this.plugin.getProjection().userToPixel(this.getPoints()[i]);				
+				devicePoints[devicePoints.length]=uq;
+			}
+			this.devicePoints = devicePoints;
+		},
+
+
+	});
+	
+})();
+(function(){
+	/**
+	 * Object BezierPlot()
+	 * Defines a Bezier Plot
+	 * @param {Object} config
+	 */
+	JenScript.BezierPlot = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.BezierPlot, JenScript.Plot);
+	JenScript.Model.addMethods(JenScript.BezierPlot, {
+		
+		/**
+		 * Initialize Bezier Plot 
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			this.STEPS = (config.step !== undefined)?config.step : 12;
+		    JenScript.Plot.call(this,config);
+		},
+		
+		/**
+		 * the basis function for a Bezier spline
+		 * @param i
+		 * @param t
+		 * @return coefficient
+		 */
+		 b : function(i,t) {
+			switch (i) {
+			case 0:
+				return (1 - t) * (1 - t) * (1 - t);
+			case 1:
+				return 3 * t * (1 - t) * (1 - t);
+			case 2:
+				return 3 * t * t * (1 - t);
+			case 3:
+				return t * t * t;
+			}
+			return 0; // we only get here if an invalid i is specified
+		},
+
+		/**
+		 * evaluate a point on the B spline
+		 * 
+		 * @param i
+		 * @param t
+		 * @return eval the pojnt on the spline
+		 */
+		p : function(i,t) {
+			var px = 0;
+			var py = 0;
+			for (var j = 0; j <= 3; j++) {
+				px += this.b(j,t) * this.getPoints()[i+j].getX();
+				py += this.b(j,t) * this.getPoints()[i+j].getY();
+			}
+			return new JenScript.Point2D(px, py);
+		},
+		
+		solvePlot : function() {
+			var devicePoints = [];
+			var q = this.p(0, 0);
+			var uq = this.plugin.getProjection().userToPixel(q);
+			devicePoints[0]=uq;
+			for (var i = 0; i < this.getPoints().length - 3; i += 3) {
+				for (var j = 1; j <= this.STEPS; j++) {
+					q = this.p(i, j / this.STEPS);
+					uq = this.plugin.getProjection().userToPixel(q);				
+					devicePoints[devicePoints.length]=uq;
+				}
+			}
+			this.devicePoints = devicePoints;
+		},
+
+
+	});
+	
+})();
+(function(){
+	/**
+	 * Object BezierG1Plot()
+	 * Defines a Bezier Plot
+	 * @param {Object} config
+	 */
+	JenScript.BezierG1Plot = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.BezierG1Plot, JenScript.BezierPlot);
+	JenScript.Model.addMethods(JenScript.BezierG1Plot, {
+		
+		/**
+		 * Initialize Bezier G1 Plot 
+		 * @param {Object} config
+		 */
+		__init : function(config){
+			config = config || {};
+		    JenScript.BezierPlot.call(this,config);
+		},
+		
+
+
+		/**
+		 * move k such that it is collinear with i and j
+		 * 
+		 * @param i
+		 * @param j
+		 * @param k
+		 */
+		forceCollinear : function(i,j,k) {
+			var distance = function( x1,y1,x2,y2) {
+				return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+			};
+			var ij = distance(this.userPoints[i].getX(), this.userPoints[i].getY(), this.userPoints[j].getX(), this.userPoints[j].getY());
+			var jk = distance(this.userPoints[j].getX(), this.userPoints[j].getY(), this.userPoints[k].getX(), this.userPoints[k].getY());
+			var r = jk / ij;
+			var kx = this.userPoints[j].getX() + r * (this.userPoints[j].getX() - this.userPoints[i].getX());
+			var ky = this.userPoints[j].getY() + r * (this.userPoints[j].getY() - this.userPoints[i].getY());
+			this.userPoints[k] = new JenScript.Point2D(kx,ky);
+		},
+
+		/**
+		 * add a control point in this plot
+		 * 
+		 * @param x
+		 * @param y
+		 */
+		addPoint : function(x,y) {
+			this.userPoints[this.userPoints.length] = new JenScript.Point2D(x,y);
+			var i = this.userPoints.length-1;
+			if (i % 3 == 1 && i > 1) {
+				this.forceCollinear(i,i-1,i-2);
+			}
+		},
+		
+	});
+	
+})();
+(function(){
+	/**
+	 * Object BSplinePlot()
+	 * Defines a B Spline Plot
+	 * @param {Object} config
+	 */
+	JenScript.BSplinePlot = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.BSplinePlot, JenScript.Plot);
+	JenScript.Model.addMethods(JenScript.BSplinePlot, {
+		
+		/**
+		 * Initialize Bezier Plot 
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			this.STEPS = (config.step !== undefined)?config.step : 12;
+		    JenScript.Plot.call(this,config);
+		},
+		
+		/**
+		 * the basis function for a B Spline spline
+		 * @param i
+		 * @param t
+		 * @return coefficient
+		 */
+		 b : function(i,t) {
+			 switch (i) {
+			    case -2:
+			      return (((-t+3)*t-3)*t+1)/6;
+			    case -1:
+			      return (((3*t-6)*t)*t+4)/6;
+			    case 0:
+			      return (((-3*t+3)*t+3)*t+1)/6;
+			    case 1:
+			      return (t*t*t)/6;
+			  }
+			  return 0; //we only get here if an invalid i is specified
+		},
+
+		/**
+		 * evaluate a point on the B spline
+		 * 
+		 * @param i
+		 * @param t
+		 * @return eval the pojnt on the spline
+		 */
+		p : function(i,t) {
+			var px = 0;
+			var py = 0;
+			for (var j = -2; j <= 1; j++) {
+				px += this.b(j,t) * this.getPoints()[i+j].getX();
+				py += this.b(j,t) * this.getPoints()[i+j].getY();
+			}
+			return new JenScript.Point2D(Math.round(px), Math.round(py));
+			
+		},
+		
+		solvePlot : function() {
+			var devicePoints = [];
+			var q = this.p(2,0);
+			var uq = this.plugin.getProjection().userToPixel(q);
+			devicePoints[0]=uq;
+			for (var i = 2; i < this.getPoints().length - 1; i ++) {
+				for (var j = 1; j <= this.STEPS; j++) {
+					q = this.p(i, j / this.STEPS);
+					uq = this.plugin.getProjection().userToPixel(q);				
+					devicePoints[devicePoints.length]=uq;
+				}
+			}
+			this.devicePoints = devicePoints;
+		},
+		
+	});
+	
+})();
+(function(){
+	 /* a + b*u + c*u^2 +d*u^3 */
+	JenScript.PlotCubic = function(a,b,c,d) {
+		 this.a = a;
+	     this.b = b;
+	     this.c = c;
+	     this.d = d;
+		  /** evaluate cubic */
+		 this.eval = function(u) {
+		    return (((this.d*u) + this.c)*u + this.b)*u + this.a;
+		 };
+	};
+	
+	/**
+	 * Object NaturalCubicPlot()
+	 * Defines a Natural Cubic Plot
+	 * @param {Object} config
+	 */
+	JenScript.NaturalCubicPlot = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.NaturalCubicPlot, JenScript.Plot);
+	JenScript.Model.addMethods(JenScript.NaturalCubicPlot, {
+		
+		/**
+		 * Initialize Natural Cubic Plot 
+		 * @param {Object} config
+		 */
+		_init : function(config){
+			config = config || {};
+			this.STEPS = (config.step !== undefined)?config.step : 12;
+		    JenScript.Plot.call(this,config);
+		},
+		
+		 calcNaturalCubic : function(n,x) {
+		    var gamma = [];
+		    var delta = [];
+		    var D = [];
+		    /* We solve the equation
+		       [2 1       ] [D[0]]   [3(x[1] - x[0])  ]
+		       |1 4 1     | |D[1]|   |3(x[2] - x[0])  |
+		       |  1 4 1   | | .  | = |      .         |
+		       |    ..... | | .  |   |      .         |
+		       |     1 4 1| | .  |   |3(x[n] - x[n-2])|
+		       [       1 2] [D[n]]   [3(x[n] - x[n-1])]
+		       
+		       by using row operations to convert the matrix to upper triangular
+		       and then back sustitution.  The D[i] are the derivatives at the knots.
+		       */
+		    
+		    gamma[0] = 1.0/2.0;
+		    for ( var i = 1; i < n; i++) {
+		      gamma[i] = 1/(4-gamma[i-1]);
+		    }
+		    gamma[n] = 1/(2-gamma[n-1]);
+		    
+		    delta[0] = 3*(x[1]-x[0])*gamma[0];
+		    for (var i = 1; i < n; i++) {
+		      delta[i] = (3*(x[i+1]-x[i-1])-delta[i-1])*gamma[i];
+		    }
+		    delta[n] = (3*(x[n]-x[n-1])-delta[n-1])*gamma[n];
+		    
+		    D[n] = delta[n];
+		    for (var i = n-1; i >= 0; i--) {
+		      D[i] = delta[i] - gamma[i]*D[i+1];
+		    }
+
+		    /* now compute the coefficients of the cubics */
+		    var C = [];
+		    for ( i = 0; i < n; i++) {
+		      C[i] = new JenScript.PlotCubic(x[i], D[i], 3*(x[i+1] - x[i]) - 2*D[i] - D[i+1],
+				       2*(x[i] - x[i+1]) + D[i] + D[i+1]);
+		    }
+		    return C;
+		  },
+
+		  solvePlot : function() {
+				var devicePoints = [];
+				if (this.userPoints.length >= 2) {
+					var xpoints =[];
+					var ypoints =[];
+					 for (var k = 0; k < this.userPoints.length; k++) {
+						 xpoints[k]=this.userPoints[k].x;
+						 ypoints[k]=this.userPoints[k].y;
+					 }
+				      var X = this.calcNaturalCubic(this.userPoints.length-1,xpoints);
+				      var Y = this.calcNaturalCubic(this.userPoints.length-1,ypoints);
+				    
+				      var q = new JenScript.Point2D(Math.round(X[0].eval(0)),Math.round(Y[0].eval(0)));
+				      var uq = this.plugin.getProjection().userToPixel(q);
+				      devicePoints[0]=uq; 
+				      for (var i = 0; i < X.length; i++) {
+						for (var j = 1; j <= this.STEPS; j++) {
+						  var u = j /  this.STEPS;
+						  var q2 = new JenScript.Point2D(Math.round(X[i].eval(u)),Math.round(Y[i].eval(u)));
+					      var uq2 = this.plugin.getProjection().userToPixel(q2);
+						  devicePoints[devicePoints.length]=uq2; 
+						}
+				      }
+				  }
+				  this.devicePoints = devicePoints;
+			}
+	});
+	
+})();
+(function(){
+	/**
+	 * Object NaturalClosedCubicPlot()
+	 * Defines a natural closed cubic Plot
+	 * @param {Object} config
+	 */
+	JenScript.NaturalClosedCubicPlot = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.NaturalClosedCubicPlot, JenScript.NaturalCubicPlot);
+	JenScript.Model.addMethods(JenScript.NaturalClosedCubicPlot, {
+		
+		/**
+		 * Initialize natural closed cubic Plot 
+		 * @param {Object} config
+		 */
+		__init : function(config){
+			config = config || {};
+		    JenScript.NaturalCubicPlot.call(this,config);
+		},
+		
+		 
+		  /* calculates the closed natural cubic spline that interpolates
+		     x[0], x[1], ... x[n]
+		     The first segment is returned as
+		     C[0].a + C[0].b*u + C[0].c*u^2 + C[0].d*u^3 0<=u <1
+		     the other segments are in C[1], C[2], ...  C[n] */
+
+		calcNaturalCubic : function( n,x) {
+		   var w =[];
+		   var v =[];
+		   var y = [];
+		   var D = [];
+		   var z, F, G, H;
+		    /* We solve the equation
+		       [4 1      1] [D[0]]   [3(x[1] - x[n])  ]
+		       |1 4 1     | |D[1]|   |3(x[2] - x[0])  |
+		       |  1 4 1   | | .  | = |      .         |
+		       |    ..... | | .  |   |      .         |
+		       |     1 4 1| | .  |   |3(x[n] - x[n-2])|
+		       [1      1 4] [D[n]]   [3(x[0] - x[n-1])]
+		       
+		       by decomposing the matrix into upper triangular and lower matrices
+		       and then back sustitution.  See Spath "Spline Algorithms for Curves
+		       and Surfaces" pp 19--21. The D[i] are the derivatives at the knots.
+		       */
+		    w[1] = v[1] = z = 1.0/4.0;
+		    y[0] = z * 3 * (x[1] - x[n]);
+		    H = 4;
+		    F = 3 * (x[0] - x[n-1]);
+		    G = 1;
+		    for (var k = 1; k < n; k++) {
+		      v[k+1] = z = 1/(4 - v[k]);
+		      w[k+1] = -z * w[k];
+		      y[k] = z * (3*(x[k+1]-x[k-1]) - y[k-1]);
+		      H = H - G * w[k];
+		      F = F - G * y[k-1];
+		      G = -v[k] * G;
+		    }
+		    H = H - (G+1)*(v[n]+w[n]);
+		    y[n] = F - (G+1)*y[n-1];
+		    
+		    D[n] = y[n]/H;
+		    D[n-1] = y[n-1] - (v[n]+w[n])*D[n]; /* This equation is WRONG! in my copy of Spath */
+		    for (var k = n-2; k >= 0; k--) {
+		      D[k] = y[k] - v[k+1]*D[k+1] - w[k+1]*D[n];
+		    }
+
+
+		    /* now compute the coefficients of the cubics */
+		    var C = [];
+		    for ( var k = 0; k < n; k++) {
+		      C[k] = new JenScript.PlotCubic(x[k], D[k], 3*(x[k+1] - x[k]) - 2*D[k] - D[k+1],
+				       2*(x[k] - x[k+1]) + D[k] + D[k+1]);
+		    }
+		    C[n] = new JenScript.PlotCubic(x[n], D[n], 3*(x[0] - x[n]) - 2*D[n] - D[0],
+				     2*(x[n] - x[0]) + D[n] + D[0]);
+		    return C;
+		  }
+
+	});
+	
+})();
+(function(){
+	/**
+	 * Object CatmullRomPlot()
+	 * Defines a Catmull-Rom Plot
+	 * @param {Object} config
+	 */
+	JenScript.CatmullRomPlot = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.CatmullRomPlot, JenScript.BSplinePlot);
+	JenScript.Model.addMethods(JenScript.CatmullRomPlot, {
+		
+		/**
+		 * Initialize Catmull-Rom Plot 
+		 * @param {Object} config
+		 */
+		__init : function(config){
+			config = config || {};
+		    JenScript.BSplinePlot.call(this,config);
+		},
+		
+		/**
+		 * Catmull-Rom spline is just like a B spline, only with a different basis
+		 * the basis function for Catmull-Rom
+		 * @param i
+		 * @param t
+		 * @return coefficient
+		 */
+		 b : function(i,t) {
+		    switch (i) {
+			    case -2:
+			      return ((-t+2)*t-1)*t/2;
+			    case -1:
+			      return (((3*t-5)*t)*t+2)/2;
+			    case 0:
+			      return ((-3*t+4)*t+1)*t/2;
+			    case 1:
+			      return ((t-1)*t*t)/2;
+		    }
+		    return 0; //we only get here if an invalid i is specified
+		  },
+
+	});
+	
+})();
+(function(){
+	//http://en.wikipedia.org/wiki/GeoJSON
+	JenScript.GeoJSON = function(data) {
+		this.init(data);
+		this.Id = 'GeoJSON'+JenScript.sequenceId++;
+		this.geom = ['Point','MultiPoint','LineString','MultiLineString','Polygon','MultiPolygon'];
+	};
+	JenScript.Model.addMethods(JenScript.GeoJSON,{
+			
+			init : function(data){
+				this.data = data || {};
+			},
+			
+			getId : function(){
+				return this.Id;
+			},
+			
+			isFeatureCollection : function(){
+				return (this.getType() === 'FeatureCollection');
+			},
+			
+			isFeature : function(){
+				return (this.getType() === 'Feature');
+			},
+			
+			isGeometry : function(){
+				for (var g = 0; g < this.geom.length; g++) {
+					var type = this.geom[g];
+					if(this.getType() === type)
+						return true;
+				}
+				return false;
+			},
+			
+			getProperties : function(){
+				return this.data.properties;
+			},
+			
+			getProperty : function(property){
+				return this.data.properties[property];
+			},
+			
+			getType : function(){
+				return this.data.type;
+			},
+	});
+	
+	JenScript.MapGeometry = function(data) {
+		this._init(data);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MapGeometry, JenScript.GeoJSON);
+	JenScript.Model.addMethods(JenScript.MapGeometry,{
+		_init : function(data){
+			JenScript.GeoJSON.call(this, data);
+			this.Id = 'mapgeometry'+JenScript.sequenceId++;
+			this.coordinates = this.data.coordinates;
+		},
+		
+		toString : function(){
+			return 'JenScript.MapGeometry';
+		},
+		
+		getCoordinates : function(){
+			return this.coordinates;
+		},
+		
+		isPolygon : function(){
+			return (this.getType() === 'Polygon');
+		},
+		
+		isMultiPolygon : function(){
+			return (this.getType() === 'MultiPolygon');
+		},
+		
+		isPoint : function(){
+			return (this.getType() === 'Point');
+		},
+		
+	});
+	
+	JenScript.MapPoint = function(data) {
+		this.__init(data);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MapPoint, JenScript.MapGeometry);
+	JenScript.Model.addMethods(JenScript.MapPoint,{
+		__init : function(data){
+			JenScript.MapGeometry.call(this, data);
+			this.Id = 'mappoint'+JenScript.sequenceId++;
+		},
+		
+		toString : function(){
+			return 'JenScript.MapPoint';
+		},
+		
+	});
+	
+	JenScript.MapPolygon = function(data) {
+		this.__init(data);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MapPolygon, JenScript.MapGeometry);
+	JenScript.Model.addMethods(JenScript.MapPolygon,{
+		__init : function(data){
+			JenScript.MapGeometry.call(this, data);
+			this.Id = 'mappolygon'+JenScript.sequenceId++;
+		},
+		
+		toString : function(){
+			return 'JenScript.MapPolygon';
+		},
+		
+	});
+	
+	JenScript.MapMultiPolygon = function(data) {
+		this.__init(data);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MapMultiPolygon, JenScript.MapGeometry);
+	JenScript.Model.addMethods(JenScript.MapMultiPolygon,{
+		__init : function(data){
+			JenScript.MapGeometry.call(this, data);
+			this.Id = 'mapmultipolygon'+JenScript.sequenceId++;
+		},
+		
+		toString : function(){
+			return 'JenScript.MapMultiPolygon';
+		},
+		
+	});
+	
+	JenScript.MapFeature = function(data) {
+		this._init(data);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MapFeature, JenScript.GeoJSON);
+	JenScript.Model.addMethods(JenScript.MapFeature,{
+		_init : function(data){
+			JenScript.GeoJSON.call(this, data);
+			this.Id = 'mapfeature'+JenScript.sequenceId++;
+			this.geometry=new JenScript.MapGeometry(this.data.geometry);
+			if(this.geometry.isPolygon()){
+				this.geometry=new JenScript.MapPolygon(this.data.geometry);
+			}
+			else if(this.geometry.isMultiPolygon()){
+				this.geometry=new JenScript.MapMultiPolygon(this.data.geometry);
+			}
+			else if(this.geometry.isPoint()){
+				this.geometry=new JenScript.MapPoint(this.data.geometry);
+			}
+			this.fillColor = 'orange';
+			this.fillOpacity = 0.2;
+			this.strokeColor = 'white';
+			this.strokeOpacity = 1;
+			this.strokeWidth= 0.5;
+		},
+		
+		getGeometry : function(){
+			return this.geometry;
+		},
+		
+	});
+	
+	JenScript.MapFeatureCollection = function(data) {
+		this._init(data);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MapFeatureCollection, JenScript.GeoJSON);
+	JenScript.Model.addMethods(JenScript.MapFeatureCollection,{
+		_init : function(data){
+			JenScript.GeoJSON.call(this, data);
+			this.Id = 'mapfeaturecollection'+JenScript.sequenceId++;
+			this.features = [];
+			for (var f = 0; f < this.data.features.length; f++) {
+				this.features[f] = new JenScript.MapFeature(this.data.features[f]);
+			}
+		},
+		
+		size : function(){
+			return this.features.length;
+		},
+		
+		getFeature : function(index){
+			return this.features[index];
+		},
+		
+		getFeatures : function(){
+			return this.features;
+		},
+		
+	});
+	
+})();
+(function(){
+	
+	JenScript.MapBackgroundPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MapBackgroundPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.MapBackgroundPlugin,{
+		
+		_init : function(config){
+			config = config || {};
+			config.priority = 1000;
+			config.name ='MapBackgroundPlugin';
+			JenScript.Plugin.call(this, config);
+		},
+		
+		
+		paintPlugin : function(g2d, part) {
+			if (part !== JenScript.ViewPart.Device) {
+				return;
+			}
+			var w = this.getProjection().getView().getDevice().getWidth();
+			var h = this.getProjection().getView().getDevice().getHeight();
+			var rect = new JenScript.SVGRect().origin(0,0).size(w,h);
+			//JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,50)
+			g2d.insertSVG(rect.strokeNone().fill(JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,30)).toSVG());
+		}
+			
+	});
+})();
+(function(){
+	
+	JenScript.TilePlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.TilePlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.TilePlugin,{
+		_init : function(config){
+			config = config || {};
+			this.tileServer = (config.tileServer !== undefined)?config.tileServer : 'https://a.tile.openstreetmap.org';
+			this.opacity= (config.opacity !== undefined)?config.opacity : 1;
+			config.priority = 1000;
+			config.name ='TilePlugin';
+			this.tms = (config.tms !== undefined)?config.tms :false;
+			JenScript.Plugin.call(this, config);
+		},
+		
+		/**
+		 * on projection register, add projection bound listener to repaint this plugin
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'Tile plugin listener for projection bound changed');
+			
+			this.addPluginListener('scale', function(){
+				//console.log('tile plugin scale changed');
+				that.repaintPlugin();
+				
+			},'Tile plugin listener for scale changed');
+			
+			this.addPluginListener('translate', function(){
+				//console.log('tile plugin translate changed');
+				that.repaintPlugin();
+			},'Tile plugin listener for translate changed');
+		},
+		
+		createDalle : function(g2d){
+			this.destroyGraphics();
+			var proj1 = this.getProjection();
+			var cp = proj1.getCenterPosition();
+			var dalle1 = proj1.getProjection();
+			var tileSize = dalle1.getSquareTileSize(); //256
+			var dL = 0;
+			var factor= 1;
+			if(this.sx < 1){
+				var flag = true;
+				var val = 1;
+				var delta = -1;
+				while(flag){
+					var min = val/2;
+					var max = val;
+					if(this.sx >= min && this.sx <max){
+						//console.log('found generic sx<1 values : '+this.sx +' with min/max'+min+'/'+max+' delta/divisor :'+delta+'/'+min);
+						dL = delta;
+						factor = min;
+						flag = false;
+					}
+					delta--;
+					val = min;
+				}
+			}else{
+				var flag = true;
+				var val = 1;
+				var delta = 0;
+				while(flag){
+					var min = val;
+					var max = val *2;
+					if(this.sx >= min && this.sx <max){
+						//console.log('found generic sx>1 values : '+this.sx +' with min/max : '+min+'/'+max+' delta/divisor :'+delta+'/'+min);
+						dL = delta;
+						factor = min;
+						flag = false;
+					}
+					delta++;
+					val = max;
+				}
+			}
+			
+			var proj = new JenScript.MapProjection({
+				level : (dalle1.getZoom() + dL),
+				centerPosition : cp
+			});
+			
+			proj.view = this.getView();
+			var dalle = proj.getProjection();
+			var width = this.getView().getDevice().getWidth();
+			var height = this.getView().getDevice().getHeight();
+			
+			var longMin = this.p2u({x:0,y:0}).x;
+			var longMax = this.p2u({x:width,y:0}).x;
+			var latMax = this.p2u({x:0,y:0}).y;
+			var latMin = this.p2u({x:0,y:height}).y;
+			
+//			var minXIndex = dalle.longToXIndex(proj.getMinX());
+//			var maxXIndex = dalle.longToXIndex(proj.getMaxX());
+//			var minYIndex = dalle.latToYIndex(proj.getMaxY());
+//			var maxYIndex = dalle.latToYIndex(proj.getMinY());
+			
+			var minXIndex = dalle.longToXIndex(longMin);
+			var maxXIndex = dalle.longToXIndex(longMax);
+			var minYIndex = dalle.latToYIndex(latMax);
+			var maxYIndex = dalle.latToYIndex(latMin);
+
+			//shift pixel between 2 projections
+			var xx1 = proj1.longToPixel(proj.getMinX());
+			var xx2 = proj.longToPixel(proj.getMinX());
+			
+			var yy1 = proj1.latToPixel(proj.getMinY());
+			var yy2 = proj.latToPixel(proj.getMinY());
+			
+			var dd1 = xx1-xx2;
+			var dd2 = yy1 -yy2;
+			//console.log('dd1/dd2::'+dd1+','+dd2);
+			for (var x = minXIndex  ; x <= maxXIndex ; x++) {
+				for (var y = minYIndex ; y <= maxYIndex; y++) {
+					
+					var long = dalle.tileToLong(x);
+					var lat = dalle.tileToLat(y);
+					var xpixel = proj.longToPixel(long);
+					var ypixel = proj.latToPixel(lat);
+					//console.log('x,y pixels tile : '+xpixel+','+ypixel);
+					if(dalle.getZoom() >= 0 && x >= 0 && y >=0 && x<= dalle.getMaxTileIndex() && y<= dalle.getMaxTileIndex()){
+						var tileURL1;
+						if(this.tms){
+							tileURL1 = this.tileServer+'/'+dalle.getZoom()+'/'+x+'/'+(dalle.getMaxTileIndex()-y)+'.png';
+						}else{
+							tileURL1 = this.tileServer+'/'+dalle.getZoom()+'/'+x+'/'+y+'.png';
+						}
+						var imageTile = new JenScript.SVGImage().attr('transform','translate('+(dd1)+','+(-dd2) +')'+' scale('+1/factor+')').opacity(this.opacity).xlinkHref(tileURL1).origin(xpixel,ypixel).size(tileSize,tileSize);
+						g2d.insertSVG(imageTile.toSVG());
+						
+						//var imageTile = new JenScript.SVGRect().attr('transform','translate('+(dd1)+','+(-dd2) +')'+' scale('+1/factor+')').opacity(this.opacity).origin(xpixel,ypixel).stroke('black').fillNone().size(tileSize,tileSize);
+						//g2d.insertSVG(imageTile.toSVG());
+					}
+
+				}
+			}
+
+		},
+		
+		
+		paintPlugin : function(g2d, part) {
+			if (part !== JenScript.ViewPart.Device) {
+				return;
+			}
+			this.createDalle(g2d);
+		}
+	});
+})();
+(function(){
+	
+	JenScript.MapTranslatePlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.MapTranslatePlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.MapTranslatePlugin,{
+		
+		_init : function(config){
+			config = config || {};
+			config.priority = 1000;
+			config.name ='MapTranslatePlugin';
+			JenScript.Plugin.call(this, config);
+			this.startPoint;
+			this.currentPoint;
+			this.translate = false;
+		},
+		
+		onPress : function(evt,part,x,y){
+			//mozilla, prevent Default to enable dragging correctly
+			if(evt.preventDefault){
+				evt.preventDefault();
+			}
+			this.translate = true;
+			this.startPoint = new JenScript.Point2D(x,y);
+			
+		},
+		
+		onRelease : function(evt,part,x,y){
+			this.translate = false;
+		},
+		
+		onMove : function(evt,part,x,y){
+			if(!this.translate) return;
+			this.currentPoint = new JenScript.Point2D(x,y);
+			var dLong =  this.getProjection().pixelToLong(this.startPoint.x)-this.getProjection().pixelToLong(this.currentPoint.x);
+			var dLat =   this.getProjection().pixelToLat(this.startPoint.y)-this.getProjection().pixelToLat(this.currentPoint.y);
+			var cp = this.getProjection().getCenterPosition();
+			this.getProjection().setCenterPosition(new JenScript.GeoPosition(cp.latitude+dLat,cp.longitude+dLong));
+			this.startPoint = this.currentPoint;
+		},
+			
+	});
+})();
+(function(){
+	
+	
+	JenScript.ZoomMapWheelPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.ZoomMapWheelPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.ZoomMapWheelPlugin, {
+		_init : function(config){
+			config = config || {};
+			
+			config.name =  "ZoomMapWheelPlugin";
+			config.selectable = false;
+			config.priority = 1000;
+			this.increment = (config.increment !== undefined)?config.increment : 1;
+			
+			this.wheelListeners = [];
+			JenScript.Plugin.call(this,config);
+		},
+		
+		addWheelListener : function(actionEvent,listener,name) {
+			var l={action:actionEvent,onEvent:listener,name:name};
+			this.wheelListeners[this.wheelListeners.length] = l;
+		},
+		
+		fireWheelEvent : function(action){
+			for(var i = 0 ;i<this.wheelListeners.length;i++){
+				var l = this.wheelListeners[i];
+				if(l.action === action)
+					l.onEvent(this);
+			}
+		},
+		
+		onPress : function(evt,part,x,y){
+			this.stopWheel = true;
+		},
+		
+		onRelease : function(evt,part,x,y){
+			this.stopWheel = false;
+		},
+		
+		onMove: function(evt,part,x,y){
+			var p = new JenScript.Point2D(x,y);
+			this.mp = this.getProjection().pixelToUser(p);
+			//console.log('set position mp :'+this.mp);
+		},
+		
+		onWheel : function(evt,part,x,y){
+			evt.preventDefault();
+			//console.log('zoomWheel onWheel');
+			
+			var that=this;
+			var temporizeIn = function(i){
+				setTimeout(function(){
+					that.zoomIn();
+				},100*i);
+			};
+			var temporizeOut = function(i){
+				setTimeout(function(){
+					that.zoomOut();
+				},100*i);
+			};
+			
+			var exe = function(rotation){
+				if (rotation < 0) {
+					var count = -rotation;
+					for (var i = 0; i < count; i++) {
+						temporizeIn(i);
+					}
+				} else {
+					var count = rotation;
+					for (var i = 0; i < count; i++) {
+						temporizeOut(i);
+					}
+				}
+			};
+			
+			if(evt.deltaY){
+				exe(evt.deltaY);
+			}
+		},
+	
+		/**
+		 * bound zoom in
+		 */
+		zoomIn : function() {
+			if(this.stopWheel) return;
+			this.getProjection().setLevel(this.getProjection().getLevel()+this.increment);
+			if(this.mp !== undefined){
+				//this.getProjection().setCenterPosition(this.mp);
+			}
+			
+//			var that = this;
+//			var exec = function(i){
+//				setTimeout(function(){
+//					that.getProjection().setLevel(that.getProjection().getLevel()+1/5);
+//					if(that.mp !== undefined){
+//						//this.getProjection().setCenterPosition(this.mp);
+//					}
+//				},i*10);
+//			};
+//			
+//			
+//			for (var i = 0; i <5; i++) {
+//				exec(i);
+//			}
+			this.fireWheelEvent('zoomIn');
+		},
+
+		/**
+		 * bound zoom out
+		 */
+		 zoomOut : function() {
+			if(this.stopWheel) return;
+			this.getProjection().setLevel(this.getProjection().getLevel()-this.increment);
+			if(this.mp !== undefined){
+				//this.getProjection().setCenterPosition(this.mp);
+			}
+//			var that = this;
+//			var exec = function(i){
+//				setTimeout(function(){
+//					that.getProjection().setLevel(that.getProjection().getLevel()-1/5);
+//					if(that.mp !== undefined){
+//						//this.getProjection().setCenterPosition(this.mp);
+//					}
+//				},i*10);
+//			};
+//			for (var i = 0; i <5; i++) {
+//				exec(i);
+//			}
+			this.fireWheelEvent('zoomOut');
+		}
+	});	
+})();
+(function(){
+	
+	//literal : path :
+	//path.element : dom element
+	//path.points : pixel polygon points
+	//path.feature : feature
+	//path.lockEnter :shape flag enter/rollover
+	
+	
+	/**
+	 * geo remote, useless, change for a classical dom way
+	 */
+	JenScript.GeoRemote = function(path) {
+		this.path = path;
+		
+		
+		this.fill = function(color){
+			this.path.element.setAttribute('fill',color);
+			this.path.feature.fillColor = color;
+		};
+		
+		this.fillOpacity = function(opacity){
+			this.path.element.setAttribute('fill-opacity',opacity);
+			this.path.feature.fillOpacity = opacity;
+		};
+		
+		this.stroke = function(color){
+			this.path.element.setAttribute('stroke',color);
+			this.path.feature.strokeColor = color;
+		};
+		
+		this.strokeOpacity = function(opacity){
+			this.path.element.setAttribute('stroke-opacity',opacity);
+			this.path.feature.strokeOpacity = opacity;
+		};
+		
+		this.strokeWidth = function(width){
+			this.path.element.setAttribute('stroke-width',width);
+			this.path.feature.strokeWidth = width;
+		};
+	};
+	
+	
+	JenScript.GeoJSONPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.GeoJSONPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.GeoJSONPlugin,{
+		
+		_init : function(config){
+			config = config || {};
+			config.priority = 1000;
+			config.name ='GeoJSONPlugin';
+			JenScript.Plugin.call(this, config);
+			this.async = (config.async !== undefined)?config.async :  false;
+			this.data = [];
+			this.paths = [];
+			this.features = [];
+			this.geoListeners = [];
+		},
+		
+
+		/**
+		 * on projection register
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			
+			//strategy : repaint if proj changed
+			//can potentially use CPU each time projection change a lot.
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'GeoJSONPlugin plugin listener for projection bound changed');
+			
+			
+			//on scale, set stroke width equivalent to 1
+			this.addPluginListener('scale', function(){
+				//console.log('geo json plugin scale listener changed');
+				for (var i = 0; i < that.paths.length; i++) {
+					var path = that.paths[i];
+					if(path.revertScale !== undefined && path.revertScale == true){
+						path.element.setAttribute('stroke-width',(path.feature.strokeWidth/that.sx));
+					}
+				}
+			},'GeoJSONPlugin plugin listener for scale changed, change stroke according to scale');
+		},
+		
+		/**
+	     * add geo listener with given action like feature 'register', feature geometry 'press', 'release' and 'move'
+	     * 
+	     * @param {String}   geo action event type
+	     * @param {Function} listener
+	     * @param {String}   listener owner name
+	     */
+		addGeoListener  : function(actionEvent,listener,name){
+			if(name === undefined)
+				throw new Error('GeoJSON listener, listener name should be supplied.');
+			var l = {action:actionEvent , onEvent : listener,name:name};
+			this.geoListeners[this.geoListeners.length] =l;
+		},
+		
+		/**
+		 * fire listener when translate is being to start, stop, translate,finish L2R, and B2T
+		 */
+		fireGeoJSONEvent : function(actionEvent,eventObject){
+			for (var i = 0; i < this.geoListeners.length; i++) {
+				var l = this.geoListeners[i];
+				if(actionEvent === l.action){
+					l.onEvent(eventObject);
+				}
+			}
+		},
+		
+		/**
+		 * get features that be registered in this plugin
+		 * @returns features 
+		 */
+		getFeatures : function(){
+			return this.features;
+		},
+		
+		/**
+		 * add GeoJSON data to this plugin
+		 * @param {Object} data GeoJSON object
+		 */
+		addGeoJSON : function(data){
+			this.data[this.data.length] = data;
+			var	geojson = new JenScript.GeoJSON(data);
+			if(geojson.isFeatureCollection()){
+				var featureCollection = new JenScript.MapFeatureCollection(data);
+				for (var f = 0; f < featureCollection.size(); f++) {
+					var feature = featureCollection.getFeature(f);
+					this.features[this.features.length] =  feature;
+					this.fireGeoJSONEvent('register',{ type : 'register', target : undefined, feature : feature, remote : undefined});
+				}
+			}
+			this.repaintPlugin();
+		},
+		
+		
+		check : function(action,evt,part,x,y){
+			for (var i = 0; i < this.paths.length; i++) {
+				var polygon = this.paths[i].polygon;
+				if(this.isPointInPoly(polygon,new JenScript.Point2D(x,y))){
+					if(this.paths[i].lockEnter == false){
+						for (var p = 0; p < this.paths.length; p++) {
+							
+							//this.paths[p].lockEnter = false; 
+							//force all false
+							if(this.paths[p].lockEnter == true){
+								this.paths[p].lockEnter = false;
+								this.fireGeoJSONEvent('exit',{type : 'exit' , x:x, y:y, point :new JenScript.Point2D(x,y), target : this.paths[p], feature : this.paths[p].feature , remote : new JenScript.GeoRemote(this.paths[p])});
+							}
+						}
+						this.paths[i].lockEnter = true;
+						this.fireGeoJSONEvent('enter',{type : 'enter' , x:x, y:y, point :new JenScript.Point2D(x,y), target : this.paths[i], feature : this.paths[i].feature , remote : new JenScript.GeoRemote(this.paths[i])});
+					}
+					this.fireGeoJSONEvent(action,{type : action , x:x, y:y, point :new JenScript.Point2D(x,y), target : this.paths[i], feature : this.paths[i].feature , remote : new JenScript.GeoRemote(this.paths[i])});
+				}else{
+					if(this.paths[i].lockEnter == true){
+						this.paths[i].lockEnter = false;
+						this.fireGeoJSONEvent('exit',{type : 'exit' , x:x, y:y, point :new JenScript.Point2D(x,y), target : this.paths[i], feature : this.paths[i].feature , remote : new JenScript.GeoRemote(this.paths[i])});
+					}
+				}
+			}
+		},
+		
+		onPress : function(evt,part,x,y){
+			if (part !== JenScript.ViewPart.Device) {
+				return;
+			}
+			this.check('press',evt,part,x,y);
+		},
+		
+		isPointInPoly : function(poly, pt){
+			//console.log('is in polygon '+pt.x+','+pt.y);
+			//var proj = this.getProjection();
+			//pt = new JenScript.Point2D(pt.x,pt.y);
+			pt = new JenScript.Point2D((pt.x - this.tx)/this.sx,(pt.y-this.ty)/this.sy);
+		    for(var c = false, i = -1, l = poly.length, j = l - 1; ++i < l; j = i)
+		        ((poly[i].y <= pt.y && pt.y < poly[j].y) || (poly[j].y <= pt.y && pt.y < poly[i].y))
+		        && (pt.x < (poly[j].x - poly[i].x) * (pt.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x)
+		        && (c = !c);
+		    return c;
+		},
+		
+		isNearLine : function(coordinates,pt){
+			var x0 = pt.x;
+			var y0 = pt.y;
+			for (var i = 0; i < coordinates.length-1; i++) {
+				var p1 = coordinates[i];
+				var x1 = p1.x;
+				var y1 = p1.y;
+				var p2 = coordinates[i+1];
+				var x2 = p2.x;
+				var y2 = p2.y;
+				var Dx = x2 - x1;
+		        var Dy = y2 - y1;
+		        var d = Math.abs(Dy*x0 - Dx*y0 - x1*y2+x2*y1)/Math.sqrt(Math.pow(Dx, 2) + Math.pow(Dy, 2));
+		        if(d<4) //4 pixels
+		        	return true;
+			}
+			return false;
+		},
+		
+		onRelease : function(evt,part,x,y){
+			if (part !== JenScript.ViewPart.Device) {
+				return;
+			}
+			this.check('release',evt,part,x,y);
+		},
+		
+		onMove : function(evt,part,x,y){
+			if (part !== JenScript.ViewPart.Device) {
+				return;
+			}
+			this.check('move',evt,part,x,y);
+		},
+		
+		
+		/**
+		 * paint feature point
+		 */
+		paintPoint : function(g2d,feature,geometry){
+			var coordinates = geometry.getCoordinates();
+			var proj = this.getProjection();
+			var long = coordinates[0];
+			var lat = coordinates[1];
+			var pp = proj.userToPixel({x :long, y :lat});
+			
+			var svgCircle = new JenScript.SVGCircle().center(pp.x,pp.y).radius(2).attr('transform','scale('+1/this.sx+')');
+			svgCircle.fill('black').fillOpacity(0.8);
+			
+			g2d.insertSVG(svgCircle.toSVG());
+		},
+
+		/**
+		 * paint feature polygon
+		 */
+		paintPolygon : function(g2d,feature,geometry){
+			var coordinates = geometry.getCoordinates();
+			var proj = this.getProjection();
+			var svgPath = new JenScript.SVGPath().Id(geometry.Id).attr('fill-rule','evenodd');
+			var points = [];
+			
+			//extract start
+			for (var k = 0; k < coordinates.length; k++) {
+				var subCoordinates = coordinates[k];
+				for (var j = 0; j < subCoordinates.length; j++) {
+					var point = subCoordinates[j];
+					var pp = proj.userToPixel({x :point[0], y :point[1]});
+					points[points.length] = pp;
+					if(j == 0){
+						svgPath.moveTo(pp.x,pp.y);
+					}else{
+						svgPath.lineTo(pp.x,pp.y);
+					}
+				}
+				svgPath.close();
+				//fill-rule="evenodd"
+			}
+			
+			var pathElement = svgPath.stroke(feature.strokeColor).strokeOpacity(feature.strokeOpacity).strokeWidth(feature.strokeWidth).fill(feature.fillColor).fillOpacity(feature.fillOpacity);
+			
+			if(feature.texture !== undefined){
+				g2d.deleteGraphicsElement(feature.texture.getId());
+				g2d.definesTexture(feature.texture);
+				//g2d.insertSVG(shape.fillURL(this.texture.Id).opacity(this.opacity).toSVG());
+				pathElement.fillURL(feature.texture.getId());
+			}
+			
+			pathElement = pathElement.toSVG();
+			
+			g2d.deleteGraphicsElement(geometry.Id);
+			g2d.insertSVG(pathElement);
+			this.paths[this.paths.length]= {element : pathElement, polygon : points, feature : feature , lockEnter : false, revertScale : true};
+			//extract end
+		},
+		
+		paintMultiPolygon : function(g2d,feature,geometry){
+			var multiPolygon = geometry.getCoordinates();
+			for (var m = 0; m < multiPolygon.length; m++) {
+				//console.log(" start paint multipolygon "+m+" :"+multiPolygon[m].length);
+				var coordinates = multiPolygon[m];
+				var proj = this.getProjection();
+				var svgPath = new JenScript.SVGPath().Id(geometry.Id+'_'+m).attr('fill-rule','evenodd');
+				var points = [];
+				
+				//extract start
+				for (var k = 0; k < coordinates.length; k++) {
+					var subCoordinates = coordinates[k];
+					//console.log(" multipolygon segment count point : "+subCoordinates.length);
+					for (var j = 0; j < subCoordinates.length; j = j + 1) {
+						//console.log(" multipolygon segment count point : "+j);
+						var point = subCoordinates[j];
+						var pp = proj.userToPixel({x :point[0], y :point[1]});
+						points[points.length] = pp;
+						if(j == 0){
+							svgPath.moveTo(pp.x,pp.y);
+						}else{
+							svgPath.lineTo(pp.x,pp.y);
+						}
+					}
+					svgPath.close();
+					//fill-rule="evenodd"
+				}
+				
+				var pathElement = svgPath.stroke(feature.strokeColor).strokeOpacity(feature.strokeOpacity).strokeWidth(feature.strokeWidth).fill(feature.fillColor).fillOpacity(feature.fillOpacity);
+				
+				if(feature.texture !== undefined){
+					g2d.deleteGraphicsElement(feature.texture.getId());
+					g2d.definesTexture(feature.texture);
+					//g2d.insertSVG(shape.fillURL(this.texture.Id).opacity(this.opacity).toSVG());
+					pathElement.fillURL(feature.texture.getId());
+				}
+				
+				pathElement = pathElement.toSVG();
+				g2d.deleteGraphicsElement(geometry.Id+'_'+m);
+				g2d.insertSVG(pathElement);
+				this.paths[this.paths.length]= {element : pathElement, polygon : points, feature : feature, lockEnter : false, revertScale : true};
+				//extract end
+				//console.log(" end paint multipolygon "+m+" :"+multiPolygon[m].length);
+				
+			}
+		},
+		
+		paintFeature : function(g2d, feature){
+			if(feature.visible !== undefined && feature.visible === false) return;
+			//console.log("paint feature : "+feature.Id);
+			var geometry = feature.getGeometry();
+			var that= this;
+			var pp = function(geometry){
+				setTimeout(function(){
+					that.paintPolygon(g2d,feature,geometry);
+				},20);
+			};
+			var pmp = function(geometry){
+				setTimeout(function(){
+					that.paintMultiPolygon(g2d,feature,geometry);
+				},20);
+			};
+			
+			//console.log('geometry :'+geometry);
+			if(geometry.isPolygon()){
+				//this.paintPolygon(g2d,feature,geometry);
+				if(this.async)
+					pp(geometry);
+				else
+					that.paintPolygon(g2d,feature,geometry);
+				
+			}else if(geometry.isMultiPolygon()){
+				//this.paintMultiPolygon(g2d,feature,geometry);
+				if(this.async)
+					pmp(geometry);
+				else
+					that.paintMultiPolygon(g2d,feature,geometry);
+				
+			}else if(geometry.isPoint()){
+				this.paintPoint(g2d,feature,geometry);
+			}
+
+		},
+		
+		/**
+		 * paint plugin
+		 * @params {Object} g2d graphics context
+		 * @params {Object} part view part
+		 */
+		paintPlugin : function(g2d, part) {
+			if (part !== JenScript.ViewPart.Device) {
+				return;
+			}
+			this.paths = [];
+			//var mouseover = new JenScript.SVGScript().script("function mytest(evt){console.log('pop');}");
+			//g2d.insertSVG(mouseover.toSVG());
+			var that = this;
+			
+			var pf = function(feature){
+				setTimeout(function(){
+					//console.log('feature : '+feature);
+					that.paintFeature(g2d,feature);
+				},20);
+			};
+			for (var f = 0; f < this.features.length; f++) {
+				var feature = this.features[f];
+				if(this.async)
+					pf(feature);
+				else
+					this.paintFeature(g2d,feature);
+			}
+		}
+	});
+})();
+(function(){
+	
+	JenScript.AffineTranformPlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.AffineTranformPlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.AffineTranformPlugin,{
+		
+		_init : function(config){
+			config = config || {};
+			config.priority = 1000;
+			this.slaves = (config.slaves !== undefined)? config.slaves : [];
+			config.name ='AffineTranformPlugin';
+			JenScript.Plugin.call(this, config);
+			this.startPoint;
+			this.currentPoint;
+			this.translate = false;
+			this.factor = (config.factor !== undefined)? config.factor : 1.1;
+		},
+		
+		onPress : function(evt,part,x,y){
+			//mozilla, prevent Default to enable dragging correctly
+			if(evt.preventDefault){
+				evt.preventDefault();
+			}
+			if(part !== 'Device') return;
+			this.translate = true;
+			this.startPoint = new JenScript.Point2D(x,y);
+		},
+
+		onRelease : function(evt,part,x,y){
+			this.translate = false;
+			this.firePluginEvent('transform-release');
+		},
+		
+		onMove : function(evt,part,x,y){
+			if(part !== 'Device') return;
+			if(!this.translate) return;
+			this.affineTranslate(evt,part,x,y);
+			this.startPoint = this.currentPoint;
+		},
+		
+		onWheel : function(evt,part,x,y){
+			evt.preventDefault();
+			var that=this;
+			var temporizeIn = function(i){
+				setTimeout(function(){
+					that.affineScale(that.factor);
+				},20*i);
+			};
+			var temporizeOut = function(i){
+				setTimeout(function(){
+					that.affineScale(1/that.factor);
+				},20*i);
+			};
+			
+			var exe = function(rotation){
+				if (rotation < 0) {
+					var count = -rotation;
+					for (var i = 0; i < count; i++) {
+						temporizeIn(i);
+					}
+				} else {
+					var count = rotation;
+					for (var i = 0; i < count; i++) {
+						temporizeOut(i);
+					}
+				}
+			};
+			
+			if(evt.deltaY){
+				exe(evt.deltaY);
+			}
+		},
+		
+		 
+		u2p : function(plugin,u){
+			 var p = this.getProjection().userToPixel(u);
+			 return new JenScript.Point2D(p.x*plugin.sx+plugin.tx,p.y*plugin.sy+plugin.ty);
+		},
+		 
+		p2u : function(plugin,p){
+			return this.getProjection().pixelToUser(new JenScript.Point2D((p.x-plugin.tx)/plugin.sx,(p.y-plugin.ty)/plugin.sy));
+		},
+		
+		
+		minX : function(plugin){
+			return this.p2u(plugin,{x : 0,y:0}).x;
+		},
+		
+		maxX : function(plugin){
+			return this.p2u(plugin,{x : this.getDevice().getWidth(),y:0}).x;
+		},
+		
+		minY : function(plugin){
+			return this.p2u(plugin,{x : 0,y:this.getDevice().getHeight()}).y;
+		},
+		
+		maxY : function(plugin){
+			return this.p2u(plugin,{x : 0,y:0}).y;
+		},
+		
+		affineTranslate : function(evt,part,x,y){
+			this.currentPoint = new JenScript.Point2D(x,y);
+			if(this.startPoint !== undefined){
+				var dx =  this.currentPoint.x - this.startPoint.x;
+				var dy =  this.currentPoint.y - this.startPoint.y;
+				for (var s = 0; s < this.slaves.length; s++) {
+					var plugin = this.slaves[s];
+					var tx = plugin.tx+dx;
+					var ty = plugin.ty+dy;
+					plugin.translate(tx,ty);
+				}
+			}
+		},
+		
+		 /***
+		  * assign new scale transform and reset the translate transform to keep centered
+		  */
+		 affineScale : function(m){
+			 
+			for (var s = 0; s < this.slaves.length; s++) {
+				var plugin = this.slaves[s];
+				
+				var w = this.getProjection().getView().getDevice().getWidth();
+				var h = this.getProjection().getView().getDevice().getHeight();
+				
+				var oldCenterUser 	= this.p2u(plugin,new JenScript.Point2D(w/2,h/2));
+				
+				var oldSx = plugin.sx;
+				var oldSy = plugin.sy;
+				
+				var sx = plugin.sx*m;
+				var sy = plugin.sy*m;
+				plugin.scale(sx,sy);
+				
+				//new  pixel center
+				var newCenterUser 	= this.p2u(plugin,new JenScript.Point2D(w/2,h/2));
+				var pixelCenter 	= this.u2p(plugin,newCenterUser);
+				
+				//do after scale
+				var pixelCenter2 	= this.u2p(plugin,oldCenterUser);
+				if(pixelCenter !== undefined && pixelCenter2 !== undefined){
+					var tx = plugin.tx-(pixelCenter2.x-pixelCenter.x);
+					var ty = plugin.ty-(pixelCenter2.y-pixelCenter.y);
+					//console.log('set tx/ty after scale :'+tx+','+ty);
+					if(isFinite(tx) && isFinite(ty)){
+						plugin.translate(tx,ty);
+					}else{
+						plugin.scale(oldSx,oldSy);
+					}
+				}
+				
+			}
+			
+			this.firePluginEvent('transform-release');
+		 },
+		
+	});
+})();
