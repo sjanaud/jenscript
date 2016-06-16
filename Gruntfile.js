@@ -165,10 +165,6 @@ grunt.initConfig({
 								"src/plugins/ray/ray-plugin.js"],
 
 
-			 radar  	 	 : ["src/plugins/radar/radar-plugin.js",
-			           	 	    "src/plugins/radar/radar.js"],
-
-
 			 progress  	 : ["src/plugins/progress/progress-plugin.js",
 			         	 	    "src/plugins/progress/progress-monitor.js"],
 
@@ -237,7 +233,6 @@ grunt.initConfig({
 								"src/plugins/map/map-geometric-zoom-plugin.js",
 								"src/plugins/map/map-geojson-plugin.js"],
 
-			//TRANSFORM
 			 transform  	 : ["src/plugins/transforms/semantic-transform-plugin.js"],
 			features : [
 			                 	{name : "core",  parts : "<%= jenscript.core %>"},
@@ -251,7 +246,6 @@ grunt.initConfig({
 				                {name : "stripe", parts :"<%= jenscript.stripe %>"},
 				                {name : "symbol", parts :"<%= jenscript.symbol %>"},
 				                {name : "ray", parts :"<%= jenscript.ray %>"},
-				                {name : "radar", parts :"<%= jenscript.radar %>"},
 				                {name : "progress", parts :"<%= jenscript.progress %>"},
 				                {name : "stock", parts :"<%= jenscript.stock %>"},
 				                {name : "gauge", parts :"<%= jenscript.gauge %>"},
