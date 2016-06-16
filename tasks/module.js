@@ -16,7 +16,8 @@ module.exports = function(grunt) {
 				  features = features.concat(_feature.parts);
 			  }
 		 }
-		  grunt.config('name',targetFeature.name+'.js');
+		  grunt.config('concatFilename','jenscript-'+targetFeature.name+'.js');
+		  grunt.config('uglifyDist','jenscript-'+targetFeature.name+'.min.js');
 		  grunt.config('features',targetFeature.parts);
 		  grunt.task.run(["concat","replace", "uglify"]);
 	});
