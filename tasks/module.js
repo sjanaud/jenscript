@@ -1,5 +1,5 @@
 module.exports = function(grunt) {
-	grunt.registerTask('module', 'package module', function(featuresArgs) {
+	grunt.registerTask('module', 'package plugin', function(featuresArgs) {
 		  grunt.log.writeln('jenscript@'+grunt.config('pkg').version);
 		  grunt.log.writeln('jenscript@module task argument : '+featuresArgs);
 		  var  _features =  grunt.config('jenscript.features');
@@ -16,8 +16,8 @@ module.exports = function(grunt) {
 				  features = features.concat(_feature.parts);
 			  }
 		 }
-		  grunt.config('concatFilename','jenscript-'+targetFeature.name+'.js');
-		  grunt.config('uglifyDist','jenscript-'+targetFeature.name+'.min.js');
+		  grunt.config('libname','build/plugins/jenscript-'+targetFeature.name+'.js');
+		  grunt.config('minName','build/plugins/jenscript-'+targetFeature.name+'.min.js');
 		  grunt.config('features',targetFeature.parts);
 		  grunt.task.run(["concat","replace", "uglify"]);
 	});

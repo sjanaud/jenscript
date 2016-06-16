@@ -266,14 +266,14 @@ grunt.initConfig({
 						banner : "<%= banner %>"
 					},
 					target: {
-						dest : "<%= concatFilename %>",
+						dest : "<%= libname %>",
 						src : "<%= features %>",
 					}
 				},
 		
 		replace: {
 			  version: {
-			    src: ["<%= concatFilename %>"],
+			    src: ["<%= libname %>"],
 			    overwrite: true,
 			    replacements: [{
 			      from: '@VERSION',
@@ -288,8 +288,8 @@ grunt.initConfig({
 				report : "min"
 			},
 			dist : {
-				src : "<%= concat.target.dest %>",
-				dest : "<%= uglifyDist %>"
+				src : "<%= libname %>",
+				dest : "<%= minName %>"
 			}
 		},
 		

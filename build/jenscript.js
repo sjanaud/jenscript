@@ -28724,8 +28724,6 @@ function stringInputToObject(color) {
 
 	
 })();
-
-
 (function(){
 	JenScript.ProgressPlugin = function(config) {
 		this._init(config);
