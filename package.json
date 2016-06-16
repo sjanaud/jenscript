@@ -9,6 +9,7 @@
     "charts"
   ],
   "description": "JenScript is a JavaScript HTML5/SVG library for Visualization and Charting in web modern browsers.",
+  "homepage": "http://jenscript.io",
   "main": "jenscript.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -19,6 +20,7 @@
     "url": "https://github.com/sjanaud/jenscript.git"
   },
   "author": "sebastien janaud",
+  "email" : "sebastien.janaud@gmail.com"
   "license" : "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/sjanaud/jenscript/issues"
