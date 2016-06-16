@@ -240,26 +240,26 @@ grunt.initConfig({
 			//TRANSFORM
 			 transform  	 : ["src/plugins/transforms/semantic-transform-plugin.js"],
 			features : [
-			                 	{name : "core",  parts : grunt.config('core')},
-				                {name : "pie",  parts :grunt.config('pie')},
-				                {name : "donut2d", parts :this.donut2d},
-				                {name : "donut3d", parts :this.donut3d},
-				                {name : "translate", parts :this.translate},
-				                {name : "zoom", parts :this.zoom},
-				                {name : "metrics", parts :this.metrics},
-				                {name : "grid", parts :this.grid},
-				                {name : "stripe", parts :this.stripe},
-				                {name : "symbol", parts :this.symbol},
-				                {name : "ray", parts :this.ray},
-				                {name : "radar", parts :this.radar},
-				                {name : "progress", parts :this.progress},
-				                {name : "stock", parts :this.stock},
-				                {name : "gauge", parts :this.gauge},
-				                {name : "bubble", parts :this.bubble},
-				                {name : "functions", parts :this.functions},
-				                {name : "plot", parts :this.plot},
-				                {name : "map", parts :this.map},
-				                {name : "transform", parts :this.transform},
+			                 	{name : "core",  parts : "<%= jenscript.core %>"},
+				                {name : "pie",  parts :"<%= jenscript.pie %>"},
+				                {name : "donut2d", parts :"<%= jenscript.donut2d %>"},
+				                {name : "donut3d", parts :"<%= jenscript.donut3d %>"},
+				                {name : "translate", parts :"<%= jenscript.translate %>"},
+				                {name : "zoom", parts :"<%= jenscript.zoom %>"},
+				                {name : "metrics", parts :"<%= jenscript.metrics %>"},
+				                {name : "grid", parts :"<%= jenscript.grid %>"},
+				                {name : "stripe", parts :"<%= jenscript.stripe %>"},
+				                {name : "symbol", parts :"<%= jenscript.symbol %>"},
+				                {name : "ray", parts :"<%= jenscript.ray %>"},
+				                {name : "radar", parts :"<%= jenscript.radar %>"},
+				                {name : "progress", parts :"<%= jenscript.progress %>"},
+				                {name : "stock", parts :"<%= jenscript.stock %>"},
+				                {name : "gauge", parts :"<%= jenscript.gauge %>"},
+				                {name : "bubble", parts :"<%= jenscript.bubble %>"},
+				                {name : "functions", parts :"<%= jenscript.functions %>"},
+				                {name : "plot", parts :"<%= jenscript.plot %>"},
+				                {name : "map", parts :"<%= jenscript.map %>"},
+				                {name : "transform", parts :"<%= jenscript.transform %>"},
 			             ],
 
 		},
@@ -267,6 +267,26 @@ grunt.initConfig({
 		banner : grunt.file.read("./src/header.js").replace(/@VERSION/,
 				pkg.version).replace(/@DATE/,
 				grunt.template.today("yyyy-mm-dd"))+ "\n",
+		concat: {
+					options : {
+						banner : "<%= banner %>"
+					},
+					target: {
+						dest : "<%= concatFilename %>",
+						src : "<%= features %>",
+					}
+				},
+		
+		replace: {
+			  version: {
+			    src: ["<%= concatFilename %>"],
+			    overwrite: true,
+			    replacements: [{
+			      from: '@VERSION',
+			      to: pkg.version
+			    }]
+			  }
+		},
 		
 		uglify : {
 			options : {
@@ -275,28 +295,10 @@ grunt.initConfig({
 			},
 			dist : {
 				src : "<%= concat.target.dest %>",
-				dest : "jenscript.min.js"
+				dest : "<%= uglifyDist %>"
 			}
 		},
-		replace: {
-			  version: {
-			    src: ['jenscript.js'],
-			    overwrite: true,
-			    replacements: [{
-			      from: '@VERSION',
-			      to: pkg.version
-			    }]
-			  }
-		},
-		concat: {
-			options : {
-				banner : "<%= banner %>"
-			},
-			target: {
-				dest : "<%= name %>",
-				src : "<%= features %>",
-			}
-		},
+		
 		
 	});
 	grunt.loadNpmTasks("grunt-contrib-concat");
