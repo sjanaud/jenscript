@@ -1,7 +1,7 @@
 (function(){
 	/**
-	 * Object Donut2DAbstractLabel()
-	 * Defines Donut2D Abstract Label
+	 * Object TextLabel()
+	 * Defines TextLabel Abstract Label
 	 * @param {Object} config
 	 * @param {String} [config.name] the label type name
 	 * @param {String} [config.text] the label text
