@@ -19,6 +19,7 @@
 		_init : function(config){
 			config = config || {};
 			config.priority = 100;
+			config.name="TitleLegendPlugin";
 			this.text = config.text;
 			this.fontSize = (config.fontSize !== undefined)?config.fontSize:12;
 			this.textColor = (config.textColor !== undefined)?config.textColor:'red';
