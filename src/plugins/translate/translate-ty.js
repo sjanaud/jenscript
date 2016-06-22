@@ -13,7 +13,7 @@
 			config.yIndex=(config.yIndex !== undefined)?config.yIndex:1;
 			config.barOrientation = 'Vertical';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
-		    this.sample = (config.sample !== undefined)?config.sample : {step : 10,sleep: 5,fraction:10};
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 2, sleep: 100,fraction:5};
 		    this.setOrphanLock(true);
 		},
 		
@@ -34,6 +34,7 @@
 	    
 	    onRegister : function(){
 	    	this.attachPluginLockUnlockFactory('TranlateY widget factory');
+	    	this.attachViewActivePassiveFactory('TranlateY widget factory');
 	    }
 		
 	});

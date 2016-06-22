@@ -31,8 +31,8 @@
 	        config.Id =  this.translateCompassWidgetID;
 	        config.width = this.compassSquareSize;
 	        config.height = this.compassSquareSize;
-	        config.xIndex = 100;
-	        config.yIndex = 0;
+	        config.xIndex = (config.xIndex !== undefined)?config.xIndex: 100;
+	        config.yIndex =  (config.yIndex !== undefined)?config.yIndex: 0;
 			JenScript.Widget.call(this,config);
 		},
 		
@@ -107,10 +107,7 @@
 			
 			this.getHost().addTranslateListener('stop',
 		            function (pluginEvent) {
-						//console.log('finish translate from widget '+that.getHost().Id);
-						//console.log('compass widget finish listener is being to destroy compass widget');
 						that.destroy();
-						//console.log('compass destroy');
 		            },'translate compass widget translate stop listener, destroy'
 			);
 		},

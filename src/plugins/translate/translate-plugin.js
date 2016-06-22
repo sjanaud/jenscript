@@ -206,7 +206,7 @@
 				this.lockPassive = true;
 		        var that = this;
 		        if(sample === undefined){
-		        	sample  = {step : 5,sleep : 5,fraction : 20};
+		        	sample  = {step : 5, sleep : 5 ,fraction : 20};
 		        }
 		        var step = (sample.step !== undefined)?sample.step : 5;
                 var sleep = (sample.sleep !== undefined)?sample.sleep : 5;
