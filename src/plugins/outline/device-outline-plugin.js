@@ -22,6 +22,7 @@
 			config = config || {};
 			this.color = (config.color !== undefined)?config.color : 'darkgray';
 			this.strokeWidth = (config.strokeWidth !== undefined)?config.strokeWidth : 1;
+			this.strokeOpacity = (config.strokeOpacity !== undefined)?config.strokeOpacity : 1;
 			config.priority = 1000;
 			config.name ='DeviceOutlinePlugin';
 			JenScript.Plugin.call(this, config);
@@ -42,6 +43,7 @@
 										.origin(this.strokeWidth/2,this.strokeWidth/2)
 										.size(dp.width-this.strokeWidth,dp.height-this.strokeWidth)
 										.stroke(this.color)
+										.strokeOpacity(this.strokeOpacity)
 										.strokeWidth(this.strokeWidth)
 									    .fillNone();
 			
