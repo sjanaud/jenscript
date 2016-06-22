@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2016-06-16
+// build: 2016-06-22
 // All Rights reserved
 
 (function(){
@@ -216,7 +216,7 @@
 				this.lockPassive = true;
 		        var that = this;
 		        if(sample === undefined){
-		        	sample  = {step : 5,sleep : 5,fraction : 20};
+		        	sample  = {step : 5, sleep : 5 ,fraction : 20};
 		        }
 		        var step = (sample.step !== undefined)?sample.step : 5;
                 var sleep = (sample.sleep !== undefined)?sample.sleep : 5;
@@ -405,7 +405,7 @@
 			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
 			config.barOrientation = 'Horizontal';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
-		    this.sample = (config.sample !== undefined)?config.sample : {step : 10,sleep: 5,fraction:10};
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 2, sleep: 100,fraction:5};
 		    this.setOrphanLock(true);
 		},
 	    onButton1Press : function() {
@@ -423,6 +423,7 @@
 	    
 	    onRegister : function(){
 	    	this.attachPluginLockUnlockFactory('TranlateX widget factory');
+	    	this.attachViewActivePassiveFactory('TranlateX widget factory');
 	    }
 	});
 })();
@@ -441,7 +442,7 @@
 			config.yIndex=(config.yIndex !== undefined)?config.yIndex:1;
 			config.barOrientation = 'Vertical';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
-		    this.sample = (config.sample !== undefined)?config.sample : {step : 10,sleep: 5,fraction:10};
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 2, sleep: 100,fraction:5};
 		    this.setOrphanLock(true);
 		},
 		
@@ -462,6 +463,7 @@
 	    
 	    onRegister : function(){
 	    	this.attachPluginLockUnlockFactory('TranlateY widget factory');
+	    	this.attachViewActivePassiveFactory('TranlateY widget factory');
 	    }
 		
 	});
@@ -499,8 +501,8 @@
 	        config.Id =  this.translateCompassWidgetID;
 	        config.width = this.compassSquareSize;
 	        config.height = this.compassSquareSize;
-	        config.xIndex = 100;
-	        config.yIndex = 0;
+	        config.xIndex = (config.xIndex !== undefined)?config.xIndex: 100;
+	        config.yIndex =  (config.yIndex !== undefined)?config.yIndex: 0;
 			JenScript.Widget.call(this,config);
 		},
 		
@@ -575,10 +577,7 @@
 			
 			this.getHost().addTranslateListener('stop',
 		            function (pluginEvent) {
-						//console.log('finish translate from widget '+that.getHost().Id);
-						//console.log('compass widget finish listener is being to destroy compass widget');
 						that.destroy();
-						//console.log('compass destroy');
 		            },'translate compass widget translate stop listener, destroy'
 			);
 		},

@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2016-06-16
+// build: 2016-06-22
 // All Rights reserved
 
 /**
@@ -2573,6 +2573,10 @@ function stringInputToObject(color) {
 		 */
 	    setView : function(view) {
 	        this.view=view;
+	        var that = this;
+			view.addViewListener('projectionActive',function(){
+				that.repaintPlugin();
+			},'Projection active listener, create for internal selector plugin');
 	    },
 	    
 	    /**
@@ -4639,6 +4643,7 @@ function stringInputToObject(color) {
 			if (this.activeProjection.Id !== activeProjection.Id) {
 				this.activeProjection = activeProjection;
 				this.activeProjection.setActive(true);
+				//this.selectorPlugin.repaintPlugin();
 				this.fireViewEvent('projectionActive');
 			}
 		},
@@ -9911,6 +9916,7 @@ function stringInputToObject(color) {
 			config = config || {};
 			this.color = (config.color !== undefined)?config.color : 'darkgray';
 			this.strokeWidth = (config.strokeWidth !== undefined)?config.strokeWidth : 1;
+			this.strokeOpacity = (config.strokeOpacity !== undefined)?config.strokeOpacity : 1;
 			config.priority = 1000;
 			config.name ='DeviceOutlinePlugin';
 			JenScript.Plugin.call(this, config);
@@ -9931,6 +9937,7 @@ function stringInputToObject(color) {
 										.origin(this.strokeWidth/2,this.strokeWidth/2)
 										.size(dp.width-this.strokeWidth,dp.height-this.strokeWidth)
 										.stroke(this.color)
+										.strokeOpacity(this.strokeOpacity)
 										.strokeWidth(this.strokeWidth)
 									    .fillNone();
 			
@@ -10356,6 +10363,7 @@ function stringInputToObject(color) {
 		_init : function(config){
 			config = config || {};
 			config.priority = 100;
+			config.name="TitleLegendPlugin";
 			this.text = config.text;
 			this.fontSize = (config.fontSize !== undefined)?config.fontSize:12;
 			this.textColor = (config.textColor !== undefined)?config.textColor:'red';

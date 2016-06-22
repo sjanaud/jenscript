@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2016-06-16
+// build: 2016-06-22
 // All Rights reserved
 
 
