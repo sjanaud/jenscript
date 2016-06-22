@@ -81,6 +81,10 @@
 		 */
 	    setView : function(view) {
 	        this.view=view;
+	        var that = this;
+			view.addViewListener('projectionActive',function(){
+				that.repaintPlugin();
+			},'Projection active listener, create for internal selector plugin');
 	    },
 	    
 	    /**
