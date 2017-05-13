@@ -6,7 +6,7 @@
 	};
 	JenScript.Model.addMethods(JenScript.GeneralMetricsPath,{
 		init : function(config){
-			console.log('create general metrics path');
+			//console.log('create general metrics path');
 			config = config || {};
 			this.Id = 'generalmetricspath'+JenScript.sequenceId++;
 			/** default nature is the user space */
