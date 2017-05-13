@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2016-06-22
+// build: 2017-05-08
 // All Rights reserved
 
 (function(){
@@ -32,7 +32,7 @@
 	JenScript.Model.addMethods(JenScript.TranslatePlugin, {
 		_init : function(config){
 			config = config ||{};
-			config.name =  'TranslatePlugin';
+			config.name = (config.name !== undefined)?config.name:'TranslatePlugin';
 			config.selectable = true;
 			config.priority = 1000;
 			
@@ -95,6 +95,7 @@
 		 * location x,y is not sensible shape
 		 */
 		isTranslateAuthorized : function(evt,part,x,y){
+			console.log("Translate authorized "+this.name+" flags : "+ " select "+this.isLockSelected()+", sensible : "+this.isWidgetSensible(x,y) +", passive :"+this.isLockPassive())
 			return ((part === JenScript.ViewPart.Device) && this.isLockSelected() && !this.isLockPassive() && !this.isWidgetSensible(x,y));
 		},
 		
@@ -105,9 +106,10 @@
 			}
 					
 			if(this.isTranslateAuthorized(evt,part,x,y)){
+				//console.log('Translate authorize to start : '+this.Id+" proj "+this.getProjection().name);
 				this.startTranslate(new JenScript.Point2D(x,y));
 			}else{
-				//console.log('press translate not authorize to start : '+this.Id);
+				//console.log('Translate NOT authorize to start : '+this.Id);
 			}
 		},
 		
@@ -158,7 +160,7 @@
 	     *            the start point of device translate
 	     */
 	    startTranslate  :function(startDevice) {
-	    	//console.log('start translate : '+this.Id);
+	    	console.log('translate start '+this.name+", device start point : "+startDevice);
 	    	this.lockTranslate = true;
 			this.translateStartX = startDevice.x;
 			this.translateStartY = startDevice.y;
@@ -171,11 +173,13 @@
 	     *            the end point of device translate
 	     */
 	    stopTranslate : function(endDevice) {
-			//console.log('stop translate : '+this.Id);
-		    this.translateCurrentX = endDevice.x;
-		    this.translateCurrentY = endDevice.y;
-		    this.lockTranslate = false;
-	    	this.fireTranslateEvent('stop');
+	    	if(this.isLockTranslate()){
+	    		console.log('translate stop '+this.name+", device stop point : "+endDevice);
+	    		this.translateCurrentX = endDevice.x;
+			    this.translateCurrentY = endDevice.y;
+			    this.lockTranslate = false;
+		    	this.fireTranslateEvent('stop');
+	    	}
 		},
 		
 	    /**
@@ -213,6 +217,7 @@
 		 * @param {String} direction, West, East, North, South
 		 */
 		shift : function(direction, sample) {
+			console.log("shift "+this.name+" for direction : "+direction);
 				this.lockPassive = true;
 		        var that = this;
 		        if(sample === undefined){
@@ -236,7 +241,8 @@
                 
                 var execute  = function(i,success){
                 	setTimeout(function(){
-                		that.boundTranslate(new JenScript.Point2D(dx*i,dy*i),false);
+                		//that.boundTranslate(new JenScript.Point2D(dx*i,dy*i),false);
+                		that.boundTranslate(new JenScript.Point2D(dx*i,dy*i));
                 		success(i);
                 	},i*sleep);
                 	
@@ -252,15 +258,13 @@
                 			});
                 }
 	    },
-	    
-	   
 		
 		/**
 		 * bound translate points with given device point
 		 * @param {Object} device point
 		 */
 		boundTranslate : function(currentDevice) {
-			
+			//console.log('translate bound '+this.name+", device point : "+currentDevice);
 			this.translateCurrentX = currentDevice.x;
 			this.translateCurrentY = currentDevice.y;
 		    
@@ -279,9 +283,6 @@
 			this.translateStartY = this.translateCurrentY;
 			this.fireTranslateEvent('bound');
 		},
-		
-		
-		
 
 		/**
 		 * process translate with given delta pixel dx and dy
@@ -310,10 +311,8 @@
 		
 		onProjectionRegister : function(){
 		},
+		
 	});
-	
-	
-	
 	
 })();
 (function(){
@@ -398,6 +397,7 @@
 	JenScript.Model.addMethods(JenScript.TranslateX,{
 		___init: function(config){
 			config = config || {};
+			config.name = 'TranslateWidgetX';
 			config.Id = 'translate_tx'+JenScript.sequenceId++;
 			config.width=(config.width !== undefined)?config.width:100;
 			config.height=(config.height !== undefined)?config.height:16;
@@ -409,15 +409,15 @@
 		    this.setOrphanLock(true);
 		},
 	    onButton1Press : function() {
-	        if (!this.getHost().isLockSelected()) {
-	            return;
-	        }
+//	        if (!this.getHost().isLockSelected()) {
+//	            return;
+//	        }
 	        this.getHost().shift('West', this.sample);
 	    },
 	    onButton2Press : function() {
-	    	if (!this.getHost().isLockSelected()) {
-	            return;
-	        }
+//	    	if (!this.getHost().isLockSelected()) {
+//	            return;
+//	        }
 	        this.getHost().shift('East', this.sample);
 	    },
 	    
@@ -435,6 +435,7 @@
 	JenScript.Model.addMethods(JenScript.TranslateY,{
 		___init: function(config){
 			config = config || {};
+			config.name = 'TranslateWidgetY';
 			config.Id = 'translate_ty'+JenScript.sequenceId++;
 			config.width=(config.width !== undefined)?config.width:16;
 			config.height=(config.height !== undefined)?config.height:100;
@@ -448,16 +449,16 @@
 		
 		
 	    onButton1Press : function() {
-	        if (!this.getHost().isLockSelected()) {
-	            return;
-	        }
+//	        if (!this.getHost().isLockSelected()) {
+//	            return;
+//	        }
 	        this.getHost().shift('North', this.sample);
 
 	    },
 	    onButton2Press : function() {
-	        if (!this.getHost().isLockSelected()) {
-	            return;
-	        }
+//	        if (!this.getHost().isLockSelected()) {
+//	            return;
+//	        }
 	        this.getHost().shift('South', this.sample);
 	    },
 	    
@@ -477,6 +478,7 @@
 	JenScript.Model.addMethods(JenScript.TranslateCompassWidget, {
 		_init : function(config){
 			config = config || {};
+			config.name = 'TranslateCompass';
 		    this.translateCompassWidgetID = 'translate_compass'+JenScript.sequenceId++;
 		    this.compassSquareSize = (config.compassSquareSize !== undefined)?config.compassSquareSize:64;
 		    this.compassWidget;
@@ -580,6 +582,9 @@
 						that.destroy();
 		            },'translate compass widget translate stop listener, destroy'
 			);
+			
+			
+			this.attachLayoutFolderFactory('Compass Layout Folder');
 		},
 		
 		  /**
@@ -637,7 +642,7 @@
 	    paintTranslateCompass : function(g2d) {
 	    	var currentFolder = this.getWidgetFolder();
 	    	if(currentFolder === undefined){
-	    		console.log("compass widget folder is undefined");
+	    		//console.log("compass widget folder is undefined");
 	    		return;
 	    	}
 	    	
@@ -761,6 +766,7 @@
 	            for (var i = 0; i < this.translateList.length; i++) {
 					var plugin = this.translateList[i];
 	                if (plugin.Id !== source.Id) {
+	                	console.log('sync translate started : '+plugin.name+" for proj "+plugin.projection.name);
 	                    plugin.startTranslate(new JenScript.Point2D(source.translateStartX,source.translateStartY));
 	                }
 	            }
@@ -774,7 +780,10 @@
 	            for (var i = 0; i < this.translateList.length; i++) {
 					var plugin = this.translateList[i];
 					 if (plugin.Id !== source.Id) {
-						 plugin.boundTranslate({x:source.translateCurrentX, y:source.translateCurrentY});
+						 console.log('sync translate bound : '+plugin.name+" for proj "+plugin.projection.name);
+						 //plugin.boundTranslate({x:source.translateCurrentX, y:source.translateCurrentY});
+						 plugin.boundTranslate( new JenScript.Point2D(source.translateCurrentX,source.translateCurrentY));
+						
 	                 }
 	            }
 	            this.dispathingEvent = false;
@@ -788,6 +797,7 @@
 	            for (var i = 0; i < this.translateList.length; i++) {
 					var plugin = this.translateList[i];
 					 if (plugin.Id !== source.Id) {
+							console.log('sync translate stop : '+plugin.name+" for proj "+plugin.projection.name);
 	                    plugin.stopTranslate(new JenScript.Point2D(source.translateCurrentX,source.translateCurrentY));
 	                 }
 	            }

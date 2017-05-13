@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2016-06-22
+// build: 2017-05-08
 // All Rights reserved
 
 (function(){
@@ -90,11 +90,9 @@
 					}
 				}
 				else if(action === 'press'){
-					//slice.lockPress = true;
 					that.fireDonutEvent('press',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 				}
 				else if(action === 'release' ){
-					//slice.lockPress = false;
 					that.fireDonutEvent('release',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 				}
 				else{
@@ -102,7 +100,6 @@
 				}
 			};
 			var fire2 = function(slice){
-				//console.log('fire 2 for slice : '+slice.name);
 				if(action === 'move' && slice.lockRollover){
 					slice.lockRollover = false;
 					that.fireDonutEvent('exit',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
@@ -243,10 +240,9 @@
 					
 					for (var j = 0; j < donut.slices.length; j++) {
 						var slice = donut.slices[j];
-						var labels = slice.getSliceLabels();
-						for (var l = 0; l < labels.length; l++) {
-							labels[l].paintDonut2DSliceLabel(g2d,slice);
-						}
+						var label = slice.getSliceLabel();
+						if(label !== undefined)
+						label.paintDonut2DSliceLabel(g2d,slice);
 					}
 				}
 			}
@@ -294,9 +290,9 @@
 		    /** donut2D nature */
 		    this.nature = (config.nature !== undefined)?config.nature : 'User';
 		    /** donut2D center x */
-		    this.centerX = (config.centerX !== undefined)?config.centerX : 0;
+		    this.centerX = (config.x !== undefined)?config.x : 0;
 		    /** donut2D center y */
-		    this.centerY = (config.centerY !== undefined)?config.centerY : 0;
+		    this.centerY = (config.y !== undefined)?config.y : 0;
 		    /** donut2D external radius */
 		    this.outerRadius = (config.outerRadius !== undefined)?config.outerRadius : 100;
 		    /** donut2D internal radius */
@@ -328,6 +324,23 @@
 		},
 		
 		/**
+		 * repaint donut
+		 */
+		repaint : function(){
+			if(this.plugin !== undefined)
+			this.plugin.repaintPlugin();
+		},
+		
+		/**
+		 * set start angle degree
+		 * @param {Number} start angle degrees
+		 */
+		setStartAngleDegree : function(startAngleDegree){
+			this.startAngleDegree=startAngleDegree;
+			this.repaint();
+		},
+		
+		/**
 		 * get inner radius
 		 * @returns {Number} inner radius
 		 */
@@ -336,11 +349,29 @@
 		},
 		
 		/**
+		 * set inner radius
+		 * @param {Number} inner radius
+		 */
+		setInnerRadius : function(innerRadius){
+			this.innerRadius=innerRadius;
+			this.repaint();
+		},
+		
+		/**
 		 * get outer radius
 		 * @returns {Number} outer radius
 		 */
 		getOuterRadius : function(){
 			return this.outerRadius;
+		},
+		
+		/**
+		 * set outer radius
+		 * @param {Number} outer radius
+		 */
+		setOuterRadius : function(outerRadius){
+			this.outerRadius=outerRadius;
+			this.repaint();
 		},
 		
 		/**
@@ -366,7 +397,7 @@
 		 */
 		setStroke : function(stroke){
 			this.stroke  = stroke;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 		
 		/**
@@ -375,7 +406,7 @@
 		 */
 		setFill : function(fill){
 			this.fill  = fill;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 		
 		/**
@@ -384,7 +415,7 @@
 		 */
 		addEffect : function(effect){
 			this.effects[this.effects.length]  = effect;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 		
 		/**
@@ -395,7 +426,7 @@
 	    addSlice : function(slice) {
 	        slice.donut = this;
 	        this.slices[this.slices.length]=slice;
-	        this.plugin.repaintPlugin();
+	        this.repaint();
 	        return this;
 	    },
 	    
@@ -571,6 +602,22 @@
 	        }
 	        return false;
 	    },
+	    
+	    /**
+		 * shift pie
+		 */
+		shift : function(){
+			var that = this;
+			for (var i = 0; i < 10; i++) {
+				shiftAngle(i);
+			}
+			function shiftAngle(i){
+				setTimeout(function(){
+					that.startAngleDegree=that.startAngleDegree+36;
+					that.repaint();
+				},i*100);
+			}
+		},
 	});
 	
 })();
@@ -632,14 +679,19 @@
 		    this.stroke;
 		    /** slice fill */
 		    this.fill;
-		    /** slice labels */
-		    this.sliceLabels = [];
+		    /** slice label */
+		    this.sliceLabel;
 		    /** host donut2D of this slice */
 		    this.donut;
 		    
 		    if(this.value <= 0 )
 		    	throw new Error('Slice value should be greater than 0');
 		   
+		},
+		
+		repaint : function(){
+			if(this.donut !== undefined)
+			this.donut.repaint();
 		},
 		
 
@@ -649,6 +701,7 @@
 		 */
 		setThemeColor : function(color){
 			this.color=color;
+			this.repaint();
 		},
 		
 		/**
@@ -664,22 +717,7 @@
 		 */
 		setDivergence : function(divergence){
 			this.divergence=divergence;
-		},
-		
-		/**
-		 * get slice divergence
-		 * @return {Number} slice divergence
-		 */
-		getDivergence : function(){
-			return this.divergence;
-		},
-		
-		/**
-		 * set slice divergence
-		 * @param {Number} slice divergence
-		 */
-		setDivergence : function(divergence){
-			this.divergence=divergence;
+			this.repaint();
 		},
 		
 		/**
@@ -696,6 +734,7 @@
 		 */
 		setFillOpacity : function(opacity){
 			this.fillOpacity=opacity;
+			this.repaint();
 		},
 		
 		/**
@@ -712,6 +751,7 @@
 		 */
 		setStrokeOpacity : function(opacity){
 			this.strokeOpacity=opacity;
+			this.repaint();
 		},
 		
 		/**
@@ -722,26 +762,17 @@
 			return this.strokeOpacity;
 		},
 		
-		/**
-		 * set slice label
-		 * @param {Object} label
-		 */
-		addSliceLabel : function(label){
-			if(label.textColor === undefined)
-				label.textColor = this.themeColor;
-			this.sliceLabels[this.sliceLabels.length] = label;
-			if(this.donut !== undefined && this.donut.plugin !== undefined){
-		        	this.donut.plugin.repaintDonuts();	
-		    }
+		setSliceLabel : function(sliceLabel) {
+			if(sliceLabel !== undefined)
+				sliceLabel.slice = this;
+			this.sliceLabel = sliceLabel;
+			this.repaint();
+		},
+
+		getSliceLabel : function() {
+			return this.sliceLabel;
 		},
 		
-		/**
-		 * get slice labels
-		 * @returns {Array} slice label array
-		 */
-		getSliceLabels : function(){
-			return this.sliceLabels;
-		},
 		
 		/**
 		 * get ratio of this slice
@@ -757,6 +788,7 @@
 		 */
 		setStroke : function(stroke){
 			this.stroke = stroke;
+			this.repaint();
 		},
 		
 		/**
@@ -765,6 +797,7 @@
 		 */
 		setFill : function(fill){
 			this.fill = fill;
+			this.repaint();
 		},
 		
 		/**

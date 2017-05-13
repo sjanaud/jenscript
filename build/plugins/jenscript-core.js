@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2016-06-22
+// build: 2017-05-08
 // All Rights reserved
 
 /**
@@ -1880,7 +1880,7 @@ function stringInputToObject(color) {
 	};
 	JenScript.Model.addMethods(JenScript.GeneralMetricsPath,{
 		init : function(config){
-			console.log('create general metrics path');
+			//console.log('create general metrics path');
 			config = config || {};
 			this.Id = 'generalmetricspath'+JenScript.sequenceId++;
 			/** default nature is the user space */
@@ -3346,25 +3346,38 @@ function stringInputToObject(color) {
 				//					evt.preventDefault();	
 				//				}
 				
-				//console.log('action event : '+actionEvent);
+				//console.log('action event : '+actionEvent+", x,y : "+x+','+y);
 				var widgetHandler   = this.view.getWidgetPlugin()['on'+actionEvent];
 				var selectorHandler = this.view.getSelectorPlugin()['on'+actionEvent];
 				
 				widgetHandler.call(this.view.getWidgetPlugin(),evt,this.part,x,y);
 				selectorHandler.call(this.view.getSelectorPlugin(),evt,this.part,x,y);
 
-				if(this.view === undefined || this.view.getActiveProjection() === undefined) return;
-				var projection = this.view.getActiveProjection();
-				var plugins = projection.getPlugins();
-				for (var p = 0; p < plugins.length; p++) {
-					var pluginHandler   = plugins[p]['on'+actionEvent];
+				if(this.view === undefined) return;
+				var projs = this.view.getProjections();
+				for (var p = 0; p < projs.length; p++) {
+		    		var proj = projs[p];
+		    		
+		    		var plugins = proj.getPlugins();
+					for (var p = 0; p < plugins.length; p++) {
+						var pluginHandler   = plugins[p]['on'+actionEvent];
+						pluginHandler.call(plugins[p],evt,this.part,x, y);
+					}
 					
-					//TODO?
-					//call if plugin is not selectable
-					//if selectable, call only if plugin is lock selected
-					
-					pluginHandler.call(plugins[p],evt,this.part,x, y);
 				}
+				
+//				if(this.view === undefined || this.view.getActiveProjection() === undefined) return;
+//				var projection = this.view.getActiveProjection();
+//				var plugins = projection.getPlugins();
+//				for (var p = 0; p < plugins.length; p++) {
+//					var pluginHandler   = plugins[p]['on'+actionEvent];
+//					
+//					//TODO?
+//					//call if plugin is not selectable
+//					//if selectable, call only if plugin is lock selected
+//					
+//					pluginHandler.call(plugins[p],evt,this.part,x, y);
+//				}
 			},
 	});
 })();
@@ -4337,6 +4350,11 @@ function stringInputToObject(color) {
 			this.addViewForeground(copyright);
 		},
 		
+		find : function(element){
+			if(element.Id !== undefined)
+				return document.getElementById(element.Id);
+			return null;
+		},
 		
 		/**
 		 * get the background clip for the given background
@@ -5036,7 +5054,6 @@ function stringInputToObject(color) {
 			
 			var dispatchMouse = function(evt,action) {
 				var loc = getLocation(evt);
-				//console.log(action+" ",loc.x, loc.y+' in part '+component.part);
 				that.getComponent(component.part).on(action,evt, loc.x, loc.y);
 			};
 			
@@ -5109,7 +5126,6 @@ function stringInputToObject(color) {
 			         };
 			         
 			         event.deltaY = delta;
-			         
 			         dispatchMouse(event,'Wheel');
 				}
 				if (s.addEventListener) {
@@ -5300,7 +5316,7 @@ function stringInputToObject(color) {
 		init : function(config){
 			config = config || {};
 			this.Id = 'proj_'+JenScript.sequenceId++;
-			this.name = config.name;
+			this.name = (config.name !== undefined)?config.name : 'projection undefined name';
 			this.initial = true;
 			this.themeColor = (config.themeColor !== undefined)?config.themeColor:JenScript.createColor();
 			this.listeners =[];
@@ -6548,7 +6564,6 @@ function stringInputToObject(color) {
 				if(fire === undefined || fire !== false)
 				this.firePluginEvent('translate');
 			}
-			
 		},
 		
 		scale : function(sx,sy,fire){
@@ -6583,7 +6598,6 @@ function stringInputToObject(color) {
 		getProjection : function() {
 			return this.projection;
 		},
-		
 		
 		
 		/**
@@ -6957,35 +6971,50 @@ function stringInputToObject(color) {
 		        }
 		        return false;
 		    };
-	    	var proj = this.getActiveProjection();
+	    	//var proj = this.getActiveProjection();
 	    	//console.log('moveWidgetOperationCheckPress for proj '+this.getActiveProjection().name);
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-	            if (plugin.isSelectable() && !plugin.isLockSelected()) {
-	                continue;
-	            }
-	            
-	            for (var j = 0; j < plugin.widgets.length; j++) {
-	            	var widget = plugin.widgets[j];
-	                //console.log('process moveWidgetOperationCheckPress widget : '+widget.Id);
-	                var widgetFolder = widget.getWidgetFolder();
-	                if (widgetFolder === undefined) {
-	                    continue;
-	                }
-	                if (contains(widgetFolder,x, y) && !widget.isNoMoveOperation()) {
-	                    widgetFolder.currentDragX = x;
-	                    widgetFolder.currentDragY = y;
-	                    widgetFolder.startPress();
-	                    widget.create();
-						widget.createGhost();
-						this.passivePlugins();
-	                }
-	                else {
-	                    widgetFolder.interruptPress();
-	                    this.activePlugins();
-	                }
-	            }
-			}
+		    var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+	    		
+	    		
+		    	for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+//		            if (plugin.isSelectable() && !plugin.isLockSelected()) {
+//		                continue;
+//		            }
+		            
+		            for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	
+		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            		
+		            		//console.log('process moveWidgetOperationCheckPress widget : name : '+widget.name);
+			                var widgetFolder = widget.getWidgetFolder();
+			                if (widgetFolder === undefined) {
+			                    continue;
+			                }
+			                
+			                //console.log('process move flags : contains (x,y) :'+contains(widgetFolder,x, y)+", widget NoMoveOperation :"+widget.isNoMoveOperation());
+			                if (contains(widgetFolder,x, y) && !widget.isNoMoveOperation()) {
+			                    widgetFolder.currentDragX = x;
+			                    widgetFolder.currentDragY = y;
+			                    widgetFolder.startPress();
+			                    widget.create();
+								widget.createGhost();
+								this.passivePlugins();
+			                }
+//			                else {
+//			                    widgetFolder.interruptPress();
+//			                    this.activePlugins();
+//			                }
+		            		
+		            	}else{
+		            		//console.log('incompatible mode process moveWidgetOperationCheckPress widget'+widget.name);
+		            	}
+		            }
+				}	
+	    	}
 	    },
 
 	    /**
@@ -6997,22 +7026,31 @@ function stringInputToObject(color) {
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	    moveWidgetOperationCheckDrag : function(event,part,x,y) {
-	        var proj = this.getActiveProjection();
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-	            for (var j = 0; j < plugin.widgets.length; j++) {
-	            	var widget = plugin.widgets[j];
-	                var widgetFolder = widget.getWidgetFolder();
-	                if (widgetFolder !== undefined) {
-	                    if (widgetFolder.lockPress) {
-	                        widgetFolder.currentDragX = x;
-	                        widgetFolder.currentDragY = y;
-	                        widget.create();
-							widget.createGhost();
-	                    }
-	                }
-	            }
-	        }
+	        //var proj = this.getActiveProjection();
+	    	
+	    	var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+	    		
+		        for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+		            for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	
+		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            		var widgetFolder = widget.getWidgetFolder();
+			                if (widgetFolder !== undefined) {
+			                    if (widgetFolder.lockPress) {
+			                        widgetFolder.currentDragX = x;
+			                        widgetFolder.currentDragY = y;
+			                        widget.create();
+									widget.createGhost();
+			                    }
+			                }
+		            	}
+		            }
+		        }
+	    	}
 	    },
 
 	    /**
@@ -7024,28 +7062,36 @@ function stringInputToObject(color) {
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	    moveWidgetOperationCheckRelease : function(evt,part,x,y) {
-	    	var proj = this.getActiveProjection();
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-	        	for (var j = 0; j < plugin.widgets.length; j++) {
-	            	var widget = plugin.widgets[j];
-	                var widgetFolder = widget.getWidgetFolder();
-	                if (widgetFolder === undefined) {
-	                    continue;
-	                }
-	                if (widgetFolder.lockPress) {
-	                    if (widgetFolder.targetFolder !== undefined) {
-	                    	widget.postWidget();
-	                        this.activePlugins();
-	                        widget.create();
-							widget.destroyGhost();
-							 
-	                    }
-	                    widgetFolder.interruptPress();
-	                }
-	               
-	            }
-	        }
+	    	//var proj = this.getActiveProjection();
+	    	var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+	    		
+	    		for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+		        	for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	
+		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            		
+			                var widgetFolder = widget.getWidgetFolder();
+			                if (widgetFolder === undefined) {
+			                    continue;
+			                }
+			                if (widgetFolder.lockPress) {
+			                    if (widgetFolder.targetFolder !== undefined) {
+			                    	widget.postWidget();
+			                        this.activePlugins();
+			                        widget.create();
+									widget.destroyGhost();
+									 
+			                    }
+			                    widgetFolder.interruptPress();
+			                }
+		            	}
+		            }
+		        }
+	    	}
 	    },
 	    
 	    /**
@@ -7068,31 +7114,30 @@ function stringInputToObject(color) {
 	    },
 
 	    /**
-	     * on move dispath
-	     * @param {Object} event  the mouse pressed event
+	     * on move dispatch
+	     * @param {Object} event  the mouse move event
 	     * @param {String} part component where event occurs
 	     * @param {Number} x  the mouse x coordinate
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	    dispatchMove : function(event,part,x,y) {
 	    	if(part !== JenScript.ViewPart.Device) return;
-	    	var proj = this.getActiveProjection();
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-	            if (plugin.isSelectable() && plugin.isLockSelected()) {
-	            	  for (var j = 0; j < plugin.widgets.length; j++) {
-			            	var widget = plugin.widgets[j];
-		                    widget.interceptMove(x, y);
-	            	  }
-	            }
-	            else {
-	            	  for (var j = 0; j < plugin.widgets.length; j++) {
-			            	var widget = plugin.widgets[j];
-		                    widget.interceptMove(x, y);
-	                }
-	            }
-	        }
-
+	    	
+	    	//var proj = this.getActiveProjection();
+	    	var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+	    		
+		        for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+		        	for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            		widget.interceptMove(x, y);
+		            	}
+		        	}
+		        }
+	    	}
 	    },
 
 	    /**
@@ -7117,6 +7162,8 @@ function stringInputToObject(color) {
 	    	var proj = this.getActiveProjection();
 	        for (var i = 0; i < proj.plugins.length; i++) {
 	        	var plugin = proj.plugins[i];
+	        	
+	        	
 	            if (plugin.isSelectable() && plugin.isLockSelected()) {
 	            	 for (var j = 0; j < plugin.widgets.length; j++) {
 			            //var widget = plugin.widgets[j];
@@ -7143,19 +7190,27 @@ function stringInputToObject(color) {
 	    	var proj = this.getActiveProjection();
 	        for (var i = 0; i < proj.plugins.length; i++) {
 	        	var plugin = proj.plugins[i];
-	            if (plugin.isSelectable() && plugin.isLockSelected()) {
-	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-			            	var widget = plugin.widgets[j];
-		                    widget.interceptDrag(x,y);
-	                }
-	            }
-	            else {
-	            	 //duplicate, keep if change in future for non selectable widget
-	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-			            	var widget = plugin.widgets[j];
-			            	widget.interceptDrag(x,y);
-	                }
-	            }
+	        	
+	        	for (var j = 0; j < plugin.widgets.length; j++) {
+	            	var widget = plugin.widgets[j];
+	            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+	            		widget.interceptDrag(x, y);
+	            	}
+	        	}
+	        	
+//	            if (plugin.isSelectable() && plugin.isLockSelected()) {
+//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
+//			            	var widget = plugin.widgets[j];
+//		                    widget.interceptDrag(x,y);
+//	                }
+//	            }
+//	            else {
+//	            	 //duplicate, keep if change in future for non selectable widget
+//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
+//			            	var widget = plugin.widgets[j];
+//			            	widget.interceptDrag(x,y);
+//	                }
+//	            }
 	        }
 	    },
 
@@ -7167,7 +7222,7 @@ function stringInputToObject(color) {
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	   onPress : function(event,part,x, y) {
-		   this.press = true;
+		    this.press = true;
 	        // handle widget press for move operation
 	        this.moveWidgetOperationCheckPress(event,part,x,y);
 
@@ -7185,23 +7240,20 @@ function stringInputToObject(color) {
 	     */
 	    dispatchPress : function(event,part,x,y) {
 	    	
-	    	var proj = this.getActiveProjection();
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-
-	            if (plugin.isSelectable() && plugin.isLockSelected()) {
-	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-			            	var widget = plugin.widgets[j];
-			                widget.interceptPress(x, y);
-	                }
-	            }
-	            else {
-	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-			            	var widget = plugin.widgets[j];
-		                    widget.interceptPress(x,y);
-	                }
-	            }
-	        }
+	    	var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+		        for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+		        	for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            		//console.log('widget plugin intercept press for widget : '+widget.name+' part '+part);
+		            		widget.interceptPress(x, y);
+		            	}
+		        	}
+		        }
+	    	}
 	    },
 
 	    
@@ -7232,18 +7284,26 @@ function stringInputToObject(color) {
 	    	var proj = this.getActiveProjection();
 	        for (var i = 0; i < proj.plugins.length; i++) {
 	        	var plugin = proj.plugins[i];
-	            if (plugin.isSelectable() && plugin.isLockSelected()) {
-	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-			            var widget = plugin.widgets[j];
-	                    widget.interceptReleased(x,y);
-	                }
-	            }
-	            else {
-	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-			            var widget = plugin.widgets[j];
-	                    widget.interceptReleased(x, y);
-	                }
-	            }
+	        	
+	        	for (var j = 0; j < plugin.widgets.length; j++) {
+	            	var widget = plugin.widgets[j];
+	            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+	            		widget.interceptReleased(x,y);
+	            	}
+	        	}
+	        	
+//	            if (plugin.isSelectable() && plugin.isLockSelected()) {
+//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
+//			            var widget = plugin.widgets[j];
+//	                    widget.interceptReleased(x,y);
+//	                }
+//	            }
+//	            else {
+//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
+//			            var widget = plugin.widgets[j];
+//	                    widget.interceptReleased(x, y);
+//	                }
+//	            }
 	        }
 
 	    },
@@ -7281,8 +7341,7 @@ function stringInputToObject(color) {
 	});
 })();
 (function(){
-	
-	
+		
 	/**
 	 * Widget
 	 */
@@ -7324,8 +7383,18 @@ function stringInputToObject(color) {
 		    this.noMoveOperation = false;
 		    /** movable widget flag */
 		    this.isMovable = true;
+		    
 		    this.orphanLock = false;
+		    
+		    
+		    //mode defines the painting and event conditions according to projection status and plugin selection status
+		    //for projection parameter : active|passive|always
+		    //for event parameter 	   : selected|unselected|always
+		    /** defines the widget mode */
+		    this.mode = (config.mode !== undefined)?config.mode : {paint : {proj : 'active', plugin : 'selected'},event: {proj : 'active', plugin : 'selected'}};
+		    
 		},
+		
 		
 		/**
 	     * callback method call on widget plugin host registering.
@@ -7513,7 +7582,7 @@ function stringInputToObject(color) {
 	     * @param {Object} widgetFolder
 	     */
 	    setWidgetFolder : function(widgetFolder) {
-	    	//console.log('widget folder : '+widgetFolder);
+	    	//console.log("set widget folder : "+this.name+" folder : "+widgetFolder);
 	        this.widgetFolder = widgetFolder;
 	    },
 
@@ -7661,8 +7730,8 @@ function stringInputToObject(color) {
 	           
 	            for (var j = 0; j < plugin.widgets.length; j++) {
 	            	var pluginWidget = plugin.widgets[j];
-	            	 
-	                var widgetFolder = pluginWidget.getWidgetFolder();
+
+	            	var widgetFolder = pluginWidget.getWidgetFolder();
 	               // console.log('control potential with plugin widget : '+pluginWidget.name+" with folder :"+widgetFolder.getBounds2D());
 //	                if (widgetFolder.getId() === potentialFolder.getId()) {
 //	                    continue;
@@ -7683,6 +7752,12 @@ function stringInputToObject(color) {
 	     */
 	    paintWidget : function(g2d){},
 
+	    
+	    assignFolder : function(){
+	    	var view = this.getHost().getProjection().getView();
+	    	this.setWidgetFolder(view.newWidgetFolderIntance(this.getId(), this.getWidth(), this.getHeight(), this.getxIndex(), this.getyIndex()));
+	    },
+	    
 	    /**
 	     * lay out widget folder
 	     * @param {Object} view
@@ -7692,7 +7767,8 @@ function stringInputToObject(color) {
 	    	var view = this.getHost().getProjection().getView();
 	        if (this.getWidgetFolder() === undefined) {
 	        	//console.log('layout set folder 1: '+this.getId());
-	            this.setWidgetFolder(view.newWidgetFolderIntance(this.getId(), this.getWidth(), this.getHeight(), this.getxIndex(), this.getyIndex()));
+	            //this.setWidgetFolder(view.newWidgetFolderIntance(this.getId(), this.getWidth(), this.getHeight(), this.getxIndex(), this.getyIndex()));
+	        	this.assignFolder();
 	        }
 	        else {
 	        	//console.log('layout set folder 2: '+this.getId());
@@ -7702,25 +7778,24 @@ function stringInputToObject(color) {
 	    },
 
 	    /**
-	     * final paint widget
+	     * final paint widget according to mode.paint(proj,plugin)
 	     * @param {Object} view
 	     * @param {Object} graphics context
 	     */
 	    paint : function(g2d) {
-	    	//console.log('paint widget plugin');
-	        if (!this.getHost().isLockSelected() && this.isOrphanLock()) {
-	        	//console.log('paint widget plugin RETURN, NO PAINT');
-	            return;
-	        }
-	        
-	        //widget can be active, but not in the current active projection, no need to paint
-	        if(!this.getHost().getProjection().isActive()){
-	        	//alert('no paint selected widget, cause, proj not active : '+this.Id+' for proj '+this.getHost().getProjection().name);
-	        	return;
-	        }
-	        this.layoutFolder();
-	        this.paintWidget(g2d);
+	    	if(this.isProjModeCondition('paint') && this.isPluginModeCondition('paint')){
+	    		this.layoutFolder();
+		        this.paintWidget(g2d);
+	    	}
 	    },
+	    
+	    isProjModeCondition : function(oper){
+	    	return (this.mode[oper].proj == 'always' || (this.mode[oper].proj == 'active' && this.getHost().getProjection().isActive()) || (this.mode[oper].proj == 'passive' && !this.getHost().getProjection().isActive()));
+	    },
+	    
+	    isPluginModeCondition : function(oper){
+    		return (this.mode[oper].plugin == 'always' || (this.mode[oper].plugin == 'selected' && this.getHost().isLockSelected()) || (this.mode[oper].plugin == 'unselected' && !this.getHost().isLockSelected()));
+    	},
 
 	    /**
 	     * prevent move operation if sensible shape are intercept
@@ -7728,19 +7803,23 @@ function stringInputToObject(color) {
 	     * @param {number} the y coordinate           
 	     */
 	    checkMoveOperation : function(x,y) {
-	        if (!this.getHost().isLockSelected() && this.isOrphanLock()){
-	            return;
-	        }
-	        if (!this.isMovable) {
-	            this.setNoMoveOperation(true);
-	            return;
-	        }
-	        if (this.isSensible(x,y)) {
-	            this.setNoMoveOperation(true);
-	        }
-	        else {
-	            this.setNoMoveOperation(false);
-	        }
+//	        if (!this.getHost().isLockSelected() && this.isOrphanLock()){
+//	            return;
+//	        }
+	    	
+	    	//if(this.isProjModeCondition('paint') && this.isPluginModeCondition('paint')){
+	    		if (!this.isMovable) {
+		            this.setNoMoveOperation(true);
+		            return;
+		        }
+		        if (this.isSensible(x,y)) {
+		            this.setNoMoveOperation(true);
+		        }
+		        else {
+		            this.setNoMoveOperation(false);
+		        }
+	    	//}
+	        
 	    },
 
 	    /**
@@ -7792,12 +7871,10 @@ function stringInputToObject(color) {
 	    	var that = this;
 			this.getHost().addPluginListener('lock',function (plugin){
 				that.create();
-				
 			},'Plugin lock listener, create for reason : '+reason);
 			
 			this.getHost().addPluginListener('unlock',function (plugin){
 				that.destroy();
-				
 			},'Plugin lock listener, destroy for reason : '+reason);
 			
 			this.getHost().addPluginListener('projectionRegister',function (plugin){
@@ -7831,10 +7908,26 @@ function stringInputToObject(color) {
 			}
 			
 	    },
+	    
+	    attachLayoutFolderFactory : function(reason){
+	    	//console.log("attachLayoutFolderFactory for reason : "+reason);
+	    	var that = this;
+	    	var proj = this.getHost().getProjection();
+	    	if(proj !== undefined){
+	    		var view = proj.getView();
+	    		if(view !== undefined){
+	    			//console.log("view is already register, assignFolder OK");
+					that.assignFolder();
+				}else{
+					//console.log("view is NOT register, wait for assignFolder");
+					proj.addProjectionListener('viewRegister',function(proj){
+		    			that.assignFolder();
+					},'Attach Widget Layout / Wait for projection view registering for reason : '+reason);
+				}
+	    	}
+	    },
 
 	});
-	
-
 
 })();
 (function(){
@@ -7992,8 +8085,8 @@ function stringInputToObject(color) {
 	//
 	// 	Bar Widget defines mini bar with two buttons
 	//
-	//		-plus minus
-	//		-backward forward
+	//		-vertical/horizontal plus minus (-  +) 
+	//		-vertical/horizontal backward forward (<  >)
 	//
 	
 	
@@ -8494,9 +8587,9 @@ function stringInputToObject(color) {
 	     * @param {Number} y coordinate
 	     */
 	    interceptPress : function(x,y) {
-	        if (!this.getHost().isLockSelected() && this.isOrphanLock()) {
-	            return;
-	        }
+//	        if (!this.getHost().isLockSelected() && this.isOrphanLock()) {
+//	            return;
+//	        }
 
 	        if (this.geometry.rect1 !== undefined && this.geometry.rect1.contains(x, y)) {
 	            this.onButton1Press();
@@ -8571,7 +8664,6 @@ function stringInputToObject(color) {
 	            }
 	            var gradientId = 'gradient'+JenScript.sequenceId++;
 	            var gradient= new JenScript.SVGLinearGradient().Id(gradientId).from(start.x,start.y).to(end.x,end.y).shade(this.shader.percents,this.shader.colors,this.shader.opacity).toSVG();
-				console.log('shade bar');
 	            g2d.definesSVG(gradient);
 				this.geometry.outlineShape.fill('url(#'+gradientId+')');
 	        }
@@ -8913,9 +9005,9 @@ function stringInputToObject(color) {
 	    },
 
 	    paintWidget : function(g2d) {
-	        if (!this.getHost().isLockSelected()) {
-	            return;
-	        }
+//	        if (!this.getHost().isLockSelected()) {
+//	            return;
+//	        }
 
 	        if (this.getWidgetFolder() == undefined || this.padGeometry == undefined) {
 	            return;

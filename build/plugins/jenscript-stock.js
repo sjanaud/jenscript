@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2016-06-22
+// build: 2017-05-08
 // All Rights reserved
 
 (function(){
@@ -20,7 +20,7 @@
 			this.stocks = [];
 			this.stockLayers=[];
 			config.priority = 10000;
-			config.name='StockPlugin';
+			config.name = (config.name !== undefined)?config.name:'StockPlugin';
 			JenScript.Plugin.call(this,config);
 			this.bearishColor = (config.bearishColor !== undefined)?config.bearishColor:'red';
 			this.bullishColor = (config.bullishColor !== undefined)?config.bullishColor:'green';
@@ -1387,13 +1387,16 @@
 			var proj = this.getLayer().getHost().getProjection();
 			var minMillis = proj.minX;
 			var maxMillis = proj.maxX;
+			//console.log("macd get signal min/max miilis:"+minMillis+"/"+maxMillis);
 			var stocks = this.getLayer().getHost().getStocks();
+			//console.log("macd getsignal : "+stocks.length);
 			for (var i = 0; i < stocks.length; i++) {
 				var root = stocks[i];
 				var rootMillis = root.getFixing().getTime();
 				var fm = this.getFixing(root); 
-				if(rootMillis>=minMillis && rootMillis<=maxMillis)
+				if(rootMillis>=minMillis && rootMillis<=maxMillis){
 					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), fm.signal);
+				}
 			}
 			return points;
 		},
@@ -1450,6 +1453,7 @@
 		paintCurve : function(svgLayer,g2d,part,points,id,color,width,opacity) {
 			var proj = this.plugin.getProjection();
 			var curve = new JenScript.SVGPath().Id(id);
+			//console.log("create macd curve, points.length:"+points.length);
 			for (var p = 0; p < points.length; p++) {
 				var point = points[p];
 				if(p == 0)
@@ -1457,6 +1461,8 @@
 				else
 					curve.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
 			}
+			
+			//console.log("create macd curve : ");
 			//g2d.deleteGraphicsElement(id);
 			//g2d.insertSVG(curve.stroke(color).strokeWidth(width).strokeOpacity(opacity).fillNone().toSVG());
 			svgLayer.child(curve.stroke(color).strokeWidth(width).strokeOpacity(opacity).fillNone().toSVG());

@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2016-06-22
+// build: 2017-05-08
 // All Rights reserved
 
 (function () {
@@ -2322,6 +2322,7 @@
 	        var end=undefined;
 	        var prefix=undefined;
 	        var position = metric.getMarkerLocation();
+	       // console.log("position "+position.x+"/"+position.y);
             if (metric.getMarkerPosition() === 'S') {
             	prefix = 'southtick';
             	start = {x:position.x,y:position.y + 2};
@@ -2640,10 +2641,12 @@
 	            if (!metric.visible) {
 	                continue;
 	            }
-	            this.paintMetricsTickMarker(g2d, part,metric);
-	            this.paintMetricsTickLabel(g2d,part, metric);
+	            var loc = metric.getMarkerLocation();
+	            if(!isNaN(loc.x) && !isNaN(loc.y)){
+	            	this.paintMetricsTickMarker(g2d, part,metric);
+	 	            this.paintMetricsTickLabel(g2d,part, metric);
+	            }
 	        }
-	        
 	    }
 	});
 })();

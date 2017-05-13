@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2016-06-22
+// build: 2017-05-08
 // All Rights reserved
 
 (function(){
@@ -34,14 +34,13 @@
 		_init : function(config){
 			config = config || {};
 			
-			config.name =  'ZoomBox';
-			config.selectable = true;
+			config.name = (config.name !== undefined)?config.name:'ZoomBoxPlugin';
+			//config.selectable = true;
 			config.priority = 1000;
-			
+			this.slaves = (config.slaves !== undefined)? config.slaves : [];
 			this.zoomBoxDrawColor = config.zoomBoxDrawColor ;
 			this.zoomBoxFillColor = config.zoomBoxFillColor;
 			this.mode = (config.mode !== undefined) ? new JenScript.ZoomBoxMode(config.mode) : new JenScript.ZoomBoxMode('xy');
-			this.speed = (config.speed !== undefined) ? config.speed : 'default'; //slow, default, fast
 
 		    this.minimalDelatX = 16;
 		    this.minimalDeltaY = 16;
@@ -60,6 +59,9 @@
 			this.maxHistory = 8;
 			this.zoomBack = [];
 			this.boxListeners = [];
+			
+			this.factor = (config.factor !== undefined)? config.factor : 1.1;
+			this.historyIndex = 0;
 			JenScript.Plugin.call(this,config);
 		},
 		
@@ -73,7 +75,6 @@
 			this.getProjection().addProjectionListener('boundChanged', function(){
 				that.repaintPlugin();
 			},that.toString());
-			
 		},
 		
 		
@@ -120,13 +121,40 @@
 			this.processZoomStart(new JenScript.Point2D(x,y));
 		},
 		
+//		u2p : function(plugin,u){
+//			 var p = this.getProjection().userToPixel(u);
+//			 return new JenScript.Point2D(p.x*plugin.sx+plugin.tx,p.y*plugin.sy+plugin.ty);
+//		},
+//		 
+//		p2u : function(plugin,p){
+//			return this.getProjection().pixelToUser(new JenScript.Point2D((p.x-plugin.tx)/plugin.sx,(p.y-plugin.ty)/plugin.sy));
+//		},
+//		
+//		
+//		minX : function(plugin){
+//			return this.p2u(plugin,{x : 0,y:0}).x;
+//		},
+//		
+//		maxX : function(plugin){
+//			return this.p2u(plugin,{x : this.getDevice().getWidth(),y:0}).x;
+//		},
+//		
+//		minY : function(plugin){
+//			return this.p2u(plugin,{x : 0,y:this.getDevice().getHeight()}).y;
+//		},
+//		
+//		maxY : function(plugin){
+//			return this.p2u(plugin,{x : 0,y:0}).y;
+//		},
+		
 		/**
 	     * start parameters for a start bound zoom box
 	     * 
 	     * @param startBox
-	     *            box start point coordinate in the current transaction type
+	     *            box start device point coordinate
 	     */
 	    processZoomStart : function(startBox) {
+	    	console.log("zoom box start : "+this.name);
             this.zoomBoxStartX = startBox.getX();
             this.zoomBoxStartY = startBox.getY();
             this.zoomBoxCurrentX = this.zoomBoxStartX;
@@ -166,7 +194,6 @@
 			if(part !== JenScript.ViewPart.Device) return;
 			if (this.drag) {
 				this.processZoomBound(new JenScript.Point2D(deviceX,deviceY));
-				//this.getProjection().getView().repaint();
 				this.repaintPlugin();
 			}
 		},
@@ -223,31 +250,16 @@
 		
 		processZoomOut : function() {
 			var proj = this.getProjection();
-			var that = this;
-			that.zoomBack.reverse();
-			for (var i = 0; i < this.zoomBack.length; i++) {
-				__p(i, function callback(rank) {
-					if (rank === that.zoomBack.length-1) {
-						setTimeout(function() {
-							that.fireEvent('boxFinish');
-							that.repaintPlugin();
-						}, 10);
-					}
-				});
-			}
+			var bound = this.boxHistory[this.boxHistory.length-1];
+			proj.bound(bound.minx,bound.maxx,bound.miny,bound.maxy);
 			this.fireEvent('boxOut');
-			function __p(i, callback) {
-				setTimeout(function() {
-					var bound = that.zoomBack[i];
-					//console.log("rank ",i," bounds : ",bound);
-					proj.bound(bound.minX,bound.maxX,bound.minY,bound.maxY);	
-					callback(i);
-				}, 20 * i);
-			}
+			
 		},
 		
 		processZoomIn : function() {
+			console.log("process zoom in "+this.name);
 			this.lockEffect=true;
+			
 			var deviceStart = {
 				x : this.zoomBoxStartX,
 				y : this.zoomBoxStartY
@@ -256,11 +268,16 @@
 				x : this.zoomBoxCurrentX,
 				y : this.zoomBoxCurrentY
 			};
-
-			var userWindowStartPoint = this.getProjection().pixelToUser(deviceStart);
-			var userWindowCurrentPoint = this.getProjection().pixelToUser(deviceCurrent);
 			var proj = this.getProjection();
-
+			
+			this.zoomFxBoxStartX = this.zoomBoxStartX;
+			this.zoomFxBoxStartY = this.zoomBoxStartY;
+			this.zoomFxBoxCurrentX = this.zoomBoxCurrentX;
+			this.zoomFxBoxCurrentY = this.zoomBoxCurrentY;
+			
+			var userStartPoint = proj.pixelToUser(deviceStart);
+			var userCurrentPoint = proj.pixelToUser(deviceCurrent);
+			
 			var iMinx = proj.minX;
 			var iMaxx = proj.maxX;
 			var iMiny = proj.minY;
@@ -272,10 +289,14 @@
 				miny : iMiny,
 				maxy : iMaxy
 			};
-			var deltaMinx = Math.abs(proj.minX - userWindowStartPoint.x) / 10;
-			var deltaMaxx = Math.abs(proj.maxX - userWindowCurrentPoint.x) / 10;
-			var deltaMiny = Math.abs(proj.minY - userWindowCurrentPoint.y) / 10;
-			var deltaMaxy = Math.abs(proj.maxY - userWindowStartPoint.y) / 10;
+			this.historyIndex = this.boxHistory.length-1;
+			console.log("zoom history count : "+this.boxHistory.length);
+			
+			var stepCount =  10;
+			var deltaMinx = Math.abs(proj.minX - userStartPoint.x) / stepCount;
+			var deltaMaxx = Math.abs(proj.maxX - userCurrentPoint.x) / stepCount;
+			var deltaMiny = Math.abs(proj.minY - userCurrentPoint.y) / stepCount;
+			var deltaMaxy = Math.abs(proj.maxY - userStartPoint.y) / stepCount;
 
 			// boxHistory[boxHistory.length] = {minx:userWindowStartPoint.x,
 			// maxx:userWindowCurrentPoint.x,
@@ -291,48 +312,49 @@
 			var fxDeltaPixelMaxy = Math.abs(proj.userToPixelY(deltaMaxy)
 					- proj.userToPixelY(0));
 
-			var speedMillis = 200;
+			var speedMillis = 20;
 			
-			if(this.speed === 'slow')
-				speedMillis = 60;
-			if(this.speed === 'default')
-				speedMillis = 30;
-			if(this.speed === 'fast')
-				speedMillis = 10;
-			//console.log("speed millis :"+speedMillis);
+			var scaleFactorX =   Math.abs((proj.maxX-proj.minX)/(userCurrentPoint.x-userStartPoint.x));
+			var scaleFactorY =   Math.abs((proj.maxY-proj.minY)/(userCurrentPoint.y-userStartPoint.y));
 			
 			var that = this;
 			that.zoomBack = [];
 			var count=0;
-			for (var i = 1; i <= 10; i++) {
-				_p(i, function callback(rank) {
-					that.zoomBack[count++] = proj.getBounds(); 
-					if (rank === 10) {
+			for (var i = 1; i <= stepCount; i++) {
+				_p(i, function callback(rank,bound) {
+					that.repaintPlugin();
+					if (rank === stepCount) {
+						that.repaintPlugin();
 						that.lockEffect=false;
 						that.lockZoomingTransaction = false;
-						setTimeout(function() {
+						
+						setTimeout(function(){
+							that.getProjection().bound(bound[0],bound[1],bound[2],bound[3]);
+							
+							//finally real geometric transform
+							for (var s = 0; s < that.slaves.length; s++) {
+								var plugin = that.slaves[s];
+								//reset semantic transform
+								plugin.resetTransform();
+								plugin.repaintPlugin();
+						    }
 							that.fireEvent('boxFinish');
-							that.repaintPlugin();
-						}, 10);
+						},30);
 					}
 				});
 			}
 			this.fireEvent('boxIn');
 			
-			
-			
-			
 			function _p(i, callback) {
-				var millis = speedMillis * i;
-				console.log(" millis :"+millis);
+				var millis = speedMillis * (i-1);
 				setTimeout(function() {
-					that.lockZoomingTransaction = true;
 					
+					that.lockZoomingTransaction = true;
 					var m1=0,m2=0,m3=0,m4=0;
 					if(that.mode.isBxy()){
 						m1 = iMinx + deltaMinx * i;
 						m2 = iMaxx - deltaMaxx * i;
-						m3 = iMiny+ deltaMiny * i;
+						m3 = iMiny + deltaMiny * i;
 						m4 = iMaxy - deltaMaxy * i;
 						that.zoomFxBoxStartX = that.zoomBoxStartX - fxDeltaPixelMinx * i;
 						that.zoomFxBoxStartY = that.zoomBoxStartY - fxDeltaPixelMaxy * i;
@@ -352,22 +374,76 @@
 					else if(that.mode.isBy()){
 						m1 = proj.getMinX();
 						m2 = proj.getMaxX();
-						m3 = iMiny+ deltaMiny * i;
+						m3 = iMiny + deltaMiny * i;
 						m4 = iMaxy - deltaMaxy * i;
 						that.zoomFxBoxStartX = 0;
 						that.zoomFxBoxStartY = that.zoomBoxStartY - fxDeltaPixelMaxy * i;
 						that.zoomFxBoxCurrentX = that.getProjection().getPixelWidth();
 						that.zoomFxBoxCurrentY = that.zoomBoxCurrentY + fxDeltaPixelMiny* i;
 					}
-					proj.bound(m1, m2, m3, m4);
 					
-					that.zoomBack[count++] = proj.getBounds();
-					callback(i);
+					var initcenterX = deviceStart.x + (deviceCurrent.x-deviceStart.x)/2;
+					var initcenterY = deviceStart.y + (deviceCurrent.y-deviceStart.y)/2;
+					
+					var deltaX = (initcenterX - proj.getPixelWidth()/2)/stepCount;
+					var deltaY = (initcenterY - proj.getPixelHeight()/2)/stepCount;
+					
+					
+					var deltaSx = (scaleFactorX-1)/stepCount;
+					var deltaSy = (scaleFactorY-1)/stepCount;
+					
+					for (var s = 0; s < that.slaves.length; s++) {
+							var plugin = that.slaves[s];
+							
+							if(that.mode.isBx()){
+								deltaSy = 0;
+							}
+							else if(that.mode.isBy()){
+								deltaSx = 0;
+							}
+							plugin.translate(-(initcenterX)*(plugin.sx+deltaSx-1), -(initcenterY)*(plugin.sy+deltaSy-1));
+							plugin.scale(plugin.sx+deltaSx,plugin.sy+deltaSy);
+							plugin.translate(plugin.tx-deltaX*i,plugin.ty-deltaY*i);
+					 }
+					
+					that.zoomBack[that.zoomBack.length] = {i : i, x : initcenterX, y:initcenterY, deltaSx:deltaSx,deltaSy:deltaSy,deltaX:deltaX,deltaY:deltaY};
+					
+					//console.log('test zback : '+that.zoomBack[0].i);
+					//that.zoomBack[that.zoomBack.length] = [i ,initcenterX, initcenterY,deltaSx,deltaSy,deltaX,deltaY];
+					callback(i,[m1,m2,m3,m4]);
 				}, millis);
 			}
 		},
 		
-		paintBox : function(g2d, part) {
+		
+		backHistory : function() {
+			console.log("back history with index "+this.historyIndex);
+			console.log("history size "+this.boxHistory.length);
+			if(this.historyIndex-1 < 0)
+				this.historyIndex = this.boxHistory.length;
+			console.log("request for back : "+(this.historyIndex-1));
+			var b = this.boxHistory[this.historyIndex-1];
+			this.getProjection().bound(b.minx,b.maxx,b.miny,b.maxy);
+			this.historyIndex = this.historyIndex-1;
+		},
+		
+		nextHistory : function() {
+			console.log("next history with index "+this.historyIndex);
+			console.log("history size "+this.boxHistory.length);
+			if(this.historyIndex+1 >= this.boxHistory.length)
+				this.historyIndex = -1;
+			console.log("request for next : "+(this.historyIndex+1));
+			var b = this.boxHistory[this.historyIndex+1];
+			this.getProjection().bound(b.minx,b.maxx,b.miny,b.maxy);
+			this.historyIndex = this.historyIndex+1;
+		},
+		
+		
+		paintMarker : function(g2d, part) {
+			//todo paint markers near axis
+		},
+		
+		paintTarget : function(g2d, part) {
 			var zoomBoxWidth = this.zoomBoxCurrentX - this.zoomBoxStartX;
 			var zoomBoxHeight = this.zoomBoxCurrentY - this.zoomBoxStartY;
 			var bx=0,by=0,bw=0,bh=0;
@@ -402,7 +478,7 @@
 			g2d.insertSVG(box);
 		 },
 		 
-		 paintBoxEffect : function(g2d, part) {
+		 paintZoomIn : function(g2d, part) {
 			var zoomFxBoxWidth = this.zoomFxBoxCurrentX - this.zoomFxBoxStartX;
 			var zoomFxBoxHeight = this.zoomFxBoxCurrentY - this.zoomFxBoxStartY;
 			var fillColor = (this.zoomBoxFillColor !== undefined) ?this.zoomBoxFillColor: this.getProjection().getThemeColor();
@@ -420,16 +496,16 @@
 		 },
 		 
 		 paintPlugin : function(g2d, part) {
-				if (part !== JenScript.ViewPart.Device) {
-					return;
-				}
-				if(this.lockZoomingTransaction) {
+				
+				if(part === JenScript.ViewPart.Device && this.lockZoomingTransaction) {
 					 if (!this.lockEffect && this.isValidateBound()) {
-						this.paintBox(g2d, part); 
+						this.paintTarget(g2d, part); 
 					 }
 					 else{
-						 this.paintBoxEffect(g2d);
+						 this.paintZoomIn(g2d);
 					 }
+				}else if(part !== JenScript.ViewPart.Device && this.lockZoomingTransaction) {
+					this.paintMarker(g2d, part); 
 				}
 		},
 		
@@ -510,7 +586,7 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						console.log("lock other box");
+						console.log('sync lock box'+plugin.name);
 	                    plugin.select();
 	                }
 				}
@@ -525,6 +601,7 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
+						console.log('sync unlock box'+plugin.name);
 	                    plugin.unselect();
 	                }
 				}
@@ -538,7 +615,7 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('start other box');
+						console.log('sync start box'+plugin.name);
 						var deviceBoxStartSource = source.getBoxStartDevicePoint();
 	                    plugin.processZoomStart(deviceBoxStartSource);
 	                    plugin.repaintPlugin();
@@ -554,7 +631,7 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('bound other box');
+						console.log('sync bound box'+plugin.name);
 	                    var deviceBoxCurrentSource = source.getBoxCurrentDevicePoint();
 	                    plugin.processZoomBound(deviceBoxCurrentSource);
 	                    plugin.repaintPlugin();
@@ -570,7 +647,7 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('box in other box');
+						console.log('sync in box'+plugin.name);
 	                    plugin.processZoomIn();
 	                }
 				}
@@ -598,6 +675,56 @@
 	});
 })();
 (function(){
+	JenScript.ZoomBoxWidget = function(config) {
+		this.___init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.ZoomBoxWidget, JenScript.AbstractBackwardForwardBarWidget);
+	JenScript.Model.addMethods(JenScript.ZoomBoxWidget,{
+		___init: function(config){
+			config = config || {};
+			config.name = 'ZoomBoxHistory';
+			config.Id = 'boxhistory'+JenScript.sequenceId++;
+			config.width=(config.width !== undefined)?config.width:100;
+			config.height=(config.height !== undefined)?config.height:16;
+			config.xIndex=(config.xIndex !== undefined)?config.xIndex:2;
+			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
+			config.barOrientation = 'Horizontal';
+			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 2, sleep: 100,fraction:5};
+		    this.setOrphanLock(true);
+		},
+	    onButton1Press : function() {
+	        this.getHost().backHistory();
+	    },
+	    onButton2Press : function() {
+	    	 this.getHost().nextHistory();
+	    },
+	    
+	    onRegister : function(){
+	    	var that = this;
+	    	var proj = this.getHost().getProjection();
+	    	if(proj !== undefined){
+	    		var view = proj.getView();
+	    		if(view !== undefined){
+	    			this.create();
+				}
+	    	}else{
+	    		this.getHost().addPluginListener('projectionRegister',function (plugin){
+	    			console.log("attach projection listener");
+					if(plugin.getProjection().getView() !== undefined){
+						that.create();
+					}else{
+						//wait view registering
+						plugin.getProjection().addProjectionListener('viewRegister',function(proj){
+							that.create();
+						},'Wait for projection view registering for box widget ');
+					}
+				},'Plugin listener for projection register for box widget');
+	    	}
+	    }
+	});
+})();
+(function(){
 	JenScript.ZoomLensPlugin = function(config) {
 		this._init(config);
 	};
@@ -621,10 +748,6 @@
 			this.lensListeners = [];
 			this.lensType = (config.lensType !== undefined) ? config.lensType : 'LensXY';
 			JenScript.Plugin.call(this,config);
-			
-			//this.registerWidget(new JenScript.LensX());
-			//this.registerWidget(new JenScript.LensY());
-			//this.registerWidget(new JenScript.LensPad());
 		},
 		
 		
@@ -730,8 +853,6 @@
 			}
 			var pMinXMinYUser = proj.pixelToUser(pMinXMinYDevice);
 			var pMaxXMaxYUser = proj.pixelToUser(pMaxXMaxYDevice);
-			//if (w2d instanceof Window2D.Linear) {
-				//Window2D.Linear wl = (Window2D.Linear) w2d;
 				if(this.lensType == 'LensXY'){
 					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
@@ -741,8 +862,6 @@
 				else if(this.lensType === 'LensY'){
 					proj.bound(proj.getMinX(), proj.getMaxX(), pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
-			//}
-				
 			this.fireLensEvent('zoomIn');
 		},
 
@@ -776,8 +895,6 @@
 			var pMinXMinYUser = proj.pixelToUser(pMinXMinYDevice);
 			var pMaxXMaxYUser = proj.pixelToUser(pMaxXMaxYDevice);
 
-			//if (getWindow2D() instanceof Window2D.Linear) {
-				//Window2D.Linear wl = (Window2D.Linear) getWindow2D();
 				if(this.lensType === 'LensXY'){
 					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
@@ -787,9 +904,7 @@
 				else if(this.lensType === 'LensY'){
 					proj.bound(proj.getMinX(), proj.getMaxX(), pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
-			//}
 			this.fireLensEvent('zoomOut');
-
 		}
 	});
 

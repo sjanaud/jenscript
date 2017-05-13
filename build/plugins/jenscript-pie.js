@@ -5,7 +5,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2016-06-22
+// build: 2017-05-08
 // All Rights reserved
 
 (function(){
@@ -178,30 +178,33 @@
 					pie.svg.pieRoot = new JenScript.SVGGroup().Id(pie.Id).opacity(pie.opacity).toSVG();
 					g2d.insertSVG(pie.svg.pieRoot);
 					
-					if(pie.stroke !== undefined){
-						pie.stroke.strokePie(g2d, pie);
-					}
+//					if(pie.stroke !== undefined){
+//						pie.stroke.strokePie(g2d, pie);
+//					}
 					
-					if (pie.fill !== undefined) {
-						pie.fill.fillPie(g2d, pie);
-					}
+					
 										
-					for (var j = 0; j < pie.effects.length; j++) {
-						pie.effects[j].paintPieEffect(g2d, pie);
-					}
+					
 					
 					for (var j = 0; j < pie.slices.length; j++) {
 						var s = pie.slices[j];
 						
-						//re fill/re stroke by slice for secondary paint style?
-						//slice stroke ?
-						//slice fill?
+						s.svg.sliceRoot = new JenScript.SVGGroup().Id(s.Id).opacity(s.opacity).toSVG();
 						
-						//route graphics to pieRoot
-						var g2dIn = new JenScript.Graphics({definitions : this.svgPluginPartsDefinitions[part],graphics : pie.svg.pieRoot, selectors : this.getProjection().getView().svgSelectors});
+						pie.svg.pieRoot.appendChild(s.svg.sliceRoot);
+						if (pie.fill !== undefined) {
+							pie.fill.fillSlice(g2d, s);
+						}
+						
+						//route graphics to slice root
+						var g2dIn = new JenScript.Graphics({definitions : this.svgPluginPartsDefinitions[part], graphics : s.svg.sliceRoot, selectors : this.getProjection().getView().svgSelectors});
 						if (s.getSliceLabel() !== undefined) {
 							s.getSliceLabel().paintPieSliceLabel(g2dIn, s);
 						}
+					}
+					
+					for (var j = 0; j < pie.effects.length; j++) {
+						pie.effects[j].paintPieEffect(g2d, pie);
 					}
 					
 					
@@ -258,8 +261,8 @@
 		 * repaint pie
 		 */
 		repaint : function(){
-			if(this.plugin !== undefined && this.paint)
-			this.plugin.repaintPlugin();
+			//if(this.plugin !== undefined && this.paint)
+			//this.plugin.repaintPlugin();
 		},
 		
 		/**
@@ -437,6 +440,7 @@
 				};
 			};
 			var sc = polar(this.buildCenter,slice.divergence,medianDegree);
+			//var sc = polar(this.buildCenter,0,medianDegree);
 			var ss = polar(sc,this.radius,slice.startAngleDegree);
 			var se = polar(sc,this.radius,slice.endAngleDegree);
 			slice.sc = sc;
@@ -558,6 +562,7 @@
 			this.divergence =  (config.divergence !== undefined)?config.divergence:0;
 			if(this.value < 0 )
 			    	throw new Error('Slice value should be greater than 0');
+			this.svg = {};
 		},
 		
 		repaint : function(){
@@ -727,7 +732,7 @@
 		 * @param {Object} g2d graphics context
 		 * @param {Object} pie to fill
 		 */
-		fillPie : function(g2d, pie) {
+		fillSlice : function(g2d, slice) {
 			throw new Error("Abstract Pie Fill, this method should be provide by overriden.");
 		},
 
@@ -762,12 +767,13 @@
 		 * @param {Object} g2d graphics context
 		 * @param {Object} pie to fill
 		 */
-		fillPie : function(g2d, pie) {
-			var pieFill = new JenScript.SVGGroup().Id(pie.Id+this.Id).opacity(this.opacity).toSVG();
+		fillSlice : function(g2d, slice) {
+			var pie = slice.pie;
+			var pieFill = new JenScript.SVGGroup().Id(slice.Id+this.Id).opacity(this.opacity).toSVG();
 			g2d.deleteGraphicsElement(pie.Id+this.Id);
 			
-			for (var i = 0; i < pie.slices.length; i++) {
-				var s = pie.slices[i];
+			//for (var i = 0; i < pie.slices.length; i++) {
+				var s = slice;//pie.slices[i];
 				var c = (this.fillColor !== undefined)?this.fillColor : s.themeColor;
 				var fill = new JenScript.SVGElement().name('path')
 													.attr('fill',c)
@@ -780,9 +786,9 @@
 				g2d.deleteGraphicsElement(pie.Id+this.Id+s.Id);
 				sliceFill.appendChild(fill);
 				pieFill.appendChild(sliceFill);
-			}
-			
-			pie.svg.pieRoot.appendChild(pieFill);
+			//}
+				slice.svg.sliceRoot.appendChild(pieFill);
+			//pie.svg.pieRoot.appendChild(pieFill);
 		}
 	});
 })();
@@ -837,6 +843,9 @@
 		}
 
 	});
+	
+	
+	
 	
 	/**
 	 * Object PieReflectionEffect()
@@ -991,8 +1000,8 @@
 			//delete all useless olds gradients
 			
 			
-			var pieEffect = new JenScript.SVGGroup().Id(pie.Id+this.Id).opacity(this.opacity).toSVG();
-			g2d.deleteGraphicsElement(pie.Id+this.Id);
+			//var pieEffect = new JenScript.SVGGroup().Id(pie.Id+this.Id).opacity(this.opacity).toSVG();
+			//g2d.deleteGraphicsElement(pie.Id+this.Id);
 			
 			for (var i = 0; i < this.gradientIds.length; i++) {
 				g2d.deleteGraphicsElement(this.gradientIds[i]);
@@ -1046,10 +1055,11 @@
 				sliceEffect.appendChild(sFx);
 				
 				//pie.svg.pieRoot.appendChild(sliceEffect);
-				pieEffect.appendChild(sliceEffect);
+				//pieEffect.appendChild(sliceEffect);
+				s.svg.sliceRoot.appendChild(sliceEffect);
 			}
 			
-			pie.svg.pieRoot.appendChild(pieEffect);
+			//pie.svg.pieRoot.appendChild(pieEffect);
 		}
 	});
 })();
@@ -1185,7 +1195,6 @@
 		paintPieSliceLabel : function(g2d, slice) {
 		        var radius = slice.pie.radius;
 		        var medianDegree = slice.medianDegree;
-
 		     
 		        var px1 = slice.pie.buildCenterX + (radius + slice.getDivergence())* Math.cos(JenScript.Math.toRadians(medianDegree));
 		        var py1 = slice.pie.buildCenterY - (radius + slice.getDivergence()) * Math.sin(JenScript.Math.toRadians(medianDegree));
