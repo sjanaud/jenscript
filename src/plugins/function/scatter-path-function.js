@@ -20,6 +20,7 @@
 		_init : function(config){
 			config = config || {};
 			config.name = 'ScatterPathFunction';
+			this.radius = (config.radius !== undefined)? config.radius : 4;
 		    JenScript.AbstractPathFunction.call(this,config);
 		},
 		
@@ -34,7 +35,7 @@
 			var proj = this.getProjection();
 			for (var i = 0; i < userPointsFunction.length; i++) {
 				var p = userPointsFunction[i];
-				var scatter = new JenScript.SVGRect().origin(proj.userToPixelX(p.x),proj.userToPixelY(p.y)).size(3,3).fill(this.getThemeColor());
+				var scatter = new JenScript.SVGRect().origin(proj.userToPixelX(p.x)-this.radius/2,proj.userToPixelY(p.y)-this.radius/2).size(this.radius,this.radius).fill(this.getThemeColor());
 				g2d.insertSVG(scatter.toSVG());
 			}
 		}
