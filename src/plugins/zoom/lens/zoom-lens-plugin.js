@@ -22,10 +22,6 @@
 			this.lensListeners = [];
 			this.lensType = (config.lensType !== undefined) ? config.lensType : 'LensXY';
 			JenScript.Plugin.call(this,config);
-			
-			//this.registerWidget(new JenScript.LensX());
-			//this.registerWidget(new JenScript.LensY());
-			//this.registerWidget(new JenScript.LensPad());
 		},
 		
 		
@@ -131,8 +127,6 @@
 			}
 			var pMinXMinYUser = proj.pixelToUser(pMinXMinYDevice);
 			var pMaxXMaxYUser = proj.pixelToUser(pMaxXMaxYDevice);
-			//if (w2d instanceof Window2D.Linear) {
-				//Window2D.Linear wl = (Window2D.Linear) w2d;
 				if(this.lensType == 'LensXY'){
 					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
@@ -142,8 +136,6 @@
 				else if(this.lensType === 'LensY'){
 					proj.bound(proj.getMinX(), proj.getMaxX(), pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
-			//}
-				
 			this.fireLensEvent('zoomIn');
 		},
 
@@ -177,8 +169,6 @@
 			var pMinXMinYUser = proj.pixelToUser(pMinXMinYDevice);
 			var pMaxXMaxYUser = proj.pixelToUser(pMaxXMaxYDevice);
 
-			//if (getWindow2D() instanceof Window2D.Linear) {
-				//Window2D.Linear wl = (Window2D.Linear) getWindow2D();
 				if(this.lensType === 'LensXY'){
 					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
@@ -188,9 +178,7 @@
 				else if(this.lensType === 'LensY'){
 					proj.bound(proj.getMinX(), proj.getMaxX(), pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
-			//}
 			this.fireLensEvent('zoomOut');
-
 		}
 	});
 
