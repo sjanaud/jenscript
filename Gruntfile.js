@@ -93,6 +93,7 @@ module.exports = function(grunt) {
 
 			 zoom	  	 : [	"src/plugins/zoom/box/zoom-box-plugin.js",
 			             	    "src/plugins/zoom/box/zoom-box-sync.js",
+			             	    "src/plugins/zoom/box/zoom-box-barhistory-widget.js",
 								"src/plugins/zoom/lens/zoom-lens-plugin.js",
 								"src/plugins/zoom/lens/zoom-lens-sync.js",
 								"src/plugins/zoom/lens/zoom-lens-pad.js",
