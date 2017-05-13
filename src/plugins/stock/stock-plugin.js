@@ -10,7 +10,7 @@
 			this.stocks = [];
 			this.stockLayers=[];
 			config.priority = 10000;
-			config.name='StockPlugin';
+			config.name = (config.name !== undefined)?config.name:'StockPlugin';
 			JenScript.Plugin.call(this,config);
 			this.bearishColor = (config.bearishColor !== undefined)?config.bearishColor:'red';
 			this.bullishColor = (config.bullishColor !== undefined)?config.bullishColor:'green';
