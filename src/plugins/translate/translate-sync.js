@@ -64,6 +64,7 @@
 	            for (var i = 0; i < this.translateList.length; i++) {
 					var plugin = this.translateList[i];
 	                if (plugin.Id !== source.Id) {
+	                	//console.log('sync translate started : '+plugin.name+" for proj "+plugin.projection.name);
 	                    plugin.startTranslate(new JenScript.Point2D(source.translateStartX,source.translateStartY));
 	                }
 	            }
@@ -77,7 +78,9 @@
 	            for (var i = 0; i < this.translateList.length; i++) {
 					var plugin = this.translateList[i];
 					 if (plugin.Id !== source.Id) {
-						 plugin.boundTranslate({x:source.translateCurrentX, y:source.translateCurrentY});
+						 //console.log('sync translate bound : '+plugin.name+" for proj "+plugin.projection.name);
+						 plugin.boundTranslate(new JenScript.Point2D(source.translateCurrentX,source.translateCurrentY));
+						
 	                 }
 	            }
 	            this.dispathingEvent = false;
@@ -91,6 +94,7 @@
 	            for (var i = 0; i < this.translateList.length; i++) {
 					var plugin = this.translateList[i];
 					 if (plugin.Id !== source.Id) {
+							//console.log('sync translate stop : '+plugin.name+" for proj "+plugin.projection.name);
 	                    plugin.stopTranslate(new JenScript.Point2D(source.translateCurrentX,source.translateCurrentY));
 	                 }
 	            }

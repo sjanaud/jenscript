@@ -7,6 +7,7 @@
 	JenScript.Model.addMethods(JenScript.TranslateCompassWidget, {
 		_init : function(config){
 			config = config || {};
+			config.name = 'TranslateCompass';
 		    this.translateCompassWidgetID = 'translate_compass'+JenScript.sequenceId++;
 		    this.compassSquareSize = (config.compassSquareSize !== undefined)?config.compassSquareSize:64;
 		    this.compassWidget;
@@ -110,6 +111,9 @@
 						that.destroy();
 		            },'translate compass widget translate stop listener, destroy'
 			);
+			
+			
+			this.attachLayoutFolderFactory('Compass Layout Folder');
 		},
 		
 		  /**
@@ -167,7 +171,7 @@
 	    paintTranslateCompass : function(g2d) {
 	    	var currentFolder = this.getWidgetFolder();
 	    	if(currentFolder === undefined){
-	    		console.log("compass widget folder is undefined");
+	    		//console.log("compass widget folder is undefined");
 	    		return;
 	    	}
 	    	

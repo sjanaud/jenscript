@@ -6,6 +6,7 @@
 	JenScript.Model.addMethods(JenScript.TranslateX,{
 		___init: function(config){
 			config = config || {};
+			config.name = 'TranslateWidgetX';
 			config.Id = 'translate_tx'+JenScript.sequenceId++;
 			config.width=(config.width !== undefined)?config.width:100;
 			config.height=(config.height !== undefined)?config.height:16;
@@ -13,19 +14,19 @@
 			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
 			config.barOrientation = 'Horizontal';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
-		    this.sample = (config.sample !== undefined)?config.sample : {step : 2, sleep: 100,fraction:5};
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 40, sleep : 10,fraction : 3};
 		    this.setOrphanLock(true);
 		},
 	    onButton1Press : function() {
-	        if (!this.getHost().isLockSelected()) {
-	            return;
-	        }
+//	        if (!this.getHost().isLockSelected()) {
+//	            return;
+//	        }
 	        this.getHost().shift('West', this.sample);
 	    },
 	    onButton2Press : function() {
-	    	if (!this.getHost().isLockSelected()) {
-	            return;
-	        }
+//	    	if (!this.getHost().isLockSelected()) {
+//	            return;
+//	        }
 	        this.getHost().shift('East', this.sample);
 	    },
 	    
