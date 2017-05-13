@@ -5,8 +5,8 @@
 	//
 	// 	Bar Widget defines mini bar with two buttons
 	//
-	//		-plus minus
-	//		-backward forward
+	//		-vertical/horizontal plus minus (-  +) 
+	//		-vertical/horizontal backward forward (<  >)
 	//
 	
 	
@@ -507,9 +507,9 @@
 	     * @param {Number} y coordinate
 	     */
 	    interceptPress : function(x,y) {
-	        if (!this.getHost().isLockSelected() && this.isOrphanLock()) {
-	            return;
-	        }
+//	        if (!this.getHost().isLockSelected() && this.isOrphanLock()) {
+//	            return;
+//	        }
 
 	        if (this.geometry.rect1 !== undefined && this.geometry.rect1.contains(x, y)) {
 	            this.onButton1Press();
@@ -584,7 +584,6 @@
 	            }
 	            var gradientId = 'gradient'+JenScript.sequenceId++;
 	            var gradient= new JenScript.SVGLinearGradient().Id(gradientId).from(start.x,start.y).to(end.x,end.y).shade(this.shader.percents,this.shader.colors,this.shader.opacity).toSVG();
-				console.log('shade bar');
 	            g2d.definesSVG(gradient);
 				this.geometry.outlineShape.fill('url(#'+gradientId+')');
 	        }

@@ -83,35 +83,50 @@
 		        }
 		        return false;
 		    };
-	    	var proj = this.getActiveProjection();
+	    	//var proj = this.getActiveProjection();
 	    	//console.log('moveWidgetOperationCheckPress for proj '+this.getActiveProjection().name);
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-	            if (plugin.isSelectable() && !plugin.isLockSelected()) {
-	                continue;
-	            }
-	            
-	            for (var j = 0; j < plugin.widgets.length; j++) {
-	            	var widget = plugin.widgets[j];
-	                //console.log('process moveWidgetOperationCheckPress widget : '+widget.Id);
-	                var widgetFolder = widget.getWidgetFolder();
-	                if (widgetFolder === undefined) {
-	                    continue;
-	                }
-	                if (contains(widgetFolder,x, y) && !widget.isNoMoveOperation()) {
-	                    widgetFolder.currentDragX = x;
-	                    widgetFolder.currentDragY = y;
-	                    widgetFolder.startPress();
-	                    widget.create();
-						widget.createGhost();
-						this.passivePlugins();
-	                }
-	                else {
-	                    widgetFolder.interruptPress();
-	                    this.activePlugins();
-	                }
-	            }
-			}
+		    var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+	    		
+	    		
+		    	for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+//		            if (plugin.isSelectable() && !plugin.isLockSelected()) {
+//		                continue;
+//		            }
+		            
+		            for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	
+		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            		
+		            		//console.log('process moveWidgetOperationCheckPress widget : name : '+widget.name);
+			                var widgetFolder = widget.getWidgetFolder();
+			                if (widgetFolder === undefined) {
+			                    continue;
+			                }
+			                
+			                //console.log('process move flags : contains (x,y) :'+contains(widgetFolder,x, y)+", widget NoMoveOperation :"+widget.isNoMoveOperation());
+			                if (contains(widgetFolder,x, y) && !widget.isNoMoveOperation()) {
+			                    widgetFolder.currentDragX = x;
+			                    widgetFolder.currentDragY = y;
+			                    widgetFolder.startPress();
+			                    widget.create();
+								widget.createGhost();
+								this.passivePlugins();
+			                }
+//			                else {
+//			                    widgetFolder.interruptPress();
+//			                    this.activePlugins();
+//			                }
+		            		
+		            	}else{
+		            		//console.log('incompatible mode process moveWidgetOperationCheckPress widget'+widget.name);
+		            	}
+		            }
+				}	
+	    	}
 	    },
 
 	    /**
@@ -123,22 +138,31 @@
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	    moveWidgetOperationCheckDrag : function(event,part,x,y) {
-	        var proj = this.getActiveProjection();
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-	            for (var j = 0; j < plugin.widgets.length; j++) {
-	            	var widget = plugin.widgets[j];
-	                var widgetFolder = widget.getWidgetFolder();
-	                if (widgetFolder !== undefined) {
-	                    if (widgetFolder.lockPress) {
-	                        widgetFolder.currentDragX = x;
-	                        widgetFolder.currentDragY = y;
-	                        widget.create();
-							widget.createGhost();
-	                    }
-	                }
-	            }
-	        }
+	        //var proj = this.getActiveProjection();
+	    	
+	    	var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+	    		
+		        for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+		            for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	
+		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            		var widgetFolder = widget.getWidgetFolder();
+			                if (widgetFolder !== undefined) {
+			                    if (widgetFolder.lockPress) {
+			                        widgetFolder.currentDragX = x;
+			                        widgetFolder.currentDragY = y;
+			                        widget.create();
+									widget.createGhost();
+			                    }
+			                }
+		            	}
+		            }
+		        }
+	    	}
 	    },
 
 	    /**
@@ -150,28 +174,36 @@
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	    moveWidgetOperationCheckRelease : function(evt,part,x,y) {
-	    	var proj = this.getActiveProjection();
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-	        	for (var j = 0; j < plugin.widgets.length; j++) {
-	            	var widget = plugin.widgets[j];
-	                var widgetFolder = widget.getWidgetFolder();
-	                if (widgetFolder === undefined) {
-	                    continue;
-	                }
-	                if (widgetFolder.lockPress) {
-	                    if (widgetFolder.targetFolder !== undefined) {
-	                    	widget.postWidget();
-	                        this.activePlugins();
-	                        widget.create();
-							widget.destroyGhost();
-							 
-	                    }
-	                    widgetFolder.interruptPress();
-	                }
-	               
-	            }
-	        }
+	    	//var proj = this.getActiveProjection();
+	    	var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+	    		
+	    		for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+		        	for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	
+		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            		
+			                var widgetFolder = widget.getWidgetFolder();
+			                if (widgetFolder === undefined) {
+			                    continue;
+			                }
+			                if (widgetFolder.lockPress) {
+			                    if (widgetFolder.targetFolder !== undefined) {
+			                    	widget.postWidget();
+			                        this.activePlugins();
+			                        widget.create();
+									widget.destroyGhost();
+									 
+			                    }
+			                    widgetFolder.interruptPress();
+			                }
+		            	}
+		            }
+		        }
+	    	}
 	    },
 	    
 	    /**
@@ -194,31 +226,30 @@
 	    },
 
 	    /**
-	     * on move dispath
-	     * @param {Object} event  the mouse pressed event
+	     * on move dispatch
+	     * @param {Object} event  the mouse move event
 	     * @param {String} part component where event occurs
 	     * @param {Number} x  the mouse x coordinate
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	    dispatchMove : function(event,part,x,y) {
 	    	if(part !== JenScript.ViewPart.Device) return;
-	    	var proj = this.getActiveProjection();
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-	            if (plugin.isSelectable() && plugin.isLockSelected()) {
-	            	  for (var j = 0; j < plugin.widgets.length; j++) {
-			            	var widget = plugin.widgets[j];
-		                    widget.interceptMove(x, y);
-	            	  }
-	            }
-	            else {
-	            	  for (var j = 0; j < plugin.widgets.length; j++) {
-			            	var widget = plugin.widgets[j];
-		                    widget.interceptMove(x, y);
-	                }
-	            }
-	        }
-
+	    	
+	    	//var proj = this.getActiveProjection();
+	    	var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+	    		
+		        for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+		        	for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            		widget.interceptMove(x, y);
+		            	}
+		        	}
+		        }
+	    	}
 	    },
 
 	    /**
@@ -243,6 +274,8 @@
 	    	var proj = this.getActiveProjection();
 	        for (var i = 0; i < proj.plugins.length; i++) {
 	        	var plugin = proj.plugins[i];
+	        	
+	        	
 	            if (plugin.isSelectable() && plugin.isLockSelected()) {
 	            	 for (var j = 0; j < plugin.widgets.length; j++) {
 			            //var widget = plugin.widgets[j];
@@ -269,19 +302,27 @@
 	    	var proj = this.getActiveProjection();
 	        for (var i = 0; i < proj.plugins.length; i++) {
 	        	var plugin = proj.plugins[i];
-	            if (plugin.isSelectable() && plugin.isLockSelected()) {
-	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-			            	var widget = plugin.widgets[j];
-		                    widget.interceptDrag(x,y);
-	                }
-	            }
-	            else {
-	            	 //duplicate, keep if change in future for non selectable widget
-	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-			            	var widget = plugin.widgets[j];
-			            	widget.interceptDrag(x,y);
-	                }
-	            }
+	        	
+	        	for (var j = 0; j < plugin.widgets.length; j++) {
+	            	var widget = plugin.widgets[j];
+	            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+	            		widget.interceptDrag(x, y);
+	            	}
+	        	}
+	        	
+//	            if (plugin.isSelectable() && plugin.isLockSelected()) {
+//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
+//			            	var widget = plugin.widgets[j];
+//		                    widget.interceptDrag(x,y);
+//	                }
+//	            }
+//	            else {
+//	            	 //duplicate, keep if change in future for non selectable widget
+//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
+//			            	var widget = plugin.widgets[j];
+//			            	widget.interceptDrag(x,y);
+//	                }
+//	            }
 	        }
 	    },
 
@@ -293,7 +334,7 @@
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	   onPress : function(event,part,x, y) {
-		   this.press = true;
+		    this.press = true;
 	        // handle widget press for move operation
 	        this.moveWidgetOperationCheckPress(event,part,x,y);
 
@@ -311,23 +352,20 @@
 	     */
 	    dispatchPress : function(event,part,x,y) {
 	    	
-	    	var proj = this.getActiveProjection();
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-
-	            if (plugin.isSelectable() && plugin.isLockSelected()) {
-	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-			            	var widget = plugin.widgets[j];
-			                widget.interceptPress(x, y);
-	                }
-	            }
-	            else {
-	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-			            	var widget = plugin.widgets[j];
-		                    widget.interceptPress(x,y);
-	                }
-	            }
-	        }
+	    	var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+		        for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+		        	for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            		//console.log('widget plugin intercept press for widget : '+widget.name+' part '+part);
+		            		widget.interceptPress(x, y);
+		            	}
+		        	}
+		        }
+	    	}
 	    },
 
 	    
@@ -358,18 +396,26 @@
 	    	var proj = this.getActiveProjection();
 	        for (var i = 0; i < proj.plugins.length; i++) {
 	        	var plugin = proj.plugins[i];
-	            if (plugin.isSelectable() && plugin.isLockSelected()) {
-	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-			            var widget = plugin.widgets[j];
-	                    widget.interceptReleased(x,y);
-	                }
-	            }
-	            else {
-	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-			            var widget = plugin.widgets[j];
-	                    widget.interceptReleased(x, y);
-	                }
-	            }
+	        	
+	        	for (var j = 0; j < plugin.widgets.length; j++) {
+	            	var widget = plugin.widgets[j];
+	            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+	            		widget.interceptReleased(x,y);
+	            	}
+	        	}
+	        	
+//	            if (plugin.isSelectable() && plugin.isLockSelected()) {
+//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
+//			            var widget = plugin.widgets[j];
+//	                    widget.interceptReleased(x,y);
+//	                }
+//	            }
+//	            else {
+//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
+//			            var widget = plugin.widgets[j];
+//	                    widget.interceptReleased(x, y);
+//	                }
+//	            }
 	        }
 
 	    },

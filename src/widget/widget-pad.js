@@ -263,9 +263,9 @@
 	    },
 
 	    paintWidget : function(g2d) {
-	        if (!this.getHost().isLockSelected()) {
-	            return;
-	        }
+//	        if (!this.getHost().isLockSelected()) {
+//	            return;
+//	        }
 
 	        if (this.getWidgetFolder() == undefined || this.padGeometry == undefined) {
 	            return;

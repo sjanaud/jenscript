@@ -1,6 +1,5 @@
 (function(){
-	
-	
+		
 	/**
 	 * Widget
 	 */
@@ -42,8 +41,18 @@
 		    this.noMoveOperation = false;
 		    /** movable widget flag */
 		    this.isMovable = true;
+		    
 		    this.orphanLock = false;
+		    
+		    
+		    //mode defines the painting and event conditions according to projection status and plugin selection status
+		    //for projection parameter : active|passive|always
+		    //for event parameter 	   : selected|unselected|always
+		    /** defines the widget mode */
+		    this.mode = (config.mode !== undefined)?config.mode : {paint : {proj : 'active', plugin : 'selected'},event: {proj : 'active', plugin : 'selected'}};
+		    
 		},
+		
 		
 		/**
 	     * callback method call on widget plugin host registering.
@@ -231,7 +240,7 @@
 	     * @param {Object} widgetFolder
 	     */
 	    setWidgetFolder : function(widgetFolder) {
-	    	//console.log('widget folder : '+widgetFolder);
+	    	//console.log("set widget folder : "+this.name+" folder : "+widgetFolder);
 	        this.widgetFolder = widgetFolder;
 	    },
 
@@ -379,8 +388,8 @@
 	           
 	            for (var j = 0; j < plugin.widgets.length; j++) {
 	            	var pluginWidget = plugin.widgets[j];
-	            	 
-	                var widgetFolder = pluginWidget.getWidgetFolder();
+
+	            	var widgetFolder = pluginWidget.getWidgetFolder();
 	               // console.log('control potential with plugin widget : '+pluginWidget.name+" with folder :"+widgetFolder.getBounds2D());
 //	                if (widgetFolder.getId() === potentialFolder.getId()) {
 //	                    continue;
@@ -401,6 +410,12 @@
 	     */
 	    paintWidget : function(g2d){},
 
+	    
+	    assignFolder : function(){
+	    	var view = this.getHost().getProjection().getView();
+	    	this.setWidgetFolder(view.newWidgetFolderIntance(this.getId(), this.getWidth(), this.getHeight(), this.getxIndex(), this.getyIndex()));
+	    },
+	    
 	    /**
 	     * lay out widget folder
 	     * @param {Object} view
@@ -410,7 +425,8 @@
 	    	var view = this.getHost().getProjection().getView();
 	        if (this.getWidgetFolder() === undefined) {
 	        	//console.log('layout set folder 1: '+this.getId());
-	            this.setWidgetFolder(view.newWidgetFolderIntance(this.getId(), this.getWidth(), this.getHeight(), this.getxIndex(), this.getyIndex()));
+	            //this.setWidgetFolder(view.newWidgetFolderIntance(this.getId(), this.getWidth(), this.getHeight(), this.getxIndex(), this.getyIndex()));
+	        	this.assignFolder();
 	        }
 	        else {
 	        	//console.log('layout set folder 2: '+this.getId());
@@ -420,25 +436,24 @@
 	    },
 
 	    /**
-	     * final paint widget
+	     * final paint widget according to mode.paint(proj,plugin)
 	     * @param {Object} view
 	     * @param {Object} graphics context
 	     */
 	    paint : function(g2d) {
-	    	//console.log('paint widget plugin');
-	        if (!this.getHost().isLockSelected() && this.isOrphanLock()) {
-	        	//console.log('paint widget plugin RETURN, NO PAINT');
-	            return;
-	        }
-	        
-	        //widget can be active, but not in the current active projection, no need to paint
-	        if(!this.getHost().getProjection().isActive()){
-	        	//alert('no paint selected widget, cause, proj not active : '+this.Id+' for proj '+this.getHost().getProjection().name);
-	        	return;
-	        }
-	        this.layoutFolder();
-	        this.paintWidget(g2d);
+	    	if(this.isProjModeCondition('paint') && this.isPluginModeCondition('paint')){
+	    		this.layoutFolder();
+		        this.paintWidget(g2d);
+	    	}
 	    },
+	    
+	    isProjModeCondition : function(oper){
+	    	return (this.mode[oper].proj == 'always' || (this.mode[oper].proj == 'active' && this.getHost().getProjection().isActive()) || (this.mode[oper].proj == 'passive' && !this.getHost().getProjection().isActive()));
+	    },
+	    
+	    isPluginModeCondition : function(oper){
+    		return (this.mode[oper].plugin == 'always' || (this.mode[oper].plugin == 'selected' && this.getHost().isLockSelected()) || (this.mode[oper].plugin == 'unselected' && !this.getHost().isLockSelected()));
+    	},
 
 	    /**
 	     * prevent move operation if sensible shape are intercept
@@ -446,19 +461,23 @@
 	     * @param {number} the y coordinate           
 	     */
 	    checkMoveOperation : function(x,y) {
-	        if (!this.getHost().isLockSelected() && this.isOrphanLock()){
-	            return;
-	        }
-	        if (!this.isMovable) {
-	            this.setNoMoveOperation(true);
-	            return;
-	        }
-	        if (this.isSensible(x,y)) {
-	            this.setNoMoveOperation(true);
-	        }
-	        else {
-	            this.setNoMoveOperation(false);
-	        }
+//	        if (!this.getHost().isLockSelected() && this.isOrphanLock()){
+//	            return;
+//	        }
+	    	
+	    	//if(this.isProjModeCondition('paint') && this.isPluginModeCondition('paint')){
+	    		if (!this.isMovable) {
+		            this.setNoMoveOperation(true);
+		            return;
+		        }
+		        if (this.isSensible(x,y)) {
+		            this.setNoMoveOperation(true);
+		        }
+		        else {
+		            this.setNoMoveOperation(false);
+		        }
+	    	//}
+	        
 	    },
 
 	    /**
@@ -510,12 +529,10 @@
 	    	var that = this;
 			this.getHost().addPluginListener('lock',function (plugin){
 				that.create();
-				
 			},'Plugin lock listener, create for reason : '+reason);
 			
 			this.getHost().addPluginListener('unlock',function (plugin){
 				that.destroy();
-				
 			},'Plugin lock listener, destroy for reason : '+reason);
 			
 			this.getHost().addPluginListener('projectionRegister',function (plugin){
@@ -549,9 +566,25 @@
 			}
 			
 	    },
+	    
+	    attachLayoutFolderFactory : function(reason){
+	    	//console.log("attachLayoutFolderFactory for reason : "+reason);
+	    	var that = this;
+	    	var proj = this.getHost().getProjection();
+	    	if(proj !== undefined){
+	    		var view = proj.getView();
+	    		if(view !== undefined){
+	    			//console.log("view is already register, assignFolder OK");
+					that.assignFolder();
+				}else{
+					//console.log("view is NOT register, wait for assignFolder");
+					proj.addProjectionListener('viewRegister',function(proj){
+		    			that.assignFolder();
+					},'Attach Widget Layout / Wait for projection view registering for reason : '+reason);
+				}
+	    	}
+	    },
 
 	});
-	
-
 
 })();
