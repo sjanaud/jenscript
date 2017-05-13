@@ -13,7 +13,7 @@
 		 */
 		init : function(config){
 			config = config||{};
-	        /**model exponent*/
+	        /**time model*/
 	        this.millis = config.millis;
 	        /** metrics manager */
 	        this.metricsManager;

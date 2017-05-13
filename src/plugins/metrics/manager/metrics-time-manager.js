@@ -2,7 +2,7 @@
 
 	
 	/**
-	 * modeled metrics manager generate metrics based on exponent models
+	 * time metrics manager generate metrics based on timing models
 	 */
 	JenScript.TimeMetricsManager = function(config) {
 		this._init(config);
@@ -10,7 +10,7 @@
 	JenScript.Model.inheritPrototype(JenScript.TimeMetricsManager, JenScript.MetricsManager);
 	JenScript.Model.addMethods(JenScript.TimeMetricsManager, {
 		/**
-		 * init modeled metrics manager
+		 * initialize timing metrics manager
 		 */
 		_init : function(config){
 			config = config ||{};
@@ -228,7 +228,6 @@
 	            }
 	        }
 	        else if (proj instanceof JenScript.TimeXProjection || proj instanceof JenScript.TimeYProjection) {
-	        	//alert('proj instance time');
 	            return  proj;
 	        }
 	        return undefined;
