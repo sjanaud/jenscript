@@ -34,6 +34,9 @@
 		
 		applyTransform : function(){
 			this.svgRoot['Device'].setAttribute("transform","translate("+this.tx+","+this.ty+") scale("+this.sx+","+this.sy+")");
+			this.svgRoot['West'].setAttribute("transform","translate("+this.tx+","+this.ty+") scale("+this.sx+","+this.sy+")");
+			this.svgRoot['East'].setAttribute("transform","translate("+this.tx+","+this.ty+") scale("+this.sx+","+this.sy+")");
+			this.svgRoot['South'].setAttribute("transform","translate("+this.tx+","+this.ty+") scale("+this.sx+","+this.sy+")");
 		},
 		
 		translate : function(tx,ty,fire){
@@ -44,7 +47,6 @@
 				if(fire === undefined || fire !== false)
 				this.firePluginEvent('translate');
 			}
-			
 		},
 		
 		scale : function(sx,sy,fire){
@@ -79,7 +81,6 @@
 		getProjection : function() {
 			return this.projection;
 		},
-		
 		
 		
 		/**
