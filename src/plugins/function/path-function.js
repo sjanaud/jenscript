@@ -15,8 +15,8 @@
 			this.themeColor=(config.themeColor !== undefined)? config.themeColor:'red';
 			this.strokeWidth=(config.strokeWidth !== undefined)? config.strokeWidth:1;
 		    /** source function */
-		    this.source=config.source;
-		    this.source.hostFunction = this;
+		    this.source= config.source;
+		    //this.source.hostFunction = this;
 			this.hostPlugin;
 			this.Id = 'pathfunction'+JenScript.sequenceId++;
 			/** the geometry path */
