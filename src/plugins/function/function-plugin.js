@@ -62,6 +62,7 @@
 		     }
 	    	 for (var c = 0; c < this.getFunctions().length; c++) {
             	var pathFunction = this.getFunctions()[c];
+            	pathFunction.source.hostFunction = pathFunction;//required for share source between function
             	pathFunction.paintFunction(g2d);
 	         }
 	    },
@@ -80,6 +81,7 @@
 	        for (var c = 0; c < this.getFunctions().length; c++) {
             	var pathFunction = this.getFunctions()[c];
             	pathFunction.graphicsContext = g2d;
+            	pathFunction.source.hostFunction = pathFunction;//required for share source between function
 	            var metrics = pathFunction.getMetrics();
 //	            for (GlyphMetric glyphMetric : metrics) {
 //	                if (glyphMetric.getGlyphMetricMarkerPainter() != null) {
