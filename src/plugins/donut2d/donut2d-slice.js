@@ -56,14 +56,19 @@
 		    this.stroke;
 		    /** slice fill */
 		    this.fill;
-		    /** slice labels */
-		    this.sliceLabels = [];
+		    /** slice label */
+		    this.sliceLabel;
 		    /** host donut2D of this slice */
 		    this.donut;
 		    
 		    if(this.value <= 0 )
 		    	throw new Error('Slice value should be greater than 0');
 		   
+		},
+		
+		repaint : function(){
+			if(this.donut !== undefined)
+			this.donut.repaint();
 		},
 		
 
@@ -73,6 +78,7 @@
 		 */
 		setThemeColor : function(color){
 			this.color=color;
+			this.repaint();
 		},
 		
 		/**
@@ -88,22 +94,7 @@
 		 */
 		setDivergence : function(divergence){
 			this.divergence=divergence;
-		},
-		
-		/**
-		 * get slice divergence
-		 * @return {Number} slice divergence
-		 */
-		getDivergence : function(){
-			return this.divergence;
-		},
-		
-		/**
-		 * set slice divergence
-		 * @param {Number} slice divergence
-		 */
-		setDivergence : function(divergence){
-			this.divergence=divergence;
+			this.repaint();
 		},
 		
 		/**
@@ -120,6 +111,7 @@
 		 */
 		setFillOpacity : function(opacity){
 			this.fillOpacity=opacity;
+			this.repaint();
 		},
 		
 		/**
@@ -136,6 +128,7 @@
 		 */
 		setStrokeOpacity : function(opacity){
 			this.strokeOpacity=opacity;
+			this.repaint();
 		},
 		
 		/**
@@ -146,26 +139,17 @@
 			return this.strokeOpacity;
 		},
 		
-		/**
-		 * set slice label
-		 * @param {Object} label
-		 */
-		addSliceLabel : function(label){
-			if(label.textColor === undefined)
-				label.textColor = this.themeColor;
-			this.sliceLabels[this.sliceLabels.length] = label;
-			if(this.donut !== undefined && this.donut.plugin !== undefined){
-		        	this.donut.plugin.repaintDonuts();	
-		    }
+		setSliceLabel : function(sliceLabel) {
+			if(sliceLabel !== undefined)
+				sliceLabel.slice = this;
+			this.sliceLabel = sliceLabel;
+			this.repaint();
+		},
+
+		getSliceLabel : function() {
+			return this.sliceLabel;
 		},
 		
-		/**
-		 * get slice labels
-		 * @returns {Array} slice label array
-		 */
-		getSliceLabels : function(){
-			return this.sliceLabels;
-		},
 		
 		/**
 		 * get ratio of this slice
@@ -181,6 +165,7 @@
 		 */
 		setStroke : function(stroke){
 			this.stroke = stroke;
+			this.repaint();
 		},
 		
 		/**
@@ -189,6 +174,7 @@
 		 */
 		setFill : function(fill){
 			this.fill = fill;
+			this.repaint();
 		},
 		
 		/**

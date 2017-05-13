@@ -29,7 +29,7 @@
 				l = new JenScript.Donut2DRadialLabel(config);
 			if('border' === type)
 				l = new JenScript.Donut2DBorderLabel(config);
-			lastSlice.addSliceLabel(l);
+			lastSlice.setSliceLabel(l);
 			labels.push(l);
 			return this;
 		}

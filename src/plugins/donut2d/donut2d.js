@@ -39,9 +39,9 @@
 		    /** donut2D nature */
 		    this.nature = (config.nature !== undefined)?config.nature : 'User';
 		    /** donut2D center x */
-		    this.centerX = (config.centerX !== undefined)?config.centerX : 0;
+		    this.centerX = (config.x !== undefined)?config.x : 0;
 		    /** donut2D center y */
-		    this.centerY = (config.centerY !== undefined)?config.centerY : 0;
+		    this.centerY = (config.y !== undefined)?config.y : 0;
 		    /** donut2D external radius */
 		    this.outerRadius = (config.outerRadius !== undefined)?config.outerRadius : 100;
 		    /** donut2D internal radius */
@@ -73,6 +73,23 @@
 		},
 		
 		/**
+		 * repaint donut
+		 */
+		repaint : function(){
+			if(this.plugin !== undefined)
+			this.plugin.repaintPlugin();
+		},
+		
+		/**
+		 * set start angle degree
+		 * @param {Number} start angle degrees
+		 */
+		setStartAngleDegree : function(startAngleDegree){
+			this.startAngleDegree=startAngleDegree;
+			this.repaint();
+		},
+		
+		/**
 		 * get inner radius
 		 * @returns {Number} inner radius
 		 */
@@ -81,11 +98,29 @@
 		},
 		
 		/**
+		 * set inner radius
+		 * @param {Number} inner radius
+		 */
+		setInnerRadius : function(innerRadius){
+			this.innerRadius=innerRadius;
+			this.repaint();
+		},
+		
+		/**
 		 * get outer radius
 		 * @returns {Number} outer radius
 		 */
 		getOuterRadius : function(){
 			return this.outerRadius;
+		},
+		
+		/**
+		 * set outer radius
+		 * @param {Number} outer radius
+		 */
+		setOuterRadius : function(outerRadius){
+			this.outerRadius=outerRadius;
+			this.repaint();
 		},
 		
 		/**
@@ -111,7 +146,7 @@
 		 */
 		setStroke : function(stroke){
 			this.stroke  = stroke;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 		
 		/**
@@ -120,7 +155,7 @@
 		 */
 		setFill : function(fill){
 			this.fill  = fill;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 		
 		/**
@@ -129,7 +164,7 @@
 		 */
 		addEffect : function(effect){
 			this.effects[this.effects.length]  = effect;
-			this.plugin.repaintPlugin();
+			this.repaint();
 		},
 		
 		/**
@@ -140,7 +175,7 @@
 	    addSlice : function(slice) {
 	        slice.donut = this;
 	        this.slices[this.slices.length]=slice;
-	        this.plugin.repaintPlugin();
+	        this.repaint();
 	        return this;
 	    },
 	    
@@ -316,6 +351,22 @@
 	        }
 	        return false;
 	    },
+	    
+	    /**
+		 * shift pie
+		 */
+		shift : function(){
+			var that = this;
+			for (var i = 0; i < 10; i++) {
+				shiftAngle(i);
+			}
+			function shiftAngle(i){
+				setTimeout(function(){
+					that.startAngleDegree=that.startAngleDegree+36;
+					that.repaint();
+				},i*100);
+			}
+		},
 	});
 	
 })();

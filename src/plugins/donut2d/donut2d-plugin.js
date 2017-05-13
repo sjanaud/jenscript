@@ -80,11 +80,9 @@
 					}
 				}
 				else if(action === 'press'){
-					//slice.lockPress = true;
 					that.fireDonutEvent('press',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 				}
 				else if(action === 'release' ){
-					//slice.lockPress = false;
 					that.fireDonutEvent('release',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
 				}
 				else{
@@ -92,7 +90,6 @@
 				}
 			};
 			var fire2 = function(slice){
-				//console.log('fire 2 for slice : '+slice.name);
 				if(action === 'move' && slice.lockRollover){
 					slice.lockRollover = false;
 					that.fireDonutEvent('exit',{slice : slice, x:deviceX,y:deviceY, device :{x:deviceX,y:deviceY}});
@@ -233,10 +230,9 @@
 					
 					for (var j = 0; j < donut.slices.length; j++) {
 						var slice = donut.slices[j];
-						var labels = slice.getSliceLabels();
-						for (var l = 0; l < labels.length; l++) {
-							labels[l].paintDonut2DSliceLabel(g2d,slice);
-						}
+						var label = slice.getSliceLabel();
+						if(label !== undefined)
+						label.paintDonut2DSliceLabel(g2d,slice);
 					}
 				}
 			}
