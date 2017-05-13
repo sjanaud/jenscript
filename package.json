@@ -10,7 +10,7 @@
   ],
   "description": "JavaScript SVG library for Visualization and Charts in web modern browsers.",
   "homepage": "http://jenscript.io",
-  "main": "jenscript.js",
+  "main": "build/jenscript.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -25,7 +25,6 @@
   "bugs": {
     "url": "https://github.com/sjanaud/jenscript/issues"
   },
-  "homepage": "https://github.com/sjanaud/jenscript",
   "devDependencies": {
     "grunt": "^0.4.5",
     "grunt-contrib-concat": "^0.5.1",
