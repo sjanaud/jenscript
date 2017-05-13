@@ -44,25 +44,38 @@
 				//					evt.preventDefault();	
 				//				}
 				
-				//console.log('action event : '+actionEvent);
+				//console.log('action event : '+actionEvent+", x,y : "+x+','+y);
 				var widgetHandler   = this.view.getWidgetPlugin()['on'+actionEvent];
 				var selectorHandler = this.view.getSelectorPlugin()['on'+actionEvent];
 				
 				widgetHandler.call(this.view.getWidgetPlugin(),evt,this.part,x,y);
 				selectorHandler.call(this.view.getSelectorPlugin(),evt,this.part,x,y);
 
-				if(this.view === undefined || this.view.getActiveProjection() === undefined) return;
-				var projection = this.view.getActiveProjection();
-				var plugins = projection.getPlugins();
-				for (var p = 0; p < plugins.length; p++) {
-					var pluginHandler   = plugins[p]['on'+actionEvent];
+				if(this.view === undefined) return;
+				var projs = this.view.getProjections();
+				for (var p = 0; p < projs.length; p++) {
+		    		var proj = projs[p];
+		    		
+		    		var plugins = proj.getPlugins();
+					for (var p = 0; p < plugins.length; p++) {
+						var pluginHandler   = plugins[p]['on'+actionEvent];
+						pluginHandler.call(plugins[p],evt,this.part,x, y);
+					}
 					
-					//TODO?
-					//call if plugin is not selectable
-					//if selectable, call only if plugin is lock selected
-					
-					pluginHandler.call(plugins[p],evt,this.part,x, y);
 				}
+				
+//				if(this.view === undefined || this.view.getActiveProjection() === undefined) return;
+//				var projection = this.view.getActiveProjection();
+//				var plugins = projection.getPlugins();
+//				for (var p = 0; p < plugins.length; p++) {
+//					var pluginHandler   = plugins[p]['on'+actionEvent];
+//					
+//					//TODO?
+//					//call if plugin is not selectable
+//					//if selectable, call only if plugin is lock selected
+//					
+//					pluginHandler.call(plugins[p],evt,this.part,x, y);
+//				}
 			},
 	});
 })();

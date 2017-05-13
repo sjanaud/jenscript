@@ -118,26 +118,31 @@
 			var that = this;
 			this.openingSelector = true;
 			var projection = selector.projection;
-			var run = function(i,callback){
-				setTimeout(function(){
-					that.processOpeningSelector(selector,i);
-					callback(i);
-				},i*30);
-				
-			};
-			for(var i=1;i<=10;i++){
-				run(i,function callback(rank){
-					if(rank === 10){
-						that.getView().setActiveProjection(projection);
-						that.openingSelector = false;
-				    	document.getElementById(selector.Id).setAttribute('x',selector.x);
-				    	document.getElementById(selector.Id).setAttribute('y',selector.y);
-				    	document.getElementById(selector.Id).setAttribute('width','10%');
-				    	document.getElementById(selector.Id).setAttribute('height','10%');
-				    	that.checkSelectorSelectedOutline();
-					}
-				});
-			}
+			
+			
+			that.getView().setActiveProjection(projection);
+			that.openingSelector = false;
+			
+//			var run = function(i,callback){
+//				setTimeout(function(){
+//					that.processOpeningSelector(selector,i);
+//					callback(i);
+//				},i*30);
+//				
+//			};
+//			for(var i=1;i<=10;i++){
+//				run(i,function callback(rank){
+//					if(rank === 10){
+//						that.getView().setActiveProjection(projection);
+//						that.openingSelector = false;
+//				    	document.getElementById(selector.Id).setAttribute('x',selector.x);
+//				    	document.getElementById(selector.Id).setAttribute('y',selector.y);
+//				    	document.getElementById(selector.Id).setAttribute('width','10%');
+//				    	document.getElementById(selector.Id).setAttribute('height','10%');
+//				    	that.checkSelectorSelectedOutline();
+//					}
+//				});
+//			}
 		 },
 		 
 		/**
@@ -178,7 +183,53 @@
 	    		var startY = view.north+10;
 	    		for(var i = 0;i<projections.length;i++){
 	    			var proj = projections[i];
-	    			var svg = proj.svgRootElement.cloneNode(true);
+	    			var svg = document.createElementNS(JenScript.SVG_NS,"use");
+    	    		if(svg !== undefined){
+    	    			var selectorId = 'selector_'+view.Id+'_'+proj.Id;
+    	    			svg.setAttribute('id',selectorId);
+    	    			svg.setAttribute('x',startX);
+    	    			svg.setAttribute('opacity',1);
+    	    			svg.setAttribute('y',startY);
+    	    			svg.setAttribute('width','10%');
+    	    			svg.setAttribute('height','10%');
+    	    			//svg.setAttribute('preserveAspectRatio','xMinYMin slice');
+    	    			//svg.setAttribute('preserveAspectRatio','xMinYMin');
+    	    			svg.setAttributeNS(JenScript.XLINK_NS, 'xlink:href','#'+proj.Id);
+    	    			g2d.insertSVG(svg);
+    	    			
+    	    			var projRect = new JenScript.SVGRect().origin(startX,startY).size(view.width*0.1,view.height*0.1);
+	    	    						
+	    	    		//if(proj.isActive()){
+    	    			projRect.fillNone().strokeWidth(0.6);
+    	    			var outline = projRect.toSVG();
+    	    			g2d.insertSVG(outline);
+    	    			
+    	    			//}
+    	    			this.selectors[this.selectors.length] = {Id :selectorId, x:startX,y:startY,projection : proj,svg:svg, outlineElement : outline,sensible :projRect};
+    	    			startX = startX + view.width*0.1 + 10;
+    	    		}
+    			}
+	    		this.checkSelectorSelectedOutline();
+		},
+		
+		/**
+		 * paint static projection selector
+		 *  @param {Object} graphics context
+		 *  @param {Object} view part
+		 */
+		paintSelectorsOLD : function(g2d,viewPart) {
+			if(this.isLockPassive()) return;
+			if (viewPart !== JenScript.ViewPart.Device) return;
+	    		
+				this.selectors=[];
+	    		var view = this.getView();
+	    		var projections = view.getProjections();
+	    		var startX = view.west+10;
+	    		var startY = view.north+10;
+	    		for(var i = 0;i<projections.length;i++){
+	    			var proj = projections[i];
+	    			//var svg = proj.svgRootElement.cloneNode(true);
+	    			var svg = document.createElement('use');
     	    		if(svg !== undefined){
     	    			var selectorId = 'selector_'+view.Id+'_'+proj.Id;
     	    			svg.removeAttribute('xmlns');

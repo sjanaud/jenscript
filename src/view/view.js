@@ -119,10 +119,15 @@
 			this.contextualizeGraphics();
 			
 			//DO NOT REMOVE THIS LINE
-			var copyright = new JenScript.TextViewForeground({/*textColor:'rgb(255,255,50)',*/fontSize:6,x:this.west,y:this.north-2,text:'JenScript '+JenScript.version+' - www.jensoftapi.com'});
+			var copyright = new JenScript.TextViewForeground({/*textColor:'rgb(255,255,50)',*/fontSize:6,x:this.west,y:this.north-2,text:'JenScript '+JenScript.version+' - www.jenscript.io'});
 			this.addViewForeground(copyright);
 		},
 		
+		find : function(element){
+			if(element.Id !== undefined)
+				return document.getElementById(element.Id);
+			return null;
+		},
 		
 		/**
 		 * get the background clip for the given background
@@ -620,6 +625,11 @@
 			this.attachProjectionActiveListener(projection);
 			this.attachProjectionSelectorListener(projection);
 			
+			projection.svgRootGroup = document.createElementNS(this.SVG_NS,"g");
+			projection.svgRootGroup.setAttribute("xmlns",this.SVG_NS);
+			projection.svgRootGroup.setAttribute("id",projection.Id+'_group');
+			
+			
 			projection.svgRootElement = document.createElementNS(this.SVG_NS,"svg");
 			projection.svgRootElement.setAttribute("id",projection.Id);
 			projection.svgRootElement.setAttribute("xmlns",JenScript.SVG_NS);
@@ -637,7 +647,10 @@
 			projection.svgPartsGroup.setAttribute("id",projection.Id+'_parts');
 			projection.svgRootElement.appendChild(projection.svgPartsGroup);
 			
-			this.svgProjections.appendChild(projection.svgRootElement);
+			
+			projection.svgRootGroup.appendChild(projection.svgRootElement);
+			
+			this.svgProjections.appendChild(projection.svgRootGroup);
 			
 			projection.svgPartPlugins ={};
 			this.contextualizeProjectionPartGraphics(projection,this.southPart,new JenScript.Point2D(0,(this.height - this.south)));
@@ -669,13 +682,16 @@
 		 */
 		attachProjectionActiveListener : function(projection){
 			projection.addProjectionListener('lockActive',function(proj){
-				proj.svgRootElement.setAttribute('opacity',1);
+				//proj.svgRootElement.setAttribute('opacity',1);
+				proj.svgRootGroup.setAttribute('opacity',1);
 			},'view projection active listener to change projection opacity');
 			projection.addProjectionListener('unlockActive',function(proj){
 				if(proj.paintMode === 'ACTIVE')
-					proj.svgRootElement.setAttribute('opacity',0);
+					//proj.svgRootElement.setAttribute('opacity',0);
+					proj.svgRootGroup.setAttribute('opacity',0);
 				if(proj.paintMode === 'ALWAYS')
-					proj.svgRootElement.setAttribute('opacity',1);
+					//proj.svgRootElement.setAttribute('opacity',1);
+					proj.svgRootGroup.setAttribute('opacity',1);
 			},'view projection unactive listener to change projection opacity');
 		},
 		
@@ -822,7 +838,6 @@
 			
 			var dispatchMouse = function(evt,action) {
 				var loc = getLocation(evt);
-				//console.log(action+" ",loc.x, loc.y+' in part '+component.part);
 				that.getComponent(component.part).on(action,evt, loc.x, loc.y);
 			};
 			
@@ -895,7 +910,6 @@
 			         };
 			         
 			         event.deltaY = delta;
-			         
 			         dispatchMouse(event,'Wheel');
 				}
 				if (s.addEventListener) {

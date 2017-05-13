@@ -9,7 +9,7 @@
 		init : function(config){
 			config = config || {};
 			this.Id = 'proj_'+JenScript.sequenceId++;
-			this.name = config.name;
+			this.name = (config.name !== undefined)?config.name : 'projection undefined name';
 			this.initial = true;
 			this.themeColor = (config.themeColor !== undefined)?config.themeColor:JenScript.createColor();
 			this.listeners =[];
