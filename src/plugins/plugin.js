@@ -200,6 +200,7 @@
 		},
 		
 		onProjectionRegister: function(){
+			//console.log("abstract plugin onProjectionRegister "+this.name);
 		},
 		
 		/**
@@ -207,7 +208,10 @@
 		 */
 		setProjection : function(projection) {
 			this.projection = projection;
-			this.firePluginEvent('projectionRegister');
+			var that = this;
+			projection.addProjectionListener('pluginRegister',function(){
+				that.firePluginEvent('projectionRegister');
+			}," pluglin fire to listener plugin registered in projection")
 		},
 
 		setPriority : function(priority) {
@@ -246,10 +250,12 @@
 
 		passive : function() {
 			this.lockPassive = true;
+			this.firePluginEvent('passive');
 		},
 
 		unpassive : function() {
 			this.lockPassive = false;
+			this.firePluginEvent('unpassive');
 		},
 
 		/**
@@ -355,7 +361,8 @@
 			}
 			return false;
 		},
-
+		
+		
 	    /**
 	     * register widget
 	     * 
@@ -364,6 +371,7 @@
 	     */
 	    registerWidget : function(widget) {
             widget.setHost(this);
+            widget.attachLifeCycle();
             widget.onRegister();
             this.widgets[this.widgets.length]=widget;
 	    }

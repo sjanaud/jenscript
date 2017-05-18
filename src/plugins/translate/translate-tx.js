@@ -18,21 +18,16 @@
 		    this.setOrphanLock(true);
 		},
 	    onButton1Press : function() {
-//	        if (!this.getHost().isLockSelected()) {
-//	            return;
-//	        }
 	        this.getHost().shift('West', this.sample);
 	    },
 	    onButton2Press : function() {
-//	    	if (!this.getHost().isLockSelected()) {
-//	            return;
-//	        }
 	        this.getHost().shift('East', this.sample);
 	    },
 	    
 	    onRegister : function(){
-	    	this.attachPluginLockUnlockFactory('TranlateX widget factory');
-	    	this.attachViewActivePassiveFactory('TranlateX widget factory');
+	    	//this.attachPluginLockUnlockFactory('TranlateX widget factory');
+	    	//this.attachViewActivePassiveFactory('TranlateX widget factory');
+	    	//this.attachLayoutFolderFactory('TranlateX widget factory');
 	    }
 	});
 })();

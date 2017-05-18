@@ -98,14 +98,6 @@
 	            },'translate compass widget translate process listener'
 			);
 			
-//			this.getHost().addTranslateListener('stop',
-//		            function onTranslate(pluginEvent) {
-//						//var g2d = that.getHost().getProjection().getView().getWidgetPlugin().getGraphicsContext('Device');
-//						//g2d.deleteGraphicsElement(that.Id);
-//						that.destroy();
-//		            },'translate compass widget translate stop listener, destroy'
-//			);
-			
 			this.getHost().addTranslateListener('stop',
 		            function (pluginEvent) {
 						that.destroy();

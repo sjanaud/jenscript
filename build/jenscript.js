@@ -1,10 +1,10 @@
 // JenScript -  JavaScript HTML5/SVG Library
-// version : 1.1.9
+// version : 1.2.0
 // Author : Sebastien Janaud 
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-13
+// build: 2017-05-18
 // All Rights reserved
 
 /**
@@ -17,7 +17,7 @@ var JenScript = {};
 	
 		JenScript = {
 				
-				version : '1.1.9',
+				version : '1.2.0',
 				views : [],
 				sequenceId: 0,
 				SVG_NS : 'http://www.w3.org/2000/svg',
@@ -2586,6 +2586,7 @@ function stringInputToObject(color) {
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	   onPress : function(event,part,x, y) {
+		   if(part !== 'Device') return;
 		    var x2View = this.getView().west+x;
 	    	var y2View = this.getView().north+y;
 	    	for(var i = 0 ;i< this.selectors.length;i++){
@@ -2690,12 +2691,10 @@ function stringInputToObject(color) {
     	    			
     	    			var projRect = new JenScript.SVGRect().origin(startX,startY).size(view.width*0.1,view.height*0.1);
 	    	    						
-	    	    		//if(proj.isActive()){
     	    			projRect.fillNone().strokeWidth(0.6);
     	    			var outline = projRect.toSVG();
     	    			g2d.insertSVG(outline);
     	    			
-    	    			//}
     	    			this.selectors[this.selectors.length] = {Id :selectorId, x:startX,y:startY,projection : proj,svg:svg, outlineElement : outline,sensible :projRect};
     	    			startX = startX + view.width*0.1 + 10;
     	    		}
@@ -3593,7 +3592,6 @@ function stringInputToObject(color) {
 	   		this.buildHTML = function(){
 	   			var e = document.createElementNS(JenScript.SVG_NS,this.n);
 	   			for(var propt in this.attributes){
-	   			    //e.setAttributeNS(null,this.attributes[propt].name,this.attributes[propt].value);
 	   				if(this.attributes[propt].ns === undefined)
 	   					e.setAttribute(this.attributes[propt].name,this.attributes[propt].value);
 	   				else
@@ -3658,6 +3656,10 @@ function stringInputToObject(color) {
 		},
 		Id : function(Id){
 			this.rootBuilder.attr('id',Id);
+			return this;
+		},
+		clazz : function(clazzes){
+			this.rootBuilder.attr('class',clazzes);
 			return this;
 		},
 		style : function(style){
@@ -4009,7 +4011,10 @@ function stringInputToObject(color) {
 			this.builder().name('script').attr('type','application/ecmascript');
 		},
 		script : function(script){
-			this.textContent('\n'+'//<![CDATA['+'\n'+script+'\n'+'//]]\>');
+			//this.textContent('\n'+'//<![CDATA['+'\n'+script+'\n'+'//]]\>');
+			//this.textContent('\n'+'//<![CDATA['+'\n'+script+'\n'+']]\>');
+			//this.textContent('//<![CDATA['+script+']]\>');
+			this.textContent('<![CDATA['+script+']]>');
 			return this;
 		}
 	});
@@ -4108,6 +4113,26 @@ function stringInputToObject(color) {
 			return this;
 		}
 		
+	});
+	
+	JenScript.SVGUse = function() {
+		this._init();
+	};
+	JenScript.Model.inheritPrototype(JenScript.SVGUse, JenScript.SVGGeometry);
+	JenScript.Model.addMethods(JenScript.SVGUse,{
+		_init: function(){
+			JenScript.SVGGeometry.call(this,null);
+			this.builder().name('use');
+		},
+		
+		getBound2D : function(){
+			return new JenScript.Bound2D(this.attr('x').value,this.attr('y').value,this.attr('width').value,this.attr('height').value);
+		},
+		
+		xlinkHref : function(use){
+			this.attrNS(JenScript.XLINK_NS,'xlink:href',use);
+			return this;
+		},
 	});
 	
 	JenScript.SVGTextPath = function() {
@@ -5198,9 +5223,6 @@ function stringInputToObject(color) {
 				// IE 6/7/8
 				else s.attachEvent("onmousewheel", MouseWheelHandler);
 			}
-			
-			
-			
 			svgRootElement.appendChild(s);
 			this.svgDispatcher.appendChild(svgRootElement);
 		},
@@ -5463,7 +5485,10 @@ function stringInputToObject(color) {
 
 		setView : function(view) {
 			this.view = view;
-			this.fireProjectionEvent('viewRegister');
+			var that = this;
+			view.addViewListener('projectionRegister', function(){
+				that.fireProjectionEvent('viewRegister');
+			}, " fire view registered in projection")
 		},
 
 		getView : function() {
@@ -5516,16 +5541,21 @@ function stringInputToObject(color) {
 				for (var p = 0; p < that.plugins.length; p++) {
 					var plugin = that.plugins[p];
 					if(plugin.Id !== selectedPlugin.Id  && plugin.isSelectable() && plugin.isLockSelected()){
+						//console.log("plugin to passivate : "+plugin.name);
 						plugin.unselect();
 					}
 				}
 			},'Projection plugin lock/unlock listener');
+			
 			this.plugins.sort(function(p1, p2) {
 				var x = p1.getPriority();
 				var y = p2.getPriority();
 				return ((x < y) ? -1 : ((x > y) ? 1 : 0));
 			});
+			
+			//TODO : remove this pattern ?
 			plugin.onProjectionRegister();
+			
 			this.getView().contextualizePluginGraphics(plugin);
 			this.fireProjectionEvent('pluginRegister');
 			//console.log("register plugin : "+plugin.name+' OK');
@@ -6781,6 +6811,7 @@ function stringInputToObject(color) {
 		},
 		
 		onProjectionRegister: function(){
+			//console.log("abstract plugin onProjectionRegister "+this.name);
 		},
 		
 		/**
@@ -6788,7 +6819,10 @@ function stringInputToObject(color) {
 		 */
 		setProjection : function(projection) {
 			this.projection = projection;
-			this.firePluginEvent('projectionRegister');
+			var that = this;
+			projection.addProjectionListener('pluginRegister',function(){
+				that.firePluginEvent('projectionRegister');
+			}," pluglin fire to listener plugin registered in projection")
 		},
 
 		setPriority : function(priority) {
@@ -6827,10 +6861,12 @@ function stringInputToObject(color) {
 
 		passive : function() {
 			this.lockPassive = true;
+			this.firePluginEvent('passive');
 		},
 
 		unpassive : function() {
 			this.lockPassive = false;
+			this.firePluginEvent('unpassive');
 		},
 
 		/**
@@ -6936,7 +6972,8 @@ function stringInputToObject(color) {
 			}
 			return false;
 		},
-
+		
+		
 	    /**
 	     * register widget
 	     * 
@@ -6945,6 +6982,7 @@ function stringInputToObject(color) {
 	     */
 	    registerWidget : function(widget) {
             widget.setHost(this);
+            widget.attachLifeCycle();
             widget.onRegister();
             this.widgets[this.widgets.length]=widget;
 	    }
@@ -7051,7 +7089,7 @@ function stringInputToObject(color) {
 		            for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
 		            	
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		
 		            		//console.log('process moveWidgetOperationCheckPress widget : name : '+widget.name);
 			                var widgetFolder = widget.getWidgetFolder();
@@ -7101,7 +7139,7 @@ function stringInputToObject(color) {
 		            for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
 		            	
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		var widgetFolder = widget.getWidgetFolder();
 			                if (widgetFolder !== undefined) {
 			                    if (widgetFolder.lockPress) {
@@ -7136,7 +7174,7 @@ function stringInputToObject(color) {
 		        	for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
 		            	
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		
 			                var widgetFolder = widget.getWidgetFolder();
 			                if (widgetFolder === undefined) {
@@ -7196,7 +7234,7 @@ function stringInputToObject(color) {
 		        	var plugin = proj.plugins[i];
 		        	for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		widget.interceptMove(x, y);
 		            	}
 		        	}
@@ -7257,7 +7295,7 @@ function stringInputToObject(color) {
 	        	
 	        	for (var j = 0; j < plugin.widgets.length; j++) {
 	            	var widget = plugin.widgets[j];
-	            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+	            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 	            		widget.interceptDrag(x, y);
 	            	}
 	        	}
@@ -7311,7 +7349,7 @@ function stringInputToObject(color) {
 		        	var plugin = proj.plugins[i];
 		        	for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		//console.log('widget plugin intercept press for widget : '+widget.name+' part '+part);
 		            		widget.interceptPress(x, y);
 		            	}
@@ -7345,30 +7383,24 @@ function stringInputToObject(color) {
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	    dispatchRelease : function(evt,part,x,y) {
-	    	var proj = this.getActiveProjection();
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-	        	
-	        	for (var j = 0; j < plugin.widgets.length; j++) {
-	            	var widget = plugin.widgets[j];
-	            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
-	            		widget.interceptReleased(x,y);
-	            	}
-	        	}
-	        	
-//	            if (plugin.isSelectable() && plugin.isLockSelected()) {
-//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-//			            var widget = plugin.widgets[j];
-//	                    widget.interceptReleased(x,y);
-//	                }
-//	            }
-//	            else {
-//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-//			            var widget = plugin.widgets[j];
-//	                    widget.interceptReleased(x, y);
-//	                }
-//	            }
-	        }
+	    	
+	    	var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+		        for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+		        	
+		        	for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
+		            		//console.log("intercept release "+widget.name);
+		            		widget.interceptReleased(x,y);
+		            	}else{
+		            		//console.log("no condition to intercept release "+widget.name);
+		            	}
+		        	}
+		        }
+	    	}
 
 	    },
 	    
@@ -7450,22 +7482,18 @@ function stringInputToObject(color) {
 		    
 		    this.orphanLock = false;
 		    
+		    this.painted = false;
+		    
 		    
 		    //mode defines the painting and event conditions according to projection status and plugin selection status
-		    //for projection parameter : active|passive|always
-		    //for event parameter 	   : selected|unselected|always
+		    //for paint : projection parameter : active|passive|always , plugin parameter  selected|unselected|always
+		    //for event parameter : projection parameter : active|passive|always , plugin parameter  selected|unselected|always
 		    /** defines the widget mode */
 		    this.mode = (config.mode !== undefined)?config.mode : {paint : {proj : 'active', plugin : 'selected'},event: {proj : 'active', plugin : 'selected'}};
 		    
 		},
 		
 		
-		/**
-	     * callback method call on widget plugin host registering.
-	     */
-	    onRegister : function(){
-	    },
-	    
 	    /**
 	     * get widget Id
 	     * @return {String} widget Id
@@ -7670,10 +7698,12 @@ function stringInputToObject(color) {
 	     * create widget
 	     */
 	    create : function(){
+	    	if(this.painted) return;
 	    	var view = this.getHost().getView();
 			var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions,graphics : view.svgWidgetsGraphics});
 			g2d.deleteGraphicsElement(this.Id);
 			this.paint(g2d);
+			this.painted = true;
 	    },
 	    
 	    /**
@@ -7683,12 +7713,14 @@ function stringInputToObject(color) {
 	    	var view = this.getHost().getView();
 	    	var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions,graphics : view.svgWidgetsGraphics});
 	    	g2d.deleteGraphicsElement(this.Id);
+	    	this.painted = false;
 	    },
 	    
 	    /**
 	     * create ghost
 	     */
 	   createGhost : function() {
+		   this.destroy();
 		   var view = this.getHost().getView();
 		   var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions,graphics : view.svgWidgetsGraphics});
 		   g2d.deleteGraphicsElement(this.Id+'_ghost');
@@ -7848,6 +7880,7 @@ function stringInputToObject(color) {
 	     */
 	    paint : function(g2d) {
 	    	if(this.isProjModeCondition('paint') && this.isPluginModeCondition('paint')){
+	    		//console.log("paint widget "+this.name);
 	    		this.layoutFolder();
 		        this.paintWidget(g2d);
 	    	}
@@ -7860,7 +7893,7 @@ function stringInputToObject(color) {
 	    isPluginModeCondition : function(oper){
     		return (this.mode[oper].plugin == 'always' || (this.mode[oper].plugin == 'selected' && this.getHost().isLockSelected()) || (this.mode[oper].plugin == 'unselected' && !this.getHost().isLockSelected()));
     	},
-
+    	
 	    /**
 	     * prevent move operation if sensible shape are intercept
 	     * @param {number} the x coordinate
@@ -7918,6 +7951,69 @@ function stringInputToObject(color) {
 	        this.orphanLock = orphanLock;
 	    },
 	    
+	    /**
+	     * callback method call on widget plugin host registering.
+	     */
+	    onRegister : function(){
+	    },
+	    
+	    checkWidgetState : function(){
+	    	if(this.getHost() !== undefined && this.getHost().getProjection() !== undefined && this.getHost().getProjection() !== undefined){
+	    		if(this.isProjModeCondition('paint') && this.isPluginModeCondition('paint')){
+	    			this.create();
+	    		}else{
+	    			this.destroy();
+	    		}
+	    	}else{
+	    		//console.log("widget ready state KO");
+	    	}
+	    },
+	    
+	    attachLifeCycle : function(){
+	    	//console.log("attachLifeCycle for widget "+this.name);
+	    	var that = this;
+	    	var reason = 'widget attach attachLifeCycle '+this.name;
+	    	
+	    	this.getHost().addPluginListener('lock',function (plugin){
+	    		//console.log("widget "+that.name+" plugin lock");
+	    		that.checkWidgetState();
+			},'Plugin lock listener, create for reason : '+reason);
+			
+			this.getHost().addPluginListener('unlock',function (plugin){
+				//console.log("widget "+that.name+" plugin unlock");
+				that.checkWidgetState();
+			},'Plugin unlock listener, destroy for reason : '+reason);
+			
+			var activepassiveCheck = function (v){
+				that.assignFolder();
+				v.addViewListener('projectionActive',function(){
+					that.checkWidgetState();
+				},'Projection active listener, create for reason :'+reason);
+					
+				v.addViewListener('projectionPassive',function(){
+					that.checkWidgetState();
+				},'Projection passive listener, create for reason :'+reason);
+			};
+			
+			var check = function(p){
+				if(p.getProjection().getView() !== undefined){
+					activepassiveCheck(p.getProjection().getView());
+				}else{
+					p.getProjection().addProjectionListener('viewRegister',function(proj){
+						activepassiveCheck(proj.getView());
+					},'Wait for projection view registering for reason : '+reason);
+				}
+			};
+			if(this.getHost().getProjection() !== undefined){
+				check(this.getHost());
+			}else{
+				this.getHost().addPluginListener('projectionRegister',function (plugin){
+					check(plugin);
+				},'Plugin listener for projection register for reason : '+reason);
+			}
+			
+		},
+	    
 	    
 	    /**
 	     * helper method to attach listener on host plugin for:
@@ -7933,24 +8029,32 @@ function stringInputToObject(color) {
 	     */
 	    attachPluginLockUnlockFactory : function(reason){
 	    	var that = this;
-			this.getHost().addPluginListener('lock',function (plugin){
-				that.create();
-			},'Plugin lock listener, create for reason : '+reason);
-			
-			this.getHost().addPluginListener('unlock',function (plugin){
-				that.destroy();
-			},'Plugin lock listener, destroy for reason : '+reason);
-			
-			this.getHost().addPluginListener('projectionRegister',function (plugin){
-				if(plugin.getProjection().getView() !== undefined){
-						that.attachViewActivePassiveFactory();
-				}else{
-					//wait view registering
-					plugin.getProjection().addProjectionListener('viewRegister',function(proj){
-						that.attachViewActivePassiveFactory();
-					},'Wait for projection view registering for reason : '+reason);
-				}
-			},'Plugin listener for projection register for reason : '+reason);
+	    	if(this.mode.paint.plugin === 'always'){
+	    		that.create();
+	    	}
+	    	if(this.mode.paint.plugin === 'selected'){
+	    		this.getHost().addPluginListener('lock',function (plugin){
+					that.create();
+				},'Plugin lock listener, create for reason : '+reason);
+				
+				this.getHost().addPluginListener('unlock',function (plugin){
+					that.destroy();
+				},'Plugin unlock listener, destroy for reason : '+reason);
+	    	}
+	    	
+	    	if(this.mode.paint.proj === 'active'){
+	    		
+	    	}
+//			this.getHost().addPluginListener('projectionRegister',function (plugin){
+//				if(plugin.getProjection().getView() !== undefined){
+//						that.attachViewActivePassiveFactory();
+//				}else{
+//					//wait view registering
+//					plugin.getProjection().addProjectionListener('viewRegister',function(proj){
+//						that.attachViewActivePassiveFactory();
+//					},'Wait for projection view registering for reason : '+reason);
+//				}
+//			},'Plugin listener for projection register for reason : '+reason);
 	    },
 	    
 	    attachViewActivePassiveFactory : function(reason){
@@ -8587,6 +8691,8 @@ function stringInputToObject(color) {
 	    onButton1RolloverOn : function() {
 	    	if(this.button1RolloverDrawColor !== undefined)
 	    		this.svg.button1.setAttribute('stroke',this.button1RolloverDrawColor);
+	    	else
+	    		this.svg.button1.removeAttribute('stroke');
 	    	if(this.button1RolloverFillColor !== undefined)
 	    		this.svg.button1.setAttribute('fill',this.button1RolloverFillColor);
 	    },
@@ -8597,6 +8703,8 @@ function stringInputToObject(color) {
 	    onButton1RolloverOff : function() {
 	    	if(this.button1DrawColor !== undefined)
 	    		this.svg.button1.setAttribute('stroke',this.button1DrawColor);
+	    	else
+	    		this.svg.button1.removeAttribute('stroke');
 	    	if(this.button1FillColor !== undefined)
 	    		this.svg.button1.setAttribute('fill',this.button1FillColor);
 	    },
@@ -8607,6 +8715,8 @@ function stringInputToObject(color) {
 	    onButton2RolloverOn : function() {
 	    	if(this.button2RolloverDrawColor !== undefined)
 	    		this.svg.button2.setAttribute('stroke',this.button2RolloverDrawColor);
+	    	else
+	    		this.svg.button2.removeAttribute('stroke');
 	    	if(this.button2RolloverFillColor !== undefined)
 	    		this.svg.button2.setAttribute('fill',this.button2RolloverFillColor);
 	    },
@@ -8617,6 +8727,8 @@ function stringInputToObject(color) {
 	    onButton2RolloverOff : function() {
 	    	if(this.button1DrawColor !== undefined)
 	    		this.svg.button2.setAttribute('stroke',this.button2DrawColor);
+	    	else
+	    		this.svg.button2.removeAttribute('stroke');
 	    	if(this.button1FillColor !== undefined)
 	    		this.svg.button2.setAttribute('fill',this.button2FillColor);
 	    },
@@ -16160,23 +16272,6 @@ function stringInputToObject(color) {
 			return this.lockTranslate;
 		},
 		
-//		 /**
-//	     * get clicked button, LEFT, RIGHT or MIDDLE
-//	     */
-//		getButton : function (event){
-//			var button;
-//			if (event.which == null)
-//			    /* IE case */
-//			    button= (event.button < 2) ? "LEFT" :
-//			              ((event.button == 4) ? "MIDDLE" : "RIGHT");
-//			 else
-//			    /* All others */
-//			    button= (event.which < 2) ? "LEFT" :
-//			              ((event.which == 2) ? "MIDDLE" : "RIGHT");
-//			return button;
-//		},
-
-		
 		/**
 		 * check translate authorization by checking input event
 		 * should be use only from press,release handler
@@ -16552,25 +16647,20 @@ function stringInputToObject(color) {
 			config.yIndex=(config.yIndex !== undefined)?config.yIndex:100;
 			config.barOrientation = 'Horizontal';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
-		    this.sample = (config.sample !== undefined)?config.sample : {step : 2, sleep: 100,fraction:5};
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 40, sleep : 10,fraction : 3};
 		    this.setOrphanLock(true);
 		},
 	    onButton1Press : function() {
-//	        if (!this.getHost().isLockSelected()) {
-//	            return;
-//	        }
 	        this.getHost().shift('West', this.sample);
 	    },
 	    onButton2Press : function() {
-//	    	if (!this.getHost().isLockSelected()) {
-//	            return;
-//	        }
 	        this.getHost().shift('East', this.sample);
 	    },
 	    
 	    onRegister : function(){
-	    	this.attachPluginLockUnlockFactory('TranlateX widget factory');
-	    	this.attachViewActivePassiveFactory('TranlateX widget factory');
+	    	//this.attachPluginLockUnlockFactory('TranlateX widget factory');
+	    	//this.attachViewActivePassiveFactory('TranlateX widget factory');
+	    	//this.attachLayoutFolderFactory('TranlateX widget factory');
 	    }
 	});
 })();
@@ -16590,28 +16680,23 @@ function stringInputToObject(color) {
 			config.yIndex=(config.yIndex !== undefined)?config.yIndex:1;
 			config.barOrientation = 'Vertical';
 			JenScript.AbstractBackwardForwardBarWidget.call(this,config);
-		    this.sample = (config.sample !== undefined)?config.sample : {step : 2, sleep: 100,fraction:5};
+		    this.sample = (config.sample !== undefined)?config.sample : {step : 40, sleep : 10,fraction : 3};
 		    this.setOrphanLock(true);
 		},
 		
 		
 	    onButton1Press : function() {
-//	        if (!this.getHost().isLockSelected()) {
-//	            return;
-//	        }
 	        this.getHost().shift('North', this.sample);
-
 	    },
+	    
 	    onButton2Press : function() {
-//	        if (!this.getHost().isLockSelected()) {
-//	            return;
-//	        }
 	        this.getHost().shift('South', this.sample);
 	    },
 	    
 	    onRegister : function(){
-	    	this.attachPluginLockUnlockFactory('TranlateY widget factory');
-	    	this.attachViewActivePassiveFactory('TranlateY widget factory');
+	    	//this.attachPluginLockUnlockFactory('TranlateY widget factory');
+	    	//this.attachViewActivePassiveFactory('TranlateY widget factory');
+	    	//this.attachLayoutFolderFactory('TranlateY widget factory');
 	    }
 		
 	});
@@ -16715,14 +16800,6 @@ function stringInputToObject(color) {
 	               
 	            },'translate compass widget translate process listener'
 			);
-			
-//			this.getHost().addTranslateListener('stop',
-//		            function onTranslate(pluginEvent) {
-//						//var g2d = that.getHost().getProjection().getView().getWidgetPlugin().getGraphicsContext('Device');
-//						//g2d.deleteGraphicsElement(that.Id);
-//						that.destroy();
-//		            },'translate compass widget translate stop listener, destroy'
-//			);
 			
 			this.getHost().addTranslateListener('stop',
 		            function (pluginEvent) {
@@ -16868,12 +16945,40 @@ function stringInputToObject(color) {
 	            	translates[i].addTranslateListener('bound',function (plugin){that.bound(plugin);},' Translate synchronizer, bound listener');
 	            	translates[i].addTranslateListener('stop',function (plugin){that.translateStoped(plugin);},' Translate synchronizer, stop listener');
 	            	translates[i].addPluginListener('lock',function (plugin){that.pluginSelected(plugin);},'Translate Synchronizer plugin lock listener');
-	            	translates[i].addPluginListener('unlock',function (plugin){that.pluginSelected(plugin);},'Translate Synchronizer plugin unlock listener');
+	            	translates[i].addPluginListener('unlock',function (plugin){that.pluginUnlockSelected(plugin);},'Translate Synchronizer plugin unlock listener');
+	            	translates[i].addPluginListener('passive',function (plugin){that.pluginPassive(plugin);},'Translate Synchronizer plugin passive listener');
+	            	translates[i].addPluginListener('unpassive',function (plugin){that.pluginUnpassive(plugin);},'Translate Synchronizer plugin unpassive listener');
 	                this.translateList[this.translateList.length] = translates[i];
 	            }
 	            this.dispathingEvent = false;
 	        }
 		},
+		
+		pluginPassive : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.translateList.length; i++) {
+					var plugin = this.translateList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.passive();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+		    
+	    pluginUnpassive : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.translateList.length; i++) {
+					var plugin = this.translateList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.unpassive();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
 	
 	    pluginSelected : function(source) {
 	        if (!this.dispathingEvent) {
@@ -16979,7 +17084,7 @@ function stringInputToObject(color) {
 			config = config || {};
 			
 			config.name = (config.name !== undefined)?config.name:'ZoomBoxPlugin';
-			//config.selectable = true;
+			config.selectable = true;
 			config.priority = 1000;
 			this.slaves = (config.slaves !== undefined)? config.slaves : [];
 			this.zoomBoxDrawColor = config.zoomBoxDrawColor ;
@@ -17001,14 +17106,13 @@ function stringInputToObject(color) {
 			this.zoomFxBoxCurrentY;
 			this.boxHistory = [];
 			this.maxHistory = 8;
-			this.zoomBack = [];
+			this.forwardBound;
 			this.boxListeners = [];
 			
 			this.factor = (config.factor !== undefined)? config.factor : 1.1;
 			this.historyIndex = 0;
 			JenScript.Plugin.call(this,config);
 		},
-		
 
 		/**
 		 * when zoom box is being register in projection,
@@ -17021,8 +17125,6 @@ function stringInputToObject(color) {
 			},that.toString());
 		},
 		
-		
-		
 		/**
 	     * fire translate start to listener
 	     */
@@ -17034,8 +17136,6 @@ function stringInputToObject(color) {
 			}
 		},
 		
-		
-		
 		 /**
 	     * add zoom box listener
 	     * @param {String} action event type like start, stop, translate, L2R,B2T
@@ -17045,26 +17145,32 @@ function stringInputToObject(color) {
 			var l={action:actionEvent,onEvent:listener};
 			this.boxListeners[this.boxListeners.length] = l;
 		},
+		
+		isBoxAuthorized : function(evt,part,x,y){
+			return ((part === JenScript.ViewPart.Device) && this.isLockSelected() && !this.isLockPassive() && !this.isWidgetSensible(x,y));
+		},
 
 		onPress : function(evt,part,x,y) {
 			//mozilla, prevent Default to enable dragging correctly
 			if(evt.preventDefault){
 				evt.preventDefault();
 			}
-			if(part !== JenScript.ViewPart.Device) return;
-			if (!this.isLockSelected()) {
-				return;
-			}
-
-			if (this.isLockPassive()) {
-				return;
-			}
-			
+			this.lockZoomingTransaction = false;
+			this.lockEffect = false;
 			this.drag = true;
+			if(this.isBoxAuthorized(evt,part,x,y)){
+				this.processZoomStart(new JenScript.Point2D(x,y));
+			}
 			
-			this.processZoomStart(new JenScript.Point2D(x,y));
 		},
 		
+		
+		 processZoomFinish : function() {
+			 this.lockEffect=false;
+			 this.lockZoomingTransaction = false;
+			 this.repaintPlugin();
+			 this.fireEvent('boxFinish');
+		 },
 		
 		/**
 	     * start parameters for a start bound zoom box
@@ -17073,7 +17179,9 @@ function stringInputToObject(color) {
 	     *            box start device point coordinate
 	     */
 	    processZoomStart : function(startBox) {
-	    	//console.log("zoom box start : "+this.name);
+	    	if(this.boxHistory.length === 0){
+	    		this.createHistory();
+	    	}
             this.zoomBoxStartX = startBox.getX();
             this.zoomBoxStartY = startBox.getY();
             this.zoomBoxCurrentX = this.zoomBoxStartX;
@@ -17090,28 +17198,26 @@ function stringInputToObject(color) {
 	    },
 		
 		onRelease : function(evt,part,x, y) {
-			if(part !== JenScript.ViewPart.Device) return;
+			//if(part !== JenScript.ViewPart.Device) return;
 			this.drag = false;
-			if (!this.isLockSelected()) {
-				return;
+			if (this.lockZoomingTransaction){
+				if (this.isForwardCondition()) {
+					this.processZoomOut();
+				} else if (this.isValidateBound()) {
+					this.processZoomIn();
+				}else{
+					this.processZoomFinish();
+				}
+			}else{
+				this.processZoomFinish();
 			}
-			if (this.isLockPassive()) {
-				return;
-			}
-			if (this.isForwardCondition()) {
-				this.processZoomOut();
-				//this.fireEvent('boxOut');
-			} else if (this.isValidateBound()) {
-				this.processZoomIn();
-				//this.fireEvent('boxIn');
-			}
-
 			this.repaintPlugin();
 		},
 		
 		onMove : function(evt,part,deviceX, deviceY) {
 			if(part !== JenScript.ViewPart.Device) return;
 			if (this.drag) {
+				this.isBoxAuthorized(evt,part,deviceX,deviceY);
 				this.processZoomBound(new JenScript.Point2D(deviceX,deviceY));
 				this.repaintPlugin();
 			}
@@ -17154,6 +17260,7 @@ function stringInputToObject(color) {
 				if (this.zoomBoxCurrentX < this.zoomBoxStartX
 						|| this.zoomBoxCurrentY < this.zoomBoxStartY) {
 					return true;
+				}else{
 				}
 			} else if (this.mode.isBx()) {
 				if (this.zoomBoxCurrentX < this.zoomBoxStartX) {
@@ -17168,15 +17275,13 @@ function stringInputToObject(color) {
 		},
 		
 		processZoomOut : function() {
-			var proj = this.getProjection();
-			var bound = this.boxHistory[this.boxHistory.length-1];
-			proj.bound(bound.minx,bound.maxx,bound.miny,bound.maxy);
+			if(this.forwardBound === undefined) return;
+			var bound = this.forwardBound;
+			this.getProjection().bound(bound.minx,bound.maxx,bound.miny,bound.maxy);
 			this.fireEvent('boxOut');
-			
 		},
 		
 		processZoomIn : function() {
-			//console.log("process zoom in "+this.name);
 			this.lockEffect=true;
 			
 			var deviceStart = {
@@ -17188,6 +17293,13 @@ function stringInputToObject(color) {
 				y : this.zoomBoxCurrentY
 			};
 			var proj = this.getProjection();
+			
+			this.forwardBound = {
+					minx : proj.minX,
+					maxx : proj.maxX,
+					miny : proj.minY,
+					maxy : proj.maxY
+			};
 			
 			this.zoomFxBoxStartX = this.zoomBoxStartX;
 			this.zoomFxBoxStartY = this.zoomBoxStartY;
@@ -17229,21 +17341,15 @@ function stringInputToObject(color) {
 				_p(i, function callback(rank,bound) {
 					that.repaintPlugin();
 					if (rank === stepCount) {
-						that.repaintPlugin();
-						that.lockEffect=false;
-						that.lockZoomingTransaction = false;
-						
 						setTimeout(function(){
 							that.getProjection().bound(bound[0],bound[1],bound[2],bound[3]);
 							that.createHistory();
-							//finally geometric transform
 							for (var s = 0; s < that.slaves.length; s++) {
 								var plugin = that.slaves[s];
-								//reset semantic transform
 								plugin.resetTransform();
 								plugin.repaintPlugin();
 						    }
-							that.fireEvent('boxFinish');
+							that.processZoomFinish();
 						},30);
 					}
 				});
@@ -17302,6 +17408,7 @@ function stringInputToObject(color) {
 							
 							if(that.mode.isBx()){
 								deltaSy = 0;
+								console.log("is bx");
 							}
 							else if(that.mode.isBy()){
 								deltaSx = 0;
@@ -17310,8 +17417,6 @@ function stringInputToObject(color) {
 							plugin.scale(plugin.sx+deltaSx,plugin.sy+deltaSy);
 							plugin.translate(plugin.tx-deltaX*i,plugin.ty-deltaY*i);
 					 }
-					
-					that.zoomBack[that.zoomBack.length] = {i : i, x : initcenterX, y:initcenterY, deltaSx:deltaSx,deltaSy:deltaSy,deltaX:deltaX,deltaY:deltaY};
 					callback(i,[m1,m2,m3,m4]);
 				}, millis);
 			}
@@ -17325,11 +17430,11 @@ function stringInputToObject(color) {
 					miny : proj.minY,
 					maxy : proj.maxY
 				};
+			this.historyIndex = this.boxHistory.length - 1;
 		},
 		
 		
 		backHistory : function() {
-			//console.log("back history, current index "+this.historyIndex);
 			if(this.boxHistory.length > 0){
 				if(this.historyIndex-1 < 0)
 					this.historyIndex = this.boxHistory.length;
@@ -17338,7 +17443,6 @@ function stringInputToObject(color) {
 		},
 		
 		nextHistory : function() {
-			//console.log("next history, current index "+this.historyIndex);
 			if(this.boxHistory.length > 0){
 				if(this.historyIndex+1 >= this.boxHistory.length)
 					this.historyIndex = -1;
@@ -17347,13 +17451,11 @@ function stringInputToObject(color) {
 		},
 		
 		processHistory : function(nature,index) {
-			//console.log("process history "+index);
 			var b = this.boxHistory[index];
 			this.getProjection().bound(b.minx,b.maxx,b.miny,b.maxy);
 			this.historyIndex = index;
 			this.fireEvent(nature);
 		},
-		
 		
 		paintMarker : function(g2d, part) {
 			//todo paint markers near axis
@@ -17412,9 +17514,9 @@ function stringInputToObject(color) {
 		 },
 		 
 		 paintPlugin : function(g2d, part) {
-				
 				if(part === JenScript.ViewPart.Device && this.lockZoomingTransaction) {
 					 if (!this.lockEffect && this.isValidateBound()) {
+						 console.log("paint target "+this.name);
 						this.paintTarget(g2d, part); 
 					 }
 					 else{
@@ -17490,12 +17592,16 @@ function stringInputToObject(color) {
 	            	boxes[i].addBoxListener('backHistory',function (plugin){that.backHistory(plugin);});
 //	            	boxes[i].addBoxListener('boxClearHistory',function (plugin){that.translateB2TChanged(plugin);});
 	            	boxes[i].addPluginListener('lock',function (plugin){that.pluginSelected(plugin);},'ZoomBox Synchronizer plugin lock listener');
-	            	boxes[i].addPluginListener('unlock',function (plugin){that.pluginSelected(plugin);},'ZoomBox Synchronizer plugin unlock listener');
+	            	boxes[i].addPluginListener('unlock',function (plugin){that.pluginUnlockSelected(plugin);},'ZoomBox Synchronizer plugin unlock listener');
+	            	boxes[i].addPluginListener('passive',function (plugin){that.pluginPassive(plugin);},'ZoomBox Synchronizer plugin passive listener');
+	            	boxes[i].addPluginListener('unpassive',function (plugin){that.pluginUnPassive(plugin);},'ZoomBox Synchronizer plugin unpassive listener');
 	                this.boxesList[this.boxesList.length] = boxes[i];
 	            }
 	            this.dispathingEvent = false;
 	        }
 		},
+		
+		
 	
 	    pluginSelected : function(source) {
 	        if (!this.dispathingEvent) {
@@ -17511,6 +17617,20 @@ function stringInputToObject(color) {
 	        }
 	    },
 	    
+	    pluginPassive : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+						console.log('sync passive box'+plugin.name);
+	                    plugin.passive();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
     
 	    pluginUnlockSelected : function(source) {
 	        if (!this.dispathingEvent) {
@@ -17518,8 +17638,22 @@ function stringInputToObject(color) {
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync unlock box'+plugin.name);
+						console.log('sync unpassive box'+plugin.name);
 	                    plugin.unselect();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
+	    pluginUnPassive : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+						//console.log('sync lock box'+plugin.name);
+	                    plugin.unpassive();
 	                }
 				}
 	            this.dispathingEvent = false;
@@ -17586,7 +17720,16 @@ function stringInputToObject(color) {
 	    },
 	    
 	    boxFinish : function(source) {
-	        
+	    	 if (!this.dispathingEvent) {
+		            this.dispathingEvent = true;
+		            for (var i = 0; i < this.boxesList.length; i++) {
+						var plugin = this.boxesList[i];
+						if (plugin.Id !== source.Id) {
+		                    plugin.processZoomFinish();
+		                }
+					}
+		            this.dispathingEvent = false;
+		        }
 	    },
 	    
 	    nextHistory : function(source) {
@@ -17643,28 +17786,28 @@ function stringInputToObject(color) {
 	    	 this.getHost().nextHistory();
 	    },
 	    
-	    onRegister : function(){
-	    	var that = this;
-	    	var proj = this.getHost().getProjection();
-	    	if(proj !== undefined){
-	    		var view = proj.getView();
-	    		if(view !== undefined){
-	    			this.create();
-				}
-	    	}else{
-	    		this.getHost().addPluginListener('projectionRegister',function (plugin){
-	    			console.log("attach projection listener");
-					if(plugin.getProjection().getView() !== undefined){
-						that.create();
-					}else{
-						//wait view registering
-						plugin.getProjection().addProjectionListener('viewRegister',function(proj){
-							that.create();
-						},'Wait for projection view registering for box widget ');
-					}
-				},'Plugin listener for projection register for box widget');
-	    	}
-	    }
+//	    onRegister : function(){
+//	    	var that = this;
+//	    	var proj = this.getHost().getProjection();
+//	    	if(proj !== undefined){
+//	    		var view = proj.getView();
+//	    		if(view !== undefined){
+//	    			this.create();
+//				}
+//	    	}else{
+//	    		this.getHost().addPluginListener('projectionRegister',function (plugin){
+//	    			//console.log("attach projection listener");
+//					if(plugin.getProjection().getView() !== undefined){
+//						that.create();
+//					}else{
+//						//wait view registering
+//						plugin.getProjection().addProjectionListener('viewRegister',function(proj){
+//							that.create();
+//						},'Wait for projection view registering for box widget ');
+//					}
+//				},'Plugin listener for projection register for box widget');
+//	    	}
+//	    }
 	});
 })();
 (function(){
@@ -17685,7 +17828,7 @@ function stringInputToObject(color) {
 			/** zoom milli tempo */
 			this.zoomMiliTempo = 100;
 			/** zoom factor */
-			this.factor = 30;
+			this.factor = 8;
 			/** current zoom process nature */
 			this.processNature;
 			this.lensListeners = [];
@@ -17738,16 +17881,7 @@ function stringInputToObject(color) {
 		 */
 		startZoomIn : function(zoomNature) {
 			this.zoomInLock = true;
-			var that = this;
-			var execute = function(i){
-				setTimeout(function(){
-					that.zoomIn(zoomNature);
-				},i*that.zoomMiliTempo);
-			};
-			
-			for(var i= 0;i<10;i++){
-				execute(i);
-			}
+			this.zoomIn(zoomNature);
 		},
 		
 		/**
@@ -17757,15 +17891,7 @@ function stringInputToObject(color) {
 		 */
 		startZoomOut : function(zoomNature) {
 			this.zoomOutLock = true;
-			var that = this;
-			var execute = function(){
-				setTimeout(function(i){
-					that.zoomOut(zoomNature);
-				},i*that.zoomMiliTempo);
-			};
-			for(var i= 0;i<10;i++){
-				execute(i);
-			}
+			this.zoomOut(zoomNature);
 		},
 		
 		/**
@@ -17797,12 +17923,15 @@ function stringInputToObject(color) {
 			var pMinXMinYUser = proj.pixelToUser(pMinXMinYDevice);
 			var pMaxXMaxYUser = proj.pixelToUser(pMaxXMaxYDevice);
 				if(this.lensType == 'LensXY'){
+					console.log("zoom in xy")
 					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
 				else if(this.lensType === 'LensX'){
+					console.log("zoom in x")
 					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, proj.getMinY(), proj.getMaxY());
 				}
 				else if(this.lensType === 'LensY'){
+					console.log("zoom in y")
 					proj.bound(proj.getMinX(), proj.getMaxX(), pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
 			this.fireLensEvent('zoomIn');
@@ -17872,7 +18001,7 @@ function stringInputToObject(color) {
 	            	lenses[i].addLensListener('zoomIn',function (plugin){that.zoomIn(plugin);},' Lens synchronizer, zoomIn listener');
 	            	lenses[i].addLensListener('zoomOut',function (plugin){that.zoomOut(plugin);},' Lens synchronizer, zoomOut listener');
 	            	lenses[i].addPluginListener('lock',function (plugin){that.pluginSelected(plugin);},'Lens Synchronizer plugin lock listener');
-	            	lenses[i].addPluginListener('unlock',function (plugin){that.pluginSelected(plugin);},'Lens Synchronizer plugin unlock listener');
+	            	lenses[i].addPluginListener('unlock',function (plugin){that.pluginUnlockSelected(plugin);},'Lens Synchronizer plugin unlock listener');
 	                this.lensList[this.lensList.length] = lenses[i];
 	            }
 	            this.dispathingEvent = false;
@@ -20740,7 +20869,6 @@ function stringInputToObject(color) {
 		     */
 		    paintWestMetricsLabel : function (g2d,metric){
 		    	
-		    	
 		    	if(metric.isRotate()){
 		    		 	var loc = metric.getMarkerLocation();
 				        var tickMarkerSize = metric.getTickMarkerSize();
@@ -20758,7 +20886,8 @@ function stringInputToObject(color) {
 															.attr('transform','translate('+(-tickMarkerSize-tickTextOffset-6)+',0) rotate(-90,'+loc.x+','+loc.y+')')
 															.textContent(metric.format());
 				        
-				       var label= text.buildHTML();
+				       
+				        var label= text.buildHTML();
 				       g2d.insertSVG(label);
 				       
 				       var bb = this.transformedBoundingBox(label);
@@ -20793,10 +20922,11 @@ function stringInputToObject(color) {
 			       // console.log("metrics marker size : "+tickMarkerSize+" for metrics value : "+metric.format());
 			        
 			       var label= text.buildHTML();
+			       
 			       g2d.insertSVG(label);
 			       
 			       var bb = this.transformedBoundingBox(label);
-			       if(bb.y < -1 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()+1){
+			       if(bb!== null && (bb.y < -1 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()+1)){
 //				       var box = new JenScript.SVGRect().origin(bb.x,bb.y)
 //										.size(bb.width,bb.height)
 //										.strokeWidth(1)
@@ -20815,6 +20945,7 @@ function stringInputToObject(color) {
 		    
 		 // Calculate the bounding box of an element with respect to its parent element
 		 transformedBoundingBox : function(el){
+			 if(el === undefined) return null;
 		      var bb  = el.getBBox(),
 		          svg = el.ownerSVGElement,
 		          m   = el.getTransformToElement(el.parentNode);
@@ -20870,8 +21001,8 @@ function stringInputToObject(color) {
 				        									.attr('transform','translate('+(tickMarkerSize+tickTextOffset-6)+',0) rotate(90,'+(loc.x)+','+loc.y+')')
 				        									.textContent(metric.format());
 				        									
-				        									
-				       g2d.insertSVG(text.buildHTML());
+				       var label= text.buildHTML();									
+				       g2d.insertSVG(label);
 				       
 				       var bb = this.transformedBoundingBox(label);
 				       if(bb.y < 0 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()){
@@ -20909,7 +21040,7 @@ function stringInputToObject(color) {
 			       g2d.insertSVG(label);
 			       
 			       var bb = this.transformedBoundingBox(label);
-			       if(bb.y < -1 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()+1){
+			       if(bb !== null && (bb.y < -1 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()+1)){
 //				       var box = new JenScript.SVGRect().origin(bb.x,bb.y)
 //										.size(bb.width,bb.height)
 //										.strokeWidth(1)
@@ -21828,7 +21959,7 @@ function stringInputToObject(color) {
 		 */
 		init : function(config){
 			config = config||{};
-	        /**model exponent*/
+	        /**time model*/
 	        this.millis = config.millis;
 	        /** metrics manager */
 	        this.metricsManager;
@@ -22351,7 +22482,7 @@ function stringInputToObject(color) {
 
 	
 	/**
-	 * modeled metrics manager generate metrics based on exponent models
+	 * time metrics manager generate metrics based on timing models
 	 */
 	JenScript.TimeMetricsManager = function(config) {
 		this._init(config);
@@ -22359,7 +22490,7 @@ function stringInputToObject(color) {
 	JenScript.Model.inheritPrototype(JenScript.TimeMetricsManager, JenScript.MetricsManager);
 	JenScript.Model.addMethods(JenScript.TimeMetricsManager, {
 		/**
-		 * init modeled metrics manager
+		 * initialize timing metrics manager
 		 */
 		_init : function(config){
 			config = config ||{};
@@ -22577,7 +22708,6 @@ function stringInputToObject(color) {
 	            }
 	        }
 	        else if (proj instanceof JenScript.TimeXProjection || proj instanceof JenScript.TimeYProjection) {
-	        	//alert('proj instance time');
 	            return  proj;
 	        }
 	        return undefined;
@@ -23141,21 +23271,68 @@ function stringInputToObject(color) {
 	JenScript.Model.addMethods(JenScript.AbstractGridPlugin, {
 		_init : function(config){
 			config = config ||{};
+			this.grids = [];
+			this.sensible = 5;
 			config.name = (config.name !== undefined)?config.name : 'AbstractGridPlugin';
 			config.priority = -10000;
 			this.gridOrientation = config.gridOrientation;
 			this.gridColor = config.gridColor;
+			var fn = function(g){};
 			this.gridWidth =(config.gridWidth !== undefined)?config.gridWidth : 1;
 			this.gridOpacity =(config.gridOpacity !== undefined)?config.gridOpacity : 1;
+			this.onGridPress = (config.onGridPress !== undefined)?config.onGridPress : fn;
+			this.onGridRelease = (config.onGridRelease !== undefined)?config.onGridRelease : fn;
+			this.onGridEnter = (config.onGridEnter !== undefined)?config.onGridEnter : fn;
+			this.onGridExit = (config.onGridExit !== undefined)?config.onGridExit : fn;
+			this.onGrid = (config.onGrid !== undefined)?config.onGrid : fn;
+			
 			JenScript.Plugin.call(this,config);
 		},
-		
 		
 		onProjectionRegister : function(){
 			var that = this;
 			this.getProjection().addProjectionListener('boundChanged', function(){
 				that.repaintPlugin();
 			},that.toString());
+		},
+		
+		onMove : function(evt,part,x,y){
+			for (var i = 0; i < this.grids.length; i++) {
+                var g = this.grids[i];
+                var z = (this.gridOrientation === 'Vertical')?x:y;
+                if(Math.abs(z - g.deviceValue) < this.sensible && !g.enter){
+                	g.enter = true;
+                	this.onGridEnter(g);
+                	this.onGrid('enter',g);
+                }else if(Math.abs(z - g.deviceValue) > this.sensible && g.enter){
+                	g.enter = false;
+                	this.onGridExit(g);
+                	this.onGrid('exit',g);
+                }
+			}
+		},
+		
+		onPress : function(evt,part,x,y){
+			for (var i = 0; i < this.grids.length; i++) {
+                var g = this.grids[i];
+                if(g.enter){
+                	this.onGridPress(g);
+                	this.onGrid('press',g);
+                }
+			}
+		},
+		
+		onRelease : function(evt,part,x,y){
+			console.log("release")
+			for (var i = 0; i < this.grids.length; i++) {
+                var g = this.grids[i];
+                console.log("release grid "+g.uservalue+" press "+g.press);
+                if(g.press){
+                	this.press = false;
+                	this.onGridRelease(g);
+                	this.onGrid('release',g);
+                }
+            }
 		},
 		
 		/**
@@ -23176,7 +23353,8 @@ function stringInputToObject(color) {
                 var x2 = (or === 'Vertical')?gd:this.getProjection().getPixelWidth();
                 var y2 = (or === 'Vertical')?this.getProjection().getPixelHeight():gd;
                 var gridLine = new JenScript.SVGLine().Id('grid'+JenScript.sequenceId++).from(x1,y1).to(x2,y2).stroke(color).strokeWidth(this.gridWidth).strokeOpacity(this.gridOpacity).fillNone();
-                g2d.insertSVG(gridLine.toSVG());
+                grid.element = gridLine.toSVG();
+                g2d.insertSVG(grid.element);
 			}
 	    },
 		
@@ -23185,8 +23363,8 @@ function stringInputToObject(color) {
 	            return;
 	        }
 	        this.getGridManager().setGridsPlugin(this);
-	        var grids = this.getGridManager().getGrids();
-	        this.paintGrids(g2d,grids);
+	        this.grids = this.getGridManager().getGrids();
+	        this.paintGrids(g2d,this.grids);
 	    },
 	});
 	
@@ -23200,11 +23378,9 @@ function stringInputToObject(color) {
 		init : function(config){
 			config = config ||{};
 		},
-		
 		getOrientation : function(){
 			return this.getGridsPlugin().gridOrientation;
 		},
-		
 		setGridsPlugin : function(metricsPlugin){
 			this.gridsPlugin=metricsPlugin;
 		},
@@ -23220,7 +23396,7 @@ function stringInputToObject(color) {
 (function(){
 
 	/**
-	 * metrics model takes the responsibility to create metrics based on multiplier exponent model
+	 * grids model takes the responsibility to create grid based on multiplier exponent model
 	 */
 	JenScript.GridsExponentModel = function(config) {
 		this.init(config);

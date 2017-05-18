@@ -44,22 +44,18 @@
 		    
 		    this.orphanLock = false;
 		    
+		    this.painted = false;
+		    
 		    
 		    //mode defines the painting and event conditions according to projection status and plugin selection status
-		    //for projection parameter : active|passive|always
-		    //for event parameter 	   : selected|unselected|always
+		    //for paint : projection parameter : active|passive|always , plugin parameter  selected|unselected|always
+		    //for event parameter : projection parameter : active|passive|always , plugin parameter  selected|unselected|always
 		    /** defines the widget mode */
 		    this.mode = (config.mode !== undefined)?config.mode : {paint : {proj : 'active', plugin : 'selected'},event: {proj : 'active', plugin : 'selected'}};
 		    
 		},
 		
 		
-		/**
-	     * callback method call on widget plugin host registering.
-	     */
-	    onRegister : function(){
-	    },
-	    
 	    /**
 	     * get widget Id
 	     * @return {String} widget Id
@@ -264,10 +260,12 @@
 	     * create widget
 	     */
 	    create : function(){
+	    	if(this.painted) return;
 	    	var view = this.getHost().getView();
 			var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions,graphics : view.svgWidgetsGraphics});
 			g2d.deleteGraphicsElement(this.Id);
 			this.paint(g2d);
+			this.painted = true;
 	    },
 	    
 	    /**
@@ -277,12 +275,14 @@
 	    	var view = this.getHost().getView();
 	    	var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions,graphics : view.svgWidgetsGraphics});
 	    	g2d.deleteGraphicsElement(this.Id);
+	    	this.painted = false;
 	    },
 	    
 	    /**
 	     * create ghost
 	     */
 	   createGhost : function() {
+		   this.destroy();
 		   var view = this.getHost().getView();
 		   var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions,graphics : view.svgWidgetsGraphics});
 		   g2d.deleteGraphicsElement(this.Id+'_ghost');
@@ -442,6 +442,7 @@
 	     */
 	    paint : function(g2d) {
 	    	if(this.isProjModeCondition('paint') && this.isPluginModeCondition('paint')){
+	    		//console.log("paint widget "+this.name);
 	    		this.layoutFolder();
 		        this.paintWidget(g2d);
 	    	}
@@ -454,7 +455,7 @@
 	    isPluginModeCondition : function(oper){
     		return (this.mode[oper].plugin == 'always' || (this.mode[oper].plugin == 'selected' && this.getHost().isLockSelected()) || (this.mode[oper].plugin == 'unselected' && !this.getHost().isLockSelected()));
     	},
-
+    	
 	    /**
 	     * prevent move operation if sensible shape are intercept
 	     * @param {number} the x coordinate
@@ -512,6 +513,69 @@
 	        this.orphanLock = orphanLock;
 	    },
 	    
+	    /**
+	     * callback method call on widget plugin host registering.
+	     */
+	    onRegister : function(){
+	    },
+	    
+	    checkWidgetState : function(){
+	    	if(this.getHost() !== undefined && this.getHost().getProjection() !== undefined && this.getHost().getProjection() !== undefined){
+	    		if(this.isProjModeCondition('paint') && this.isPluginModeCondition('paint')){
+	    			this.create();
+	    		}else{
+	    			this.destroy();
+	    		}
+	    	}else{
+	    		//console.log("widget ready state KO");
+	    	}
+	    },
+	    
+	    attachLifeCycle : function(){
+	    	//console.log("attachLifeCycle for widget "+this.name);
+	    	var that = this;
+	    	var reason = 'widget attach attachLifeCycle '+this.name;
+	    	
+	    	this.getHost().addPluginListener('lock',function (plugin){
+	    		//console.log("widget "+that.name+" plugin lock");
+	    		that.checkWidgetState();
+			},'Plugin lock listener, create for reason : '+reason);
+			
+			this.getHost().addPluginListener('unlock',function (plugin){
+				//console.log("widget "+that.name+" plugin unlock");
+				that.checkWidgetState();
+			},'Plugin unlock listener, destroy for reason : '+reason);
+			
+			var activepassiveCheck = function (v){
+				that.assignFolder();
+				v.addViewListener('projectionActive',function(){
+					that.checkWidgetState();
+				},'Projection active listener, create for reason :'+reason);
+					
+				v.addViewListener('projectionPassive',function(){
+					that.checkWidgetState();
+				},'Projection passive listener, create for reason :'+reason);
+			};
+			
+			var check = function(p){
+				if(p.getProjection().getView() !== undefined){
+					activepassiveCheck(p.getProjection().getView());
+				}else{
+					p.getProjection().addProjectionListener('viewRegister',function(proj){
+						activepassiveCheck(proj.getView());
+					},'Wait for projection view registering for reason : '+reason);
+				}
+			};
+			if(this.getHost().getProjection() !== undefined){
+				check(this.getHost());
+			}else{
+				this.getHost().addPluginListener('projectionRegister',function (plugin){
+					check(plugin);
+				},'Plugin listener for projection register for reason : '+reason);
+			}
+			
+		},
+	    
 	    
 	    /**
 	     * helper method to attach listener on host plugin for:
@@ -527,24 +591,32 @@
 	     */
 	    attachPluginLockUnlockFactory : function(reason){
 	    	var that = this;
-			this.getHost().addPluginListener('lock',function (plugin){
-				that.create();
-			},'Plugin lock listener, create for reason : '+reason);
-			
-			this.getHost().addPluginListener('unlock',function (plugin){
-				that.destroy();
-			},'Plugin lock listener, destroy for reason : '+reason);
-			
-			this.getHost().addPluginListener('projectionRegister',function (plugin){
-				if(plugin.getProjection().getView() !== undefined){
-						that.attachViewActivePassiveFactory();
-				}else{
-					//wait view registering
-					plugin.getProjection().addProjectionListener('viewRegister',function(proj){
-						that.attachViewActivePassiveFactory();
-					},'Wait for projection view registering for reason : '+reason);
-				}
-			},'Plugin listener for projection register for reason : '+reason);
+	    	if(this.mode.paint.plugin === 'always'){
+	    		that.create();
+	    	}
+	    	if(this.mode.paint.plugin === 'selected'){
+	    		this.getHost().addPluginListener('lock',function (plugin){
+					that.create();
+				},'Plugin lock listener, create for reason : '+reason);
+				
+				this.getHost().addPluginListener('unlock',function (plugin){
+					that.destroy();
+				},'Plugin unlock listener, destroy for reason : '+reason);
+	    	}
+	    	
+	    	if(this.mode.paint.proj === 'active'){
+	    		
+	    	}
+//			this.getHost().addPluginListener('projectionRegister',function (plugin){
+//				if(plugin.getProjection().getView() !== undefined){
+//						that.attachViewActivePassiveFactory();
+//				}else{
+//					//wait view registering
+//					plugin.getProjection().addProjectionListener('viewRegister',function(proj){
+//						that.attachViewActivePassiveFactory();
+//					},'Wait for projection view registering for reason : '+reason);
+//				}
+//			},'Plugin listener for projection register for reason : '+reason);
 	    },
 	    
 	    attachViewActivePassiveFactory : function(reason){

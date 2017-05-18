@@ -19,12 +19,40 @@
 	            	translates[i].addTranslateListener('bound',function (plugin){that.bound(plugin);},' Translate synchronizer, bound listener');
 	            	translates[i].addTranslateListener('stop',function (plugin){that.translateStoped(plugin);},' Translate synchronizer, stop listener');
 	            	translates[i].addPluginListener('lock',function (plugin){that.pluginSelected(plugin);},'Translate Synchronizer plugin lock listener');
-	            	translates[i].addPluginListener('unlock',function (plugin){that.pluginSelected(plugin);},'Translate Synchronizer plugin unlock listener');
+	            	translates[i].addPluginListener('unlock',function (plugin){that.pluginUnlockSelected(plugin);},'Translate Synchronizer plugin unlock listener');
+	            	translates[i].addPluginListener('passive',function (plugin){that.pluginPassive(plugin);},'Translate Synchronizer plugin passive listener');
+	            	translates[i].addPluginListener('unpassive',function (plugin){that.pluginUnpassive(plugin);},'Translate Synchronizer plugin unpassive listener');
 	                this.translateList[this.translateList.length] = translates[i];
 	            }
 	            this.dispathingEvent = false;
 	        }
 		},
+		
+		pluginPassive : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.translateList.length; i++) {
+					var plugin = this.translateList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.passive();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+		    
+	    pluginUnpassive : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.translateList.length; i++) {
+					var plugin = this.translateList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.unpassive();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
 	
 	    pluginSelected : function(source) {
 	        if (!this.dispathingEvent) {

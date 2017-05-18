@@ -51,9 +51,9 @@ function createViewMetricsGravityRotate(container, width, height) {
 	proj.registerPlugin(southMetrics);
 	
 	var westMetrics = new JenScript.AxisMetricsModeled({
-		axis : JenScript.Axis.AxisWest, gravity :'rotate'
+		axis : JenScript.Axis.AxisWest,
+		gravity :'rotate'
 	});
-	
 	
 	proj.registerPlugin(westMetrics);
 	

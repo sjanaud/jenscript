@@ -99,7 +99,7 @@
 		            for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
 		            	
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		
 		            		//console.log('process moveWidgetOperationCheckPress widget : name : '+widget.name);
 			                var widgetFolder = widget.getWidgetFolder();
@@ -149,7 +149,7 @@
 		            for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
 		            	
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		var widgetFolder = widget.getWidgetFolder();
 			                if (widgetFolder !== undefined) {
 			                    if (widgetFolder.lockPress) {
@@ -184,7 +184,7 @@
 		        	for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
 		            	
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		
 			                var widgetFolder = widget.getWidgetFolder();
 			                if (widgetFolder === undefined) {
@@ -244,7 +244,7 @@
 		        	var plugin = proj.plugins[i];
 		        	for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		widget.interceptMove(x, y);
 		            	}
 		        	}
@@ -305,7 +305,7 @@
 	        	
 	        	for (var j = 0; j < plugin.widgets.length; j++) {
 	            	var widget = plugin.widgets[j];
-	            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+	            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 	            		widget.interceptDrag(x, y);
 	            	}
 	        	}
@@ -359,7 +359,7 @@
 		        	var plugin = proj.plugins[i];
 		        	for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		//console.log('widget plugin intercept press for widget : '+widget.name+' part '+part);
 		            		widget.interceptPress(x, y);
 		            	}
@@ -393,30 +393,24 @@
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	    dispatchRelease : function(evt,part,x,y) {
-	    	var proj = this.getActiveProjection();
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-	        	
-	        	for (var j = 0; j < plugin.widgets.length; j++) {
-	            	var widget = plugin.widgets[j];
-	            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
-	            		widget.interceptReleased(x,y);
-	            	}
-	        	}
-	        	
-//	            if (plugin.isSelectable() && plugin.isLockSelected()) {
-//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-//			            var widget = plugin.widgets[j];
-//	                    widget.interceptReleased(x,y);
-//	                }
-//	            }
-//	            else {
-//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-//			            var widget = plugin.widgets[j];
-//	                    widget.interceptReleased(x, y);
-//	                }
-//	            }
-	        }
+	    	
+	    	var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+		        for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+		        	
+		        	for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
+		            		//console.log("intercept release "+widget.name);
+		            		widget.interceptReleased(x,y);
+		            	}else{
+		            		//console.log("no condition to intercept release "+widget.name);
+		            	}
+		        	}
+		        }
+	    	}
 
 	    },
 	    

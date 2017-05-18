@@ -18,7 +18,7 @@
 	            	lenses[i].addLensListener('zoomIn',function (plugin){that.zoomIn(plugin);},' Lens synchronizer, zoomIn listener');
 	            	lenses[i].addLensListener('zoomOut',function (plugin){that.zoomOut(plugin);},' Lens synchronizer, zoomOut listener');
 	            	lenses[i].addPluginListener('lock',function (plugin){that.pluginSelected(plugin);},'Lens Synchronizer plugin lock listener');
-	            	lenses[i].addPluginListener('unlock',function (plugin){that.pluginSelected(plugin);},'Lens Synchronizer plugin unlock listener');
+	            	lenses[i].addPluginListener('unlock',function (plugin){that.pluginUnlockSelected(plugin);},'Lens Synchronizer plugin unlock listener');
 	                this.lensList[this.lensList.length] = lenses[i];
 	            }
 	            this.dispathingEvent = false;

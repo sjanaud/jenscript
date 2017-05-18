@@ -20,22 +20,17 @@
 		
 		
 	    onButton1Press : function() {
-//	        if (!this.getHost().isLockSelected()) {
-//	            return;
-//	        }
 	        this.getHost().shift('North', this.sample);
-
 	    },
+	    
 	    onButton2Press : function() {
-//	        if (!this.getHost().isLockSelected()) {
-//	            return;
-//	        }
 	        this.getHost().shift('South', this.sample);
 	    },
 	    
 	    onRegister : function(){
-	    	this.attachPluginLockUnlockFactory('TranlateY widget factory');
-	    	this.attachViewActivePassiveFactory('TranlateY widget factory');
+	    	//this.attachPluginLockUnlockFactory('TranlateY widget factory');
+	    	//this.attachViewActivePassiveFactory('TranlateY widget factory');
+	    	//this.attachLayoutFolderFactory('TranlateY widget factory');
 	    }
 		
 	});

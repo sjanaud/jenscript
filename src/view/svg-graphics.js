@@ -160,7 +160,6 @@
 	   		this.buildHTML = function(){
 	   			var e = document.createElementNS(JenScript.SVG_NS,this.n);
 	   			for(var propt in this.attributes){
-	   			    //e.setAttributeNS(null,this.attributes[propt].name,this.attributes[propt].value);
 	   				if(this.attributes[propt].ns === undefined)
 	   					e.setAttribute(this.attributes[propt].name,this.attributes[propt].value);
 	   				else
@@ -225,6 +224,10 @@
 		},
 		Id : function(Id){
 			this.rootBuilder.attr('id',Id);
+			return this;
+		},
+		clazz : function(clazzes){
+			this.rootBuilder.attr('class',clazzes);
 			return this;
 		},
 		style : function(style){
@@ -576,7 +579,10 @@
 			this.builder().name('script').attr('type','application/ecmascript');
 		},
 		script : function(script){
-			this.textContent('\n'+'//<![CDATA['+'\n'+script+'\n'+'//]]\>');
+			//this.textContent('\n'+'//<![CDATA['+'\n'+script+'\n'+'//]]\>');
+			//this.textContent('\n'+'//<![CDATA['+'\n'+script+'\n'+']]\>');
+			//this.textContent('//<![CDATA['+script+']]\>');
+			this.textContent('<![CDATA['+script+']]>');
 			return this;
 		}
 	});
@@ -675,6 +681,26 @@
 			return this;
 		}
 		
+	});
+	
+	JenScript.SVGUse = function() {
+		this._init();
+	};
+	JenScript.Model.inheritPrototype(JenScript.SVGUse, JenScript.SVGGeometry);
+	JenScript.Model.addMethods(JenScript.SVGUse,{
+		_init: function(){
+			JenScript.SVGGeometry.call(this,null);
+			this.builder().name('use');
+		},
+		
+		getBound2D : function(){
+			return new JenScript.Bound2D(this.attr('x').value,this.attr('y').value,this.attr('width').value,this.attr('height').value);
+		},
+		
+		xlinkHref : function(use){
+			this.attrNS(JenScript.XLINK_NS,'xlink:href',use);
+			return this;
+		},
 	});
 	
 	JenScript.SVGTextPath = function() {

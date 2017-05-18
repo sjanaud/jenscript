@@ -9,21 +9,68 @@
 	JenScript.Model.addMethods(JenScript.AbstractGridPlugin, {
 		_init : function(config){
 			config = config ||{};
+			this.grids = [];
+			this.sensible = 5;
 			config.name = (config.name !== undefined)?config.name : 'AbstractGridPlugin';
 			config.priority = -10000;
 			this.gridOrientation = config.gridOrientation;
 			this.gridColor = config.gridColor;
+			var fn = function(g){};
 			this.gridWidth =(config.gridWidth !== undefined)?config.gridWidth : 1;
 			this.gridOpacity =(config.gridOpacity !== undefined)?config.gridOpacity : 1;
+			this.onGridPress = (config.onGridPress !== undefined)?config.onGridPress : fn;
+			this.onGridRelease = (config.onGridRelease !== undefined)?config.onGridRelease : fn;
+			this.onGridEnter = (config.onGridEnter !== undefined)?config.onGridEnter : fn;
+			this.onGridExit = (config.onGridExit !== undefined)?config.onGridExit : fn;
+			this.onGrid = (config.onGrid !== undefined)?config.onGrid : fn;
+			
 			JenScript.Plugin.call(this,config);
 		},
-		
 		
 		onProjectionRegister : function(){
 			var that = this;
 			this.getProjection().addProjectionListener('boundChanged', function(){
 				that.repaintPlugin();
 			},that.toString());
+		},
+		
+		onMove : function(evt,part,x,y){
+			for (var i = 0; i < this.grids.length; i++) {
+                var g = this.grids[i];
+                var z = (this.gridOrientation === 'Vertical')?x:y;
+                if(Math.abs(z - g.deviceValue) < this.sensible && !g.enter){
+                	g.enter = true;
+                	this.onGridEnter(g);
+                	this.onGrid('enter',g);
+                }else if(Math.abs(z - g.deviceValue) > this.sensible && g.enter){
+                	g.enter = false;
+                	this.onGridExit(g);
+                	this.onGrid('exit',g);
+                }
+			}
+		},
+		
+		onPress : function(evt,part,x,y){
+			for (var i = 0; i < this.grids.length; i++) {
+                var g = this.grids[i];
+                if(g.enter){
+                	this.onGridPress(g);
+                	this.onGrid('press',g);
+                }
+			}
+		},
+		
+		onRelease : function(evt,part,x,y){
+			console.log("release")
+			for (var i = 0; i < this.grids.length; i++) {
+                var g = this.grids[i];
+                console.log("release grid "+g.uservalue+" press "+g.press);
+                if(g.press){
+                	this.press = false;
+                	this.onGridRelease(g);
+                	this.onGrid('release',g);
+                }
+            }
 		},
 		
 		/**
@@ -44,7 +91,8 @@
                 var x2 = (or === 'Vertical')?gd:this.getProjection().getPixelWidth();
                 var y2 = (or === 'Vertical')?this.getProjection().getPixelHeight():gd;
                 var gridLine = new JenScript.SVGLine().Id('grid'+JenScript.sequenceId++).from(x1,y1).to(x2,y2).stroke(color).strokeWidth(this.gridWidth).strokeOpacity(this.gridOpacity).fillNone();
-                g2d.insertSVG(gridLine.toSVG());
+                grid.element = gridLine.toSVG();
+                g2d.insertSVG(grid.element);
 			}
 	    },
 		
@@ -53,8 +101,8 @@
 	            return;
 	        }
 	        this.getGridManager().setGridsPlugin(this);
-	        var grids = this.getGridManager().getGrids();
-	        this.paintGrids(g2d,grids);
+	        this.grids = this.getGridManager().getGrids();
+	        this.paintGrids(g2d,this.grids);
 	    },
 	});
 	

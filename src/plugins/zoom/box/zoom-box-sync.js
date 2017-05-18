@@ -24,12 +24,16 @@
 	            	boxes[i].addBoxListener('backHistory',function (plugin){that.backHistory(plugin);});
 //	            	boxes[i].addBoxListener('boxClearHistory',function (plugin){that.translateB2TChanged(plugin);});
 	            	boxes[i].addPluginListener('lock',function (plugin){that.pluginSelected(plugin);},'ZoomBox Synchronizer plugin lock listener');
-	            	boxes[i].addPluginListener('unlock',function (plugin){that.pluginSelected(plugin);},'ZoomBox Synchronizer plugin unlock listener');
+	            	boxes[i].addPluginListener('unlock',function (plugin){that.pluginUnlockSelected(plugin);},'ZoomBox Synchronizer plugin unlock listener');
+	            	boxes[i].addPluginListener('passive',function (plugin){that.pluginPassive(plugin);},'ZoomBox Synchronizer plugin passive listener');
+	            	boxes[i].addPluginListener('unpassive',function (plugin){that.pluginUnPassive(plugin);},'ZoomBox Synchronizer plugin unpassive listener');
 	                this.boxesList[this.boxesList.length] = boxes[i];
 	            }
 	            this.dispathingEvent = false;
 	        }
 		},
+		
+		
 	
 	    pluginSelected : function(source) {
 	        if (!this.dispathingEvent) {
@@ -45,6 +49,20 @@
 	        }
 	    },
 	    
+	    pluginPassive : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+						console.log('sync passive box'+plugin.name);
+	                    plugin.passive();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
     
 	    pluginUnlockSelected : function(source) {
 	        if (!this.dispathingEvent) {
@@ -52,8 +70,22 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync unlock box'+plugin.name);
+						console.log('sync unpassive box'+plugin.name);
 	                    plugin.unselect();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
+	    pluginUnPassive : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+						//console.log('sync lock box'+plugin.name);
+	                    plugin.unpassive();
 	                }
 				}
 	            this.dispathingEvent = false;
@@ -120,7 +152,16 @@
 	    },
 	    
 	    boxFinish : function(source) {
-	        
+	    	 if (!this.dispathingEvent) {
+		            this.dispathingEvent = true;
+		            for (var i = 0; i < this.boxesList.length; i++) {
+						var plugin = this.boxesList[i];
+						if (plugin.Id !== source.Id) {
+		                    plugin.processZoomFinish();
+		                }
+					}
+		            this.dispathingEvent = false;
+		        }
 	    },
 	    
 	    nextHistory : function(source) {

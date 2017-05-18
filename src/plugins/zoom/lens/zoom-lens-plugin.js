@@ -16,7 +16,7 @@
 			/** zoom milli tempo */
 			this.zoomMiliTempo = 100;
 			/** zoom factor */
-			this.factor = 30;
+			this.factor = 8;
 			/** current zoom process nature */
 			this.processNature;
 			this.lensListeners = [];
@@ -69,16 +69,7 @@
 		 */
 		startZoomIn : function(zoomNature) {
 			this.zoomInLock = true;
-			var that = this;
-			var execute = function(i){
-				setTimeout(function(){
-					that.zoomIn(zoomNature);
-				},i*that.zoomMiliTempo);
-			};
-			
-			for(var i= 0;i<10;i++){
-				execute(i);
-			}
+			this.zoomIn(zoomNature);
 		},
 		
 		/**
@@ -88,15 +79,7 @@
 		 */
 		startZoomOut : function(zoomNature) {
 			this.zoomOutLock = true;
-			var that = this;
-			var execute = function(){
-				setTimeout(function(i){
-					that.zoomOut(zoomNature);
-				},i*that.zoomMiliTempo);
-			};
-			for(var i= 0;i<10;i++){
-				execute(i);
-			}
+			this.zoomOut(zoomNature);
 		},
 		
 		/**
@@ -128,12 +111,15 @@
 			var pMinXMinYUser = proj.pixelToUser(pMinXMinYDevice);
 			var pMaxXMaxYUser = proj.pixelToUser(pMaxXMaxYDevice);
 				if(this.lensType == 'LensXY'){
+					console.log("zoom in xy")
 					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
 				else if(this.lensType === 'LensX'){
+					console.log("zoom in x")
 					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, proj.getMinY(), proj.getMaxY());
 				}
 				else if(this.lensType === 'LensY'){
+					console.log("zoom in y")
 					proj.bound(proj.getMinX(), proj.getMaxX(), pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
 			this.fireLensEvent('zoomIn');

@@ -1,7 +1,7 @@
 (function(){
 
 	/**
-	 * metrics model takes the responsibility to create metrics based on multiplier exponent model
+	 * grids model takes the responsibility to create grid based on multiplier exponent model
 	 */
 	JenScript.GridsExponentModel = function(config) {
 		this.init(config);

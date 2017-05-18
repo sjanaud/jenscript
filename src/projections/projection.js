@@ -95,7 +95,10 @@
 
 		setView : function(view) {
 			this.view = view;
-			this.fireProjectionEvent('viewRegister');
+			var that = this;
+			view.addViewListener('projectionRegister', function(){
+				that.fireProjectionEvent('viewRegister');
+			}, " fire view registered in projection")
 		},
 
 		getView : function() {
@@ -148,16 +151,21 @@
 				for (var p = 0; p < that.plugins.length; p++) {
 					var plugin = that.plugins[p];
 					if(plugin.Id !== selectedPlugin.Id  && plugin.isSelectable() && plugin.isLockSelected()){
+						//console.log("plugin to passivate : "+plugin.name);
 						plugin.unselect();
 					}
 				}
 			},'Projection plugin lock/unlock listener');
+			
 			this.plugins.sort(function(p1, p2) {
 				var x = p1.getPriority();
 				var y = p2.getPriority();
 				return ((x < y) ? -1 : ((x > y) ? 1 : 0));
 			});
+			
+			//TODO : remove this pattern ?
 			plugin.onProjectionRegister();
+			
 			this.getView().contextualizePluginGraphics(plugin);
 			this.fireProjectionEvent('pluginRegister');
 			//console.log("register plugin : "+plugin.name+' OK');

@@ -24,27 +24,27 @@
 	    	 this.getHost().nextHistory();
 	    },
 	    
-	    onRegister : function(){
-	    	var that = this;
-	    	var proj = this.getHost().getProjection();
-	    	if(proj !== undefined){
-	    		var view = proj.getView();
-	    		if(view !== undefined){
-	    			this.create();
-				}
-	    	}else{
-	    		this.getHost().addPluginListener('projectionRegister',function (plugin){
-	    			console.log("attach projection listener");
-					if(plugin.getProjection().getView() !== undefined){
-						that.create();
-					}else{
-						//wait view registering
-						plugin.getProjection().addProjectionListener('viewRegister',function(proj){
-							that.create();
-						},'Wait for projection view registering for box widget ');
-					}
-				},'Plugin listener for projection register for box widget');
-	    	}
-	    }
+//	    onRegister : function(){
+//	    	var that = this;
+//	    	var proj = this.getHost().getProjection();
+//	    	if(proj !== undefined){
+//	    		var view = proj.getView();
+//	    		if(view !== undefined){
+//	    			this.create();
+//				}
+//	    	}else{
+//	    		this.getHost().addPluginListener('projectionRegister',function (plugin){
+//	    			//console.log("attach projection listener");
+//					if(plugin.getProjection().getView() !== undefined){
+//						that.create();
+//					}else{
+//						//wait view registering
+//						plugin.getProjection().addProjectionListener('viewRegister',function(proj){
+//							that.create();
+//						},'Wait for projection view registering for box widget ');
+//					}
+//				},'Plugin listener for projection register for box widget');
+//	    	}
+//	    }
 	});
 })();

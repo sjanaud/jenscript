@@ -61,23 +61,6 @@
 			return this.lockTranslate;
 		},
 		
-//		 /**
-//	     * get clicked button, LEFT, RIGHT or MIDDLE
-//	     */
-//		getButton : function (event){
-//			var button;
-//			if (event.which == null)
-//			    /* IE case */
-//			    button= (event.button < 2) ? "LEFT" :
-//			              ((event.button == 4) ? "MIDDLE" : "RIGHT");
-//			 else
-//			    /* All others */
-//			    button= (event.which < 2) ? "LEFT" :
-//			              ((event.which == 2) ? "MIDDLE" : "RIGHT");
-//			return button;
-//		},
-
-		
 		/**
 		 * check translate authorization by checking input event
 		 * should be use only from press,release handler

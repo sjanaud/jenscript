@@ -921,9 +921,6 @@
 				// IE 6/7/8
 				else s.attachEvent("onmousewheel", MouseWheelHandler);
 			}
-			
-			
-			
 			svgRootElement.appendChild(s);
 			this.svgDispatcher.appendChild(svgRootElement);
 		},

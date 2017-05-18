@@ -443,6 +443,8 @@
 	    onButton1RolloverOn : function() {
 	    	if(this.button1RolloverDrawColor !== undefined)
 	    		this.svg.button1.setAttribute('stroke',this.button1RolloverDrawColor);
+	    	else
+	    		this.svg.button1.removeAttribute('stroke');
 	    	if(this.button1RolloverFillColor !== undefined)
 	    		this.svg.button1.setAttribute('fill',this.button1RolloverFillColor);
 	    },
@@ -453,6 +455,8 @@
 	    onButton1RolloverOff : function() {
 	    	if(this.button1DrawColor !== undefined)
 	    		this.svg.button1.setAttribute('stroke',this.button1DrawColor);
+	    	else
+	    		this.svg.button1.removeAttribute('stroke');
 	    	if(this.button1FillColor !== undefined)
 	    		this.svg.button1.setAttribute('fill',this.button1FillColor);
 	    },
@@ -463,6 +467,8 @@
 	    onButton2RolloverOn : function() {
 	    	if(this.button2RolloverDrawColor !== undefined)
 	    		this.svg.button2.setAttribute('stroke',this.button2RolloverDrawColor);
+	    	else
+	    		this.svg.button2.removeAttribute('stroke');
 	    	if(this.button2RolloverFillColor !== undefined)
 	    		this.svg.button2.setAttribute('fill',this.button2RolloverFillColor);
 	    },
@@ -473,6 +479,8 @@
 	    onButton2RolloverOff : function() {
 	    	if(this.button1DrawColor !== undefined)
 	    		this.svg.button2.setAttribute('stroke',this.button2DrawColor);
+	    	else
+	    		this.svg.button2.removeAttribute('stroke');
 	    	if(this.button1FillColor !== undefined)
 	    		this.svg.button2.setAttribute('fill',this.button2FillColor);
 	    },

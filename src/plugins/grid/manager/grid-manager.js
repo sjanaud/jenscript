@@ -7,11 +7,9 @@
 		init : function(config){
 			config = config ||{};
 		},
-		
 		getOrientation : function(){
 			return this.getGridsPlugin().gridOrientation;
 		},
-		
 		setGridsPlugin : function(metricsPlugin){
 			this.gridsPlugin=metricsPlugin;
 		},

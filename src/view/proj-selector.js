@@ -95,6 +95,7 @@
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	   onPress : function(event,part,x, y) {
+		   if(part !== 'Device') return;
 		    var x2View = this.getView().west+x;
 	    	var y2View = this.getView().north+y;
 	    	for(var i = 0 ;i< this.selectors.length;i++){
@@ -199,12 +200,10 @@
     	    			
     	    			var projRect = new JenScript.SVGRect().origin(startX,startY).size(view.width*0.1,view.height*0.1);
 	    	    						
-	    	    		//if(proj.isActive()){
     	    			projRect.fillNone().strokeWidth(0.6);
     	    			var outline = projRect.toSVG();
     	    			g2d.insertSVG(outline);
     	    			
-    	    			//}
     	    			this.selectors[this.selectors.length] = {Id :selectorId, x:startX,y:startY,projection : proj,svg:svg, outlineElement : outline,sensible :projRect};
     	    			startX = startX + view.width*0.1 + 10;
     	    		}

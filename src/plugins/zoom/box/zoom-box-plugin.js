@@ -25,7 +25,7 @@
 			config = config || {};
 			
 			config.name = (config.name !== undefined)?config.name:'ZoomBoxPlugin';
-			//config.selectable = true;
+			config.selectable = true;
 			config.priority = 1000;
 			this.slaves = (config.slaves !== undefined)? config.slaves : [];
 			this.zoomBoxDrawColor = config.zoomBoxDrawColor ;
@@ -47,14 +47,13 @@
 			this.zoomFxBoxCurrentY;
 			this.boxHistory = [];
 			this.maxHistory = 8;
-			this.zoomBack = [];
+			this.forwardBound;
 			this.boxListeners = [];
 			
 			this.factor = (config.factor !== undefined)? config.factor : 1.1;
 			this.historyIndex = 0;
 			JenScript.Plugin.call(this,config);
 		},
-		
 
 		/**
 		 * when zoom box is being register in projection,
@@ -67,8 +66,6 @@
 			},that.toString());
 		},
 		
-		
-		
 		/**
 	     * fire translate start to listener
 	     */
@@ -80,8 +77,6 @@
 			}
 		},
 		
-		
-		
 		 /**
 	     * add zoom box listener
 	     * @param {String} action event type like start, stop, translate, L2R,B2T
@@ -91,26 +86,32 @@
 			var l={action:actionEvent,onEvent:listener};
 			this.boxListeners[this.boxListeners.length] = l;
 		},
+		
+		isBoxAuthorized : function(evt,part,x,y){
+			return ((part === JenScript.ViewPart.Device) && this.isLockSelected() && !this.isLockPassive() && !this.isWidgetSensible(x,y));
+		},
 
 		onPress : function(evt,part,x,y) {
 			//mozilla, prevent Default to enable dragging correctly
 			if(evt.preventDefault){
 				evt.preventDefault();
 			}
-			if(part !== JenScript.ViewPart.Device) return;
-			if (!this.isLockSelected()) {
-				return;
-			}
-
-			if (this.isLockPassive()) {
-				return;
-			}
-			
+			this.lockZoomingTransaction = false;
+			this.lockEffect = false;
 			this.drag = true;
+			if(this.isBoxAuthorized(evt,part,x,y)){
+				this.processZoomStart(new JenScript.Point2D(x,y));
+			}
 			
-			this.processZoomStart(new JenScript.Point2D(x,y));
 		},
 		
+		
+		 processZoomFinish : function() {
+			 this.lockEffect=false;
+			 this.lockZoomingTransaction = false;
+			 this.repaintPlugin();
+			 this.fireEvent('boxFinish');
+		 },
 		
 		/**
 	     * start parameters for a start bound zoom box
@@ -119,7 +120,9 @@
 	     *            box start device point coordinate
 	     */
 	    processZoomStart : function(startBox) {
-	    	//console.log("zoom box start : "+this.name);
+	    	if(this.boxHistory.length === 0){
+	    		this.createHistory();
+	    	}
             this.zoomBoxStartX = startBox.getX();
             this.zoomBoxStartY = startBox.getY();
             this.zoomBoxCurrentX = this.zoomBoxStartX;
@@ -136,28 +139,26 @@
 	    },
 		
 		onRelease : function(evt,part,x, y) {
-			if(part !== JenScript.ViewPart.Device) return;
+			//if(part !== JenScript.ViewPart.Device) return;
 			this.drag = false;
-			if (!this.isLockSelected()) {
-				return;
+			if (this.lockZoomingTransaction){
+				if (this.isForwardCondition()) {
+					this.processZoomOut();
+				} else if (this.isValidateBound()) {
+					this.processZoomIn();
+				}else{
+					this.processZoomFinish();
+				}
+			}else{
+				this.processZoomFinish();
 			}
-			if (this.isLockPassive()) {
-				return;
-			}
-			if (this.isForwardCondition()) {
-				this.processZoomOut();
-				//this.fireEvent('boxOut');
-			} else if (this.isValidateBound()) {
-				this.processZoomIn();
-				//this.fireEvent('boxIn');
-			}
-
 			this.repaintPlugin();
 		},
 		
 		onMove : function(evt,part,deviceX, deviceY) {
 			if(part !== JenScript.ViewPart.Device) return;
 			if (this.drag) {
+				this.isBoxAuthorized(evt,part,deviceX,deviceY);
 				this.processZoomBound(new JenScript.Point2D(deviceX,deviceY));
 				this.repaintPlugin();
 			}
@@ -200,6 +201,7 @@
 				if (this.zoomBoxCurrentX < this.zoomBoxStartX
 						|| this.zoomBoxCurrentY < this.zoomBoxStartY) {
 					return true;
+				}else{
 				}
 			} else if (this.mode.isBx()) {
 				if (this.zoomBoxCurrentX < this.zoomBoxStartX) {
@@ -214,15 +216,13 @@
 		},
 		
 		processZoomOut : function() {
-			var proj = this.getProjection();
-			var bound = this.boxHistory[this.boxHistory.length-1];
-			proj.bound(bound.minx,bound.maxx,bound.miny,bound.maxy);
+			if(this.forwardBound === undefined) return;
+			var bound = this.forwardBound;
+			this.getProjection().bound(bound.minx,bound.maxx,bound.miny,bound.maxy);
 			this.fireEvent('boxOut');
-			
 		},
 		
 		processZoomIn : function() {
-			//console.log("process zoom in "+this.name);
 			this.lockEffect=true;
 			
 			var deviceStart = {
@@ -234,6 +234,13 @@
 				y : this.zoomBoxCurrentY
 			};
 			var proj = this.getProjection();
+			
+			this.forwardBound = {
+					minx : proj.minX,
+					maxx : proj.maxX,
+					miny : proj.minY,
+					maxy : proj.maxY
+			};
 			
 			this.zoomFxBoxStartX = this.zoomBoxStartX;
 			this.zoomFxBoxStartY = this.zoomBoxStartY;
@@ -275,21 +282,15 @@
 				_p(i, function callback(rank,bound) {
 					that.repaintPlugin();
 					if (rank === stepCount) {
-						that.repaintPlugin();
-						that.lockEffect=false;
-						that.lockZoomingTransaction = false;
-						
 						setTimeout(function(){
 							that.getProjection().bound(bound[0],bound[1],bound[2],bound[3]);
 							that.createHistory();
-							//finally geometric transform
 							for (var s = 0; s < that.slaves.length; s++) {
 								var plugin = that.slaves[s];
-								//reset semantic transform
 								plugin.resetTransform();
 								plugin.repaintPlugin();
 						    }
-							that.fireEvent('boxFinish');
+							that.processZoomFinish();
 						},30);
 					}
 				});
@@ -348,6 +349,7 @@
 							
 							if(that.mode.isBx()){
 								deltaSy = 0;
+								console.log("is bx");
 							}
 							else if(that.mode.isBy()){
 								deltaSx = 0;
@@ -356,8 +358,6 @@
 							plugin.scale(plugin.sx+deltaSx,plugin.sy+deltaSy);
 							plugin.translate(plugin.tx-deltaX*i,plugin.ty-deltaY*i);
 					 }
-					
-					that.zoomBack[that.zoomBack.length] = {i : i, x : initcenterX, y:initcenterY, deltaSx:deltaSx,deltaSy:deltaSy,deltaX:deltaX,deltaY:deltaY};
 					callback(i,[m1,m2,m3,m4]);
 				}, millis);
 			}
@@ -371,11 +371,11 @@
 					miny : proj.minY,
 					maxy : proj.maxY
 				};
+			this.historyIndex = this.boxHistory.length - 1;
 		},
 		
 		
 		backHistory : function() {
-			//console.log("back history, current index "+this.historyIndex);
 			if(this.boxHistory.length > 0){
 				if(this.historyIndex-1 < 0)
 					this.historyIndex = this.boxHistory.length;
@@ -384,7 +384,6 @@
 		},
 		
 		nextHistory : function() {
-			//console.log("next history, current index "+this.historyIndex);
 			if(this.boxHistory.length > 0){
 				if(this.historyIndex+1 >= this.boxHistory.length)
 					this.historyIndex = -1;
@@ -393,13 +392,11 @@
 		},
 		
 		processHistory : function(nature,index) {
-			//console.log("process history "+index);
 			var b = this.boxHistory[index];
 			this.getProjection().bound(b.minx,b.maxx,b.miny,b.maxy);
 			this.historyIndex = index;
 			this.fireEvent(nature);
 		},
-		
 		
 		paintMarker : function(g2d, part) {
 			//todo paint markers near axis
@@ -458,9 +455,9 @@
 		 },
 		 
 		 paintPlugin : function(g2d, part) {
-				
 				if(part === JenScript.ViewPart.Device && this.lockZoomingTransaction) {
 					 if (!this.lockEffect && this.isValidateBound()) {
+						 console.log("paint target "+this.name);
 						this.paintTarget(g2d, part); 
 					 }
 					 else{

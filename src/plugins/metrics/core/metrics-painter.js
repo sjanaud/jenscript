@@ -152,7 +152,6 @@
 		     */
 		    paintWestMetricsLabel : function (g2d,metric){
 		    	
-		    	
 		    	if(metric.isRotate()){
 		    		 	var loc = metric.getMarkerLocation();
 				        var tickMarkerSize = metric.getTickMarkerSize();
@@ -170,7 +169,8 @@
 															.attr('transform','translate('+(-tickMarkerSize-tickTextOffset-6)+',0) rotate(-90,'+loc.x+','+loc.y+')')
 															.textContent(metric.format());
 				        
-				       var label= text.buildHTML();
+				       
+				        var label= text.buildHTML();
 				       g2d.insertSVG(label);
 				       
 				       var bb = this.transformedBoundingBox(label);
@@ -205,10 +205,11 @@
 			       // console.log("metrics marker size : "+tickMarkerSize+" for metrics value : "+metric.format());
 			        
 			       var label= text.buildHTML();
+			       
 			       g2d.insertSVG(label);
 			       
 			       var bb = this.transformedBoundingBox(label);
-			       if(bb.y < -1 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()+1){
+			       if(bb!== null && (bb.y < -1 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()+1)){
 //				       var box = new JenScript.SVGRect().origin(bb.x,bb.y)
 //										.size(bb.width,bb.height)
 //										.strokeWidth(1)
@@ -227,6 +228,7 @@
 		    
 		 // Calculate the bounding box of an element with respect to its parent element
 		 transformedBoundingBox : function(el){
+			 if(el === undefined) return null;
 		      var bb  = el.getBBox(),
 		          svg = el.ownerSVGElement,
 		          m   = el.getTransformToElement(el.parentNode);
@@ -282,8 +284,8 @@
 				        									.attr('transform','translate('+(tickMarkerSize+tickTextOffset-6)+',0) rotate(90,'+(loc.x)+','+loc.y+')')
 				        									.textContent(metric.format());
 				        									
-				        									
-				       g2d.insertSVG(text.buildHTML());
+				       var label= text.buildHTML();									
+				       g2d.insertSVG(label);
 				       
 				       var bb = this.transformedBoundingBox(label);
 				       if(bb.y < 0 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()){
@@ -321,7 +323,7 @@
 			       g2d.insertSVG(label);
 			       
 			       var bb = this.transformedBoundingBox(label);
-			       if(bb.y < -1 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()+1){
+			       if(bb !== null && (bb.y < -1 || (bb.y+bb.height) > this.getMetricsPlugin().getProjection().getView().getDevice().getHeight()+1)){
 //				       var box = new JenScript.SVGRect().origin(bb.x,bb.y)
 //										.size(bb.width,bb.height)
 //										.strokeWidth(1)
