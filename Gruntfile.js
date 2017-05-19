@@ -286,11 +286,21 @@ module.exports = function(grunt) {
 				dest : "<%= minName %>"
 			}
 		},
+		
+		copy: {
+			export: {
+			    expand: true,
+			    cwd : 'build/',
+			    filter: 'isFile',
+			    src: '*',
+			    dest: "<%= exportDir %>",
+			 },
+		},
 	});
 	grunt.loadNpmTasks("grunt-contrib-concat");
 	grunt.loadNpmTasks("grunt-contrib-uglify");
 	grunt.loadNpmTasks('grunt-text-replace');
+	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadTasks('tasks');
 	grunt.registerTask("default", "release");
-	
 };
