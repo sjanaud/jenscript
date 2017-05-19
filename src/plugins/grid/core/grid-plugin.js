@@ -54,6 +54,7 @@
 			for (var i = 0; i < this.grids.length; i++) {
                 var g = this.grids[i];
                 if(g.enter){
+                    g.press = true;
                 	this.onGridPress(g);
                 	this.onGrid('press',g);
                 }
@@ -61,10 +62,8 @@
 		},
 		
 		onRelease : function(evt,part,x,y){
-			console.log("release")
 			for (var i = 0; i < this.grids.length; i++) {
                 var g = this.grids[i];
-                console.log("release grid "+g.uservalue+" press "+g.press);
                 if(g.press){
                 	this.press = false;
                 	this.onGridRelease(g);
