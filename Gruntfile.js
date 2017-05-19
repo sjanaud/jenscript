@@ -39,17 +39,13 @@ module.exports = function(grunt) {
 								"src/widget/widget-folder.js",
 								"src/widget/widget-geometry.js",
 								"src/widget/widget-bar.js",
+								"src/widget/widget-icontoolbar.js",
 								"src/widget/widget-pad.js",
 								"src/widget/widget-button.js",
 								"src/widget/widget-button-plugin.js",
 
-								//"src/plugins/outline/device-outline-plugin.js",
 
 								"src/plugins/label/abstract-label.js",
-				            	//"src/plugins/label/text-label.js",
-				            	//"src/plugins/label/text-label-plugin.js",
-				            	
-				            	//"src/plugins/legend/title-legend-plugin.js",
 				            	
 				            	"src/plugins/image/image-plugin.js",
 				            	
