@@ -10161,60 +10161,6 @@ function stringInputToObject(color) {
 	});
 })();
 (function(){
-	
-	/**
-	 * Object JenScript.DeviceOutlinePlugin()
-	 * Defines outline device stroke
-	 * @param {Object} config
-	 * @param {String} [config.color] outline color, default darkgray color
-	 * @param {Number} [config.strokeWidth] outline stroke width, default 1 pixel
-	 */
-	JenScript.DeviceOutlinePlugin = function(config) {
-		this._init(config);
-	};
-	JenScript.Model.inheritPrototype(JenScript.DeviceOutlinePlugin, JenScript.Plugin);
-	JenScript.Model.addMethods(JenScript.DeviceOutlinePlugin,{
-		/**
-		 * Initialize outline device
-		 * @param {Object} config
-		 * @param {String} [config.color] outline color, darkgray if not defined
-		 * @param {Number} [config.strokeWidth] outline stroke width, default 1 pixel
-		 */
-		_init : function(config){
-			config = config || {};
-			this.color = (config.color !== undefined)?config.color : 'darkgray';
-			this.strokeWidth = (config.strokeWidth !== undefined)?config.strokeWidth : 1;
-			this.strokeOpacity = (config.strokeOpacity !== undefined)?config.strokeOpacity : 1;
-			config.priority = 1000;
-			config.name ='DeviceOutlinePlugin';
-			JenScript.Plugin.call(this, config);
-		},
-		
-		/**
-		 * paint device outline plugin
-		 * @param {Object} graphics context
-		 * @param {String} view part
-		 */
-		paintPlugin : function(g2d, part) {
-			if (part !== JenScript.ViewPart.Device) {
-				return;
-			}
-			var v = this.getProjection().getView();
-			var dp = v.devicePart;
-			var outline = new JenScript.SVGRect()
-										.origin(this.strokeWidth/2,this.strokeWidth/2)
-										.size(dp.width-this.strokeWidth,dp.height-this.strokeWidth)
-										.stroke(this.color)
-										.strokeOpacity(this.strokeOpacity)
-										.strokeWidth(this.strokeWidth)
-									    .fillNone();
-			
-			//this.svgPluginPartsGraphics[part].appendChild(outline.toSVG());
-			g2d.insertSVG(outline.toSVG());
-		}
-	});
-})();
-(function(){
 	/**
 	 * Object AbstractLabel()
 	 * Defines Abstract Label
@@ -10469,6 +10415,254 @@ function stringInputToObject(color) {
 		},
 	});
 	
+})();
+(function(){
+	
+	
+	JenScript.ImagePlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.ImagePlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.ImagePlugin,{
+		
+		_init : function(config){
+			config=config||{};
+			this.images = [];
+			JenScript.Plugin.call(this, config);
+		},
+		
+		/**
+		 * on projection register add 'bound changed' projection listener that invoke repaint plugin
+		 * when projection bound changed event occurs.
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'ImagePlugin projection bound changed');
+		},
+		
+		/**
+		 * add given image in this plugin
+		 * @param {Object} image 
+		 */
+		addImage : function(image){
+			this.images[this.images.length] = image;
+			this.repaintPlugin();
+		},
+		
+		/**
+		 * remove all image
+		 */
+		removeAll : function(){
+			this.images= [];
+			this.repaintPlugin();
+		},
+		
+		
+		/**
+		 * paint image
+		 * @param {Object} graphics context 
+		 * @param {String} view part name
+		 */
+		paintPlugin : function(g2d, part) {
+			if (part !== JenScript.ViewPart.Device) {
+				return;
+			}
+			
+			for (var i = 0; i < this.images.length; i++) {
+				
+				var image = new JenScript.SVGImage().opacity(1).xlinkHref(this.images[i].url).origin(this.images[i].x,this.images[i].y);
+				if(this.images[i].width !== undefined && this.images[i].height !== undefined){
+					image.size(this.images[i].width,this.images[i].height);
+				}
+				
+				g2d.insertSVG(image.toSVG());
+				
+				//this.labels[i].setProjection(this.getProjection());
+				//this.labels[i].paint(g2d);
+			}
+		}
+		
+	});
+	
+	
+})();
+(function(){
+	
+	
+	JenScript.DumpCoordinatePlugin = function() {
+		this.dumpListeners = [];
+		JenScript.Plugin.call(this, {name : "DumpCoordinatePlugin"});
+	};
+	JenScript.Model.inheritPrototype(JenScript.DumpCoordinatePlugin, JenScript.Plugin);
+
+	/**
+	 * add listener maped with the given action event
+	 * @param actionEvent
+	 * @param listener
+	 */
+	JenScript.DumpCoordinatePlugin.prototype.addDumpListener = function(actionEvent,listener){
+		var l = {action : actionEvent,onEvent : listener};
+		this.dumpListeners[this.dumpListeners.length] = l;
+	};
+	
+	/**
+	 * add listener maped with the given action event
+	 * @param actionEvent
+	 * @param listener
+	 */
+	JenScript.DumpCoordinatePlugin.prototype.fireEvent = function(actionEvent,point,deviceX,deviceY){
+		for (var i = 0; i < this.dumpListeners.length; i++) {
+			if(actionEvent === this.dumpListeners[i].action)
+				this.dumpListeners[i].onEvent({user:point,device:new JenScript.Point2D(deviceX,deviceY)});
+		}
+	};
+	
+	
+	/**
+	 * assume that x,y come from device part
+	 */
+	JenScript.DumpCoordinatePlugin.prototype.getUserProjection = function (deviceX,deviceY){
+		return this.getProjection().pixelToUser({
+			x : deviceX,
+			y : deviceY
+		});
+	};
+	
+	JenScript.DumpCoordinatePlugin.prototype.onClick = function(evt,part,deviceX,deviceY) {
+		if(part === JenScript.ViewPart.Device){
+			var userPoint = this.getUserProjection(deviceX,deviceY);
+			this.fireEvent('click',userPoint,deviceX, deviceY);
+		}
+	};
+	
+	JenScript.DumpCoordinatePlugin.prototype.onMove = function(evt,part,deviceX, deviceY) {
+		if(part === JenScript.ViewPart.Device){
+			var userPoint = this.getUserProjection(deviceX,deviceY);
+			this.fireEvent('move',userPoint,deviceX,deviceY);
+		}
+	};
+	
+	JenScript.DumpCoordinatePlugin.prototype.onPress = function(evt,part,deviceX, deviceY) {
+		if(part === JenScript.ViewPart.Device){
+			var userPoint = this.getUserProjection(deviceX,deviceY);
+			this.fireEvent('press',userPoint,deviceX, deviceY);
+		}
+	};
+	
+	JenScript.DumpCoordinatePlugin.prototype.onRelease = function(evt,part,deviceX, deviceY) {
+		if(part === JenScript.ViewPart.Device){
+			var userPoint = this.getUserProjection(deviceX,deviceY);
+			this.fireEvent('release',userPoint,deviceX, deviceY);
+		}
+	};
+})();
+(function(){
+	JenScript.GeneralMetricsPathPlugin = function(config){
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.GeneralMetricsPathPlugin,JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.GeneralMetricsPathPlugin,{
+		_init : function(config){
+			config = config||{};
+			config.name = 'JenScript.GeneralMetricsPathPlugin';
+			this.generalMetricsPath = config.path;
+			this.generalMetricsPath.plugin = this;
+			JenScript.Plugin.call(this,config);
+		},
+		
+		/**
+		 * on projection register add 'bound changed' projection listener that invoke repaint plugin
+		 * when projection bound changed event occurs.
+		 */
+		onProjectionRegister : function(){
+			var that = this;
+			this.getProjection().addProjectionListener('boundChanged', function(){
+				that.repaintPlugin();
+			},'GeneralMetricsPath projection bound changed');
+		},
+		
+		paintPlugin : function(g2d,part) {
+	        if (part != JenScript.ViewPart.Device) {
+	            return;
+	        }
+	        this.generalMetricsPath.projection = this.getProjection();
+	        
+	        this.generalMetricsPath.graphicsContext = g2d;
+	        this.generalMetricsPath.createPath();
+	        
+	        this.generalMetricsPath.svgPathElement.setAttribute('stroke','red');
+	        this.generalMetricsPath.svgPathElement.setAttribute('fill','none');
+	        g2d.insertSVG(this.generalMetricsPath.svgPathElement.cloneNode(true));
+	        
+	        var metrics = this.generalMetricsPath.getMetrics(g2d);
+	        for (var i = 0; i < metrics.length; i++) {
+				var m = metrics[i];
+				
+				
+				
+			}
+	        
+	    },
+
+	});
+
+	
+})();
+(function(){
+	
+	/**
+	 * Object JenScript.DeviceOutlinePlugin()
+	 * Defines outline device stroke
+	 * @param {Object} config
+	 * @param {String} [config.color] outline color, default darkgray color
+	 * @param {Number} [config.strokeWidth] outline stroke width, default 1 pixel
+	 */
+	JenScript.DeviceOutlinePlugin = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.DeviceOutlinePlugin, JenScript.Plugin);
+	JenScript.Model.addMethods(JenScript.DeviceOutlinePlugin,{
+		/**
+		 * Initialize outline device
+		 * @param {Object} config
+		 * @param {String} [config.color] outline color, darkgray if not defined
+		 * @param {Number} [config.strokeWidth] outline stroke width, default 1 pixel
+		 */
+		_init : function(config){
+			config = config || {};
+			this.color = (config.color !== undefined)?config.color : 'darkgray';
+			this.strokeWidth = (config.strokeWidth !== undefined)?config.strokeWidth : 1;
+			this.strokeOpacity = (config.strokeOpacity !== undefined)?config.strokeOpacity : 1;
+			config.priority = 1000;
+			config.name ='DeviceOutlinePlugin';
+			JenScript.Plugin.call(this, config);
+		},
+		
+		/**
+		 * paint device outline plugin
+		 * @param {Object} graphics context
+		 * @param {String} view part
+		 */
+		paintPlugin : function(g2d, part) {
+			if (part !== JenScript.ViewPart.Device) {
+				return;
+			}
+			var v = this.getProjection().getView();
+			var dp = v.devicePart;
+			var outline = new JenScript.SVGRect()
+										.origin(this.strokeWidth/2,this.strokeWidth/2)
+										.size(dp.width-this.strokeWidth,dp.height-this.strokeWidth)
+										.stroke(this.color)
+										.strokeOpacity(this.strokeOpacity)
+										.strokeWidth(this.strokeWidth)
+									    .fillNone();
+			
+			//this.svgPluginPartsGraphics[part].appendChild(outline.toSVG());
+			g2d.insertSVG(outline.toSVG());
+		}
+	});
 })();
 (function(){
 	/**
@@ -10761,200 +10955,6 @@ function stringInputToObject(color) {
 		 } 
 		
 	});
-	
-})();
-(function(){
-	
-	
-	JenScript.ImagePlugin = function(config) {
-		this._init(config);
-	};
-	JenScript.Model.inheritPrototype(JenScript.ImagePlugin, JenScript.Plugin);
-	JenScript.Model.addMethods(JenScript.ImagePlugin,{
-		
-		_init : function(config){
-			config=config||{};
-			this.images = [];
-			JenScript.Plugin.call(this, config);
-		},
-		
-		/**
-		 * on projection register add 'bound changed' projection listener that invoke repaint plugin
-		 * when projection bound changed event occurs.
-		 */
-		onProjectionRegister : function(){
-			var that = this;
-			this.getProjection().addProjectionListener('boundChanged', function(){
-				that.repaintPlugin();
-			},'ImagePlugin projection bound changed');
-		},
-		
-		/**
-		 * add given image in this plugin
-		 * @param {Object} image 
-		 */
-		addImage : function(image){
-			this.images[this.images.length] = image;
-			this.repaintPlugin();
-		},
-		
-		/**
-		 * remove all image
-		 */
-		removeAll : function(){
-			this.images= [];
-			this.repaintPlugin();
-		},
-		
-		
-		/**
-		 * paint image
-		 * @param {Object} graphics context 
-		 * @param {String} view part name
-		 */
-		paintPlugin : function(g2d, part) {
-			if (part !== JenScript.ViewPart.Device) {
-				return;
-			}
-			
-			for (var i = 0; i < this.images.length; i++) {
-				
-				var image = new JenScript.SVGImage().opacity(1).xlinkHref(this.images[i].url).origin(this.images[i].x,this.images[i].y);
-				if(this.images[i].width !== undefined && this.images[i].height !== undefined){
-					image.size(this.images[i].width,this.images[i].height);
-				}
-				
-				g2d.insertSVG(image.toSVG());
-				
-				//this.labels[i].setProjection(this.getProjection());
-				//this.labels[i].paint(g2d);
-			}
-		}
-		
-	});
-	
-	
-})();
-(function(){
-	
-	
-	JenScript.DumpCoordinatePlugin = function() {
-		this.dumpListeners = [];
-		JenScript.Plugin.call(this, {name : "DumpCoordinatePlugin"});
-	};
-	JenScript.Model.inheritPrototype(JenScript.DumpCoordinatePlugin, JenScript.Plugin);
-
-	/**
-	 * add listener maped with the given action event
-	 * @param actionEvent
-	 * @param listener
-	 */
-	JenScript.DumpCoordinatePlugin.prototype.addDumpListener = function(actionEvent,listener){
-		var l = {action : actionEvent,onEvent : listener};
-		this.dumpListeners[this.dumpListeners.length] = l;
-	};
-	
-	/**
-	 * add listener maped with the given action event
-	 * @param actionEvent
-	 * @param listener
-	 */
-	JenScript.DumpCoordinatePlugin.prototype.fireEvent = function(actionEvent,point,deviceX,deviceY){
-		for (var i = 0; i < this.dumpListeners.length; i++) {
-			if(actionEvent === this.dumpListeners[i].action)
-				this.dumpListeners[i].onEvent({user:point,device:new JenScript.Point2D(deviceX,deviceY)});
-		}
-	};
-	
-	
-	/**
-	 * assume that x,y come from device part
-	 */
-	JenScript.DumpCoordinatePlugin.prototype.getUserProjection = function (deviceX,deviceY){
-		return this.getProjection().pixelToUser({
-			x : deviceX,
-			y : deviceY
-		});
-	};
-	
-	JenScript.DumpCoordinatePlugin.prototype.onClick = function(evt,part,deviceX,deviceY) {
-		if(part === JenScript.ViewPart.Device){
-			var userPoint = this.getUserProjection(deviceX,deviceY);
-			this.fireEvent('click',userPoint,deviceX, deviceY);
-		}
-	};
-	
-	JenScript.DumpCoordinatePlugin.prototype.onMove = function(evt,part,deviceX, deviceY) {
-		if(part === JenScript.ViewPart.Device){
-			var userPoint = this.getUserProjection(deviceX,deviceY);
-			this.fireEvent('move',userPoint,deviceX,deviceY);
-		}
-	};
-	
-	JenScript.DumpCoordinatePlugin.prototype.onPress = function(evt,part,deviceX, deviceY) {
-		if(part === JenScript.ViewPart.Device){
-			var userPoint = this.getUserProjection(deviceX,deviceY);
-			this.fireEvent('press',userPoint,deviceX, deviceY);
-		}
-	};
-	
-	JenScript.DumpCoordinatePlugin.prototype.onRelease = function(evt,part,deviceX, deviceY) {
-		if(part === JenScript.ViewPart.Device){
-			var userPoint = this.getUserProjection(deviceX,deviceY);
-			this.fireEvent('release',userPoint,deviceX, deviceY);
-		}
-	};
-})();
-(function(){
-	JenScript.GeneralMetricsPathPlugin = function(config){
-		this._init(config);
-	};
-	JenScript.Model.inheritPrototype(JenScript.GeneralMetricsPathPlugin,JenScript.Plugin);
-	JenScript.Model.addMethods(JenScript.GeneralMetricsPathPlugin,{
-		_init : function(config){
-			config = config||{};
-			config.name = 'JenScript.GeneralMetricsPathPlugin';
-			this.generalMetricsPath = config.path;
-			this.generalMetricsPath.plugin = this;
-			JenScript.Plugin.call(this,config);
-		},
-		
-		/**
-		 * on projection register add 'bound changed' projection listener that invoke repaint plugin
-		 * when projection bound changed event occurs.
-		 */
-		onProjectionRegister : function(){
-			var that = this;
-			this.getProjection().addProjectionListener('boundChanged', function(){
-				that.repaintPlugin();
-			},'GeneralMetricsPath projection bound changed');
-		},
-		
-		paintPlugin : function(g2d,part) {
-	        if (part != JenScript.ViewPart.Device) {
-	            return;
-	        }
-	        this.generalMetricsPath.projection = this.getProjection();
-	        
-	        this.generalMetricsPath.graphicsContext = g2d;
-	        this.generalMetricsPath.createPath();
-	        
-	        this.generalMetricsPath.svgPathElement.setAttribute('stroke','red');
-	        this.generalMetricsPath.svgPathElement.setAttribute('fill','none');
-	        g2d.insertSVG(this.generalMetricsPath.svgPathElement.cloneNode(true));
-	        
-	        var metrics = this.generalMetricsPath.getMetrics(g2d);
-	        for (var i = 0; i < metrics.length; i++) {
-				var m = metrics[i];
-				
-				
-				
-			}
-	        
-	    },
-
-	});
-
 	
 })();
 (function(){
@@ -23316,6 +23316,7 @@ function stringInputToObject(color) {
 			for (var i = 0; i < this.grids.length; i++) {
                 var g = this.grids[i];
                 if(g.enter){
+                    g.press = true;
                 	this.onGridPress(g);
                 	this.onGrid('press',g);
                 }
@@ -23323,10 +23324,8 @@ function stringInputToObject(color) {
 		},
 		
 		onRelease : function(evt,part,x,y){
-			console.log("release")
 			for (var i = 0; i < this.grids.length; i++) {
                 var g = this.grids[i];
-                console.log("release grid "+g.uservalue+" press "+g.press);
                 if(g.press){
                 	this.press = false;
                 	this.onGridRelease(g);

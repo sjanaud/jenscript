@@ -1,11 +1,10 @@
 // JenScript -  JavaScript HTML5/SVG Library
-// Product of JenSoftAPI - Visualization Java & JS Libraries
-// version : 1.1.9
+// version : 1.2.0
 // Author : Sebastien Janaud 
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
-// Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-08
+// Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
+// build: 2017-05-19
 // All Rights reserved
 
 /**
@@ -18,7 +17,7 @@ var JenScript = {};
 	
 		JenScript = {
 				
-				version : '1.1.9',
+				version : '1.2.0',
 				views : [],
 				sequenceId: 0,
 				SVG_NS : 'http://www.w3.org/2000/svg',
@@ -2587,6 +2586,7 @@ function stringInputToObject(color) {
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	   onPress : function(event,part,x, y) {
+		   if(part !== 'Device') return;
 		    var x2View = this.getView().west+x;
 	    	var y2View = this.getView().north+y;
 	    	for(var i = 0 ;i< this.selectors.length;i++){
@@ -2610,26 +2610,31 @@ function stringInputToObject(color) {
 			var that = this;
 			this.openingSelector = true;
 			var projection = selector.projection;
-			var run = function(i,callback){
-				setTimeout(function(){
-					that.processOpeningSelector(selector,i);
-					callback(i);
-				},i*30);
-				
-			};
-			for(var i=1;i<=10;i++){
-				run(i,function callback(rank){
-					if(rank === 10){
-						that.getView().setActiveProjection(projection);
-						that.openingSelector = false;
-				    	document.getElementById(selector.Id).setAttribute('x',selector.x);
-				    	document.getElementById(selector.Id).setAttribute('y',selector.y);
-				    	document.getElementById(selector.Id).setAttribute('width','10%');
-				    	document.getElementById(selector.Id).setAttribute('height','10%');
-				    	that.checkSelectorSelectedOutline();
-					}
-				});
-			}
+			
+			
+			that.getView().setActiveProjection(projection);
+			that.openingSelector = false;
+			
+//			var run = function(i,callback){
+//				setTimeout(function(){
+//					that.processOpeningSelector(selector,i);
+//					callback(i);
+//				},i*30);
+//				
+//			};
+//			for(var i=1;i<=10;i++){
+//				run(i,function callback(rank){
+//					if(rank === 10){
+//						that.getView().setActiveProjection(projection);
+//						that.openingSelector = false;
+//				    	document.getElementById(selector.Id).setAttribute('x',selector.x);
+//				    	document.getElementById(selector.Id).setAttribute('y',selector.y);
+//				    	document.getElementById(selector.Id).setAttribute('width','10%');
+//				    	document.getElementById(selector.Id).setAttribute('height','10%');
+//				    	that.checkSelectorSelectedOutline();
+//					}
+//				});
+//			}
 		 },
 		 
 		/**
@@ -2670,7 +2675,51 @@ function stringInputToObject(color) {
 	    		var startY = view.north+10;
 	    		for(var i = 0;i<projections.length;i++){
 	    			var proj = projections[i];
-	    			var svg = proj.svgRootElement.cloneNode(true);
+	    			var svg = document.createElementNS(JenScript.SVG_NS,"use");
+    	    		if(svg !== undefined){
+    	    			var selectorId = 'selector_'+view.Id+'_'+proj.Id;
+    	    			svg.setAttribute('id',selectorId);
+    	    			svg.setAttribute('x',startX);
+    	    			svg.setAttribute('opacity',1);
+    	    			svg.setAttribute('y',startY);
+    	    			svg.setAttribute('width','10%');
+    	    			svg.setAttribute('height','10%');
+    	    			//svg.setAttribute('preserveAspectRatio','xMinYMin slice');
+    	    			//svg.setAttribute('preserveAspectRatio','xMinYMin');
+    	    			svg.setAttributeNS(JenScript.XLINK_NS, 'xlink:href','#'+proj.Id);
+    	    			g2d.insertSVG(svg);
+    	    			
+    	    			var projRect = new JenScript.SVGRect().origin(startX,startY).size(view.width*0.1,view.height*0.1);
+	    	    						
+    	    			projRect.fillNone().strokeWidth(0.6);
+    	    			var outline = projRect.toSVG();
+    	    			g2d.insertSVG(outline);
+    	    			
+    	    			this.selectors[this.selectors.length] = {Id :selectorId, x:startX,y:startY,projection : proj,svg:svg, outlineElement : outline,sensible :projRect};
+    	    			startX = startX + view.width*0.1 + 10;
+    	    		}
+    			}
+	    		this.checkSelectorSelectedOutline();
+		},
+		
+		/**
+		 * paint static projection selector
+		 *  @param {Object} graphics context
+		 *  @param {Object} view part
+		 */
+		paintSelectorsOLD : function(g2d,viewPart) {
+			if(this.isLockPassive()) return;
+			if (viewPart !== JenScript.ViewPart.Device) return;
+	    		
+				this.selectors=[];
+	    		var view = this.getView();
+	    		var projections = view.getProjections();
+	    		var startX = view.west+10;
+	    		var startY = view.north+10;
+	    		for(var i = 0;i<projections.length;i++){
+	    			var proj = projections[i];
+	    			//var svg = proj.svgRootElement.cloneNode(true);
+	    			var svg = document.createElement('use');
     	    		if(svg !== undefined){
     	    			var selectorId = 'selector_'+view.Id+'_'+proj.Id;
     	    			svg.removeAttribute('xmlns');
@@ -3543,7 +3592,6 @@ function stringInputToObject(color) {
 	   		this.buildHTML = function(){
 	   			var e = document.createElementNS(JenScript.SVG_NS,this.n);
 	   			for(var propt in this.attributes){
-	   			    //e.setAttributeNS(null,this.attributes[propt].name,this.attributes[propt].value);
 	   				if(this.attributes[propt].ns === undefined)
 	   					e.setAttribute(this.attributes[propt].name,this.attributes[propt].value);
 	   				else
@@ -3608,6 +3656,10 @@ function stringInputToObject(color) {
 		},
 		Id : function(Id){
 			this.rootBuilder.attr('id',Id);
+			return this;
+		},
+		clazz : function(clazzes){
+			this.rootBuilder.attr('class',clazzes);
 			return this;
 		},
 		style : function(style){
@@ -3959,7 +4011,10 @@ function stringInputToObject(color) {
 			this.builder().name('script').attr('type','application/ecmascript');
 		},
 		script : function(script){
-			this.textContent('\n'+'//<![CDATA['+'\n'+script+'\n'+'//]]\>');
+			//this.textContent('\n'+'//<![CDATA['+'\n'+script+'\n'+'//]]\>');
+			//this.textContent('\n'+'//<![CDATA['+'\n'+script+'\n'+']]\>');
+			//this.textContent('//<![CDATA['+script+']]\>');
+			this.textContent('<![CDATA['+script+']]>');
 			return this;
 		}
 	});
@@ -4058,6 +4113,26 @@ function stringInputToObject(color) {
 			return this;
 		}
 		
+	});
+	
+	JenScript.SVGUse = function() {
+		this._init();
+	};
+	JenScript.Model.inheritPrototype(JenScript.SVGUse, JenScript.SVGGeometry);
+	JenScript.Model.addMethods(JenScript.SVGUse,{
+		_init: function(){
+			JenScript.SVGGeometry.call(this,null);
+			this.builder().name('use');
+		},
+		
+		getBound2D : function(){
+			return new JenScript.Bound2D(this.attr('x').value,this.attr('y').value,this.attr('width').value,this.attr('height').value);
+		},
+		
+		xlinkHref : function(use){
+			this.attrNS(JenScript.XLINK_NS,'xlink:href',use);
+			return this;
+		},
 	});
 	
 	JenScript.SVGTextPath = function() {
@@ -4346,7 +4421,7 @@ function stringInputToObject(color) {
 			this.contextualizeGraphics();
 			
 			//DO NOT REMOVE THIS LINE
-			var copyright = new JenScript.TextViewForeground({/*textColor:'rgb(255,255,50)',*/fontSize:6,x:this.west,y:this.north-2,text:'JenScript '+JenScript.version+' - www.jensoftapi.com'});
+			var copyright = new JenScript.TextViewForeground({/*textColor:'rgb(255,255,50)',*/fontSize:6,x:this.west,y:this.north-2,text:'JenScript '+JenScript.version+' - www.jenscript.io'});
 			this.addViewForeground(copyright);
 		},
 		
@@ -4852,6 +4927,11 @@ function stringInputToObject(color) {
 			this.attachProjectionActiveListener(projection);
 			this.attachProjectionSelectorListener(projection);
 			
+			projection.svgRootGroup = document.createElementNS(this.SVG_NS,"g");
+			projection.svgRootGroup.setAttribute("xmlns",this.SVG_NS);
+			projection.svgRootGroup.setAttribute("id",projection.Id+'_group');
+			
+			
 			projection.svgRootElement = document.createElementNS(this.SVG_NS,"svg");
 			projection.svgRootElement.setAttribute("id",projection.Id);
 			projection.svgRootElement.setAttribute("xmlns",JenScript.SVG_NS);
@@ -4869,7 +4949,10 @@ function stringInputToObject(color) {
 			projection.svgPartsGroup.setAttribute("id",projection.Id+'_parts');
 			projection.svgRootElement.appendChild(projection.svgPartsGroup);
 			
-			this.svgProjections.appendChild(projection.svgRootElement);
+			
+			projection.svgRootGroup.appendChild(projection.svgRootElement);
+			
+			this.svgProjections.appendChild(projection.svgRootGroup);
 			
 			projection.svgPartPlugins ={};
 			this.contextualizeProjectionPartGraphics(projection,this.southPart,new JenScript.Point2D(0,(this.height - this.south)));
@@ -4901,13 +4984,16 @@ function stringInputToObject(color) {
 		 */
 		attachProjectionActiveListener : function(projection){
 			projection.addProjectionListener('lockActive',function(proj){
-				proj.svgRootElement.setAttribute('opacity',1);
+				//proj.svgRootElement.setAttribute('opacity',1);
+				proj.svgRootGroup.setAttribute('opacity',1);
 			},'view projection active listener to change projection opacity');
 			projection.addProjectionListener('unlockActive',function(proj){
 				if(proj.paintMode === 'ACTIVE')
-					proj.svgRootElement.setAttribute('opacity',0);
+					//proj.svgRootElement.setAttribute('opacity',0);
+					proj.svgRootGroup.setAttribute('opacity',0);
 				if(proj.paintMode === 'ALWAYS')
-					proj.svgRootElement.setAttribute('opacity',1);
+					//proj.svgRootElement.setAttribute('opacity',1);
+					proj.svgRootGroup.setAttribute('opacity',1);
 			},'view projection unactive listener to change projection opacity');
 		},
 		
@@ -5137,9 +5223,6 @@ function stringInputToObject(color) {
 				// IE 6/7/8
 				else s.attachEvent("onmousewheel", MouseWheelHandler);
 			}
-			
-			
-			
 			svgRootElement.appendChild(s);
 			this.svgDispatcher.appendChild(svgRootElement);
 		},
@@ -5402,7 +5485,10 @@ function stringInputToObject(color) {
 
 		setView : function(view) {
 			this.view = view;
-			this.fireProjectionEvent('viewRegister');
+			var that = this;
+			view.addViewListener('projectionRegister', function(){
+				that.fireProjectionEvent('viewRegister');
+			}, " fire view registered in projection")
 		},
 
 		getView : function() {
@@ -5455,16 +5541,21 @@ function stringInputToObject(color) {
 				for (var p = 0; p < that.plugins.length; p++) {
 					var plugin = that.plugins[p];
 					if(plugin.Id !== selectedPlugin.Id  && plugin.isSelectable() && plugin.isLockSelected()){
+						//console.log("plugin to passivate : "+plugin.name);
 						plugin.unselect();
 					}
 				}
 			},'Projection plugin lock/unlock listener');
+			
 			this.plugins.sort(function(p1, p2) {
 				var x = p1.getPriority();
 				var y = p2.getPriority();
 				return ((x < y) ? -1 : ((x > y) ? 1 : 0));
 			});
+			
+			//TODO : remove this pattern ?
 			plugin.onProjectionRegister();
+			
 			this.getView().contextualizePluginGraphics(plugin);
 			this.fireProjectionEvent('pluginRegister');
 			//console.log("register plugin : "+plugin.name+' OK');
@@ -6554,6 +6645,9 @@ function stringInputToObject(color) {
 		
 		applyTransform : function(){
 			this.svgRoot['Device'].setAttribute("transform","translate("+this.tx+","+this.ty+") scale("+this.sx+","+this.sy+")");
+			this.svgRoot['West'].setAttribute("transform","translate("+this.tx+","+this.ty+") scale("+this.sx+","+this.sy+")");
+			this.svgRoot['East'].setAttribute("transform","translate("+this.tx+","+this.ty+") scale("+this.sx+","+this.sy+")");
+			this.svgRoot['South'].setAttribute("transform","translate("+this.tx+","+this.ty+") scale("+this.sx+","+this.sy+")");
 		},
 		
 		translate : function(tx,ty,fire){
@@ -6717,6 +6811,7 @@ function stringInputToObject(color) {
 		},
 		
 		onProjectionRegister: function(){
+			//console.log("abstract plugin onProjectionRegister "+this.name);
 		},
 		
 		/**
@@ -6724,7 +6819,10 @@ function stringInputToObject(color) {
 		 */
 		setProjection : function(projection) {
 			this.projection = projection;
-			this.firePluginEvent('projectionRegister');
+			var that = this;
+			projection.addProjectionListener('pluginRegister',function(){
+				that.firePluginEvent('projectionRegister');
+			}," pluglin fire to listener plugin registered in projection")
 		},
 
 		setPriority : function(priority) {
@@ -6763,10 +6861,12 @@ function stringInputToObject(color) {
 
 		passive : function() {
 			this.lockPassive = true;
+			this.firePluginEvent('passive');
 		},
 
 		unpassive : function() {
 			this.lockPassive = false;
+			this.firePluginEvent('unpassive');
 		},
 
 		/**
@@ -6872,7 +6972,8 @@ function stringInputToObject(color) {
 			}
 			return false;
 		},
-
+		
+		
 	    /**
 	     * register widget
 	     * 
@@ -6881,6 +6982,7 @@ function stringInputToObject(color) {
 	     */
 	    registerWidget : function(widget) {
             widget.setHost(this);
+            widget.attachLifeCycle();
             widget.onRegister();
             this.widgets[this.widgets.length]=widget;
 	    }
@@ -6987,7 +7089,7 @@ function stringInputToObject(color) {
 		            for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
 		            	
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		
 		            		//console.log('process moveWidgetOperationCheckPress widget : name : '+widget.name);
 			                var widgetFolder = widget.getWidgetFolder();
@@ -7037,7 +7139,7 @@ function stringInputToObject(color) {
 		            for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
 		            	
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		var widgetFolder = widget.getWidgetFolder();
 			                if (widgetFolder !== undefined) {
 			                    if (widgetFolder.lockPress) {
@@ -7072,7 +7174,7 @@ function stringInputToObject(color) {
 		        	for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
 		            	
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		
 			                var widgetFolder = widget.getWidgetFolder();
 			                if (widgetFolder === undefined) {
@@ -7132,7 +7234,7 @@ function stringInputToObject(color) {
 		        	var plugin = proj.plugins[i];
 		        	for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		widget.interceptMove(x, y);
 		            	}
 		        	}
@@ -7193,7 +7295,7 @@ function stringInputToObject(color) {
 	        	
 	        	for (var j = 0; j < plugin.widgets.length; j++) {
 	            	var widget = plugin.widgets[j];
-	            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+	            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 	            		widget.interceptDrag(x, y);
 	            	}
 	        	}
@@ -7247,7 +7349,7 @@ function stringInputToObject(color) {
 		        	var plugin = proj.plugins[i];
 		        	for (var j = 0; j < plugin.widgets.length; j++) {
 		            	var widget = plugin.widgets[j];
-		            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
 		            		//console.log('widget plugin intercept press for widget : '+widget.name+' part '+part);
 		            		widget.interceptPress(x, y);
 		            	}
@@ -7281,30 +7383,24 @@ function stringInputToObject(color) {
 	     * @param {Number} y  the mouse y coordinate
 	     */
 	    dispatchRelease : function(evt,part,x,y) {
-	    	var proj = this.getActiveProjection();
-	        for (var i = 0; i < proj.plugins.length; i++) {
-	        	var plugin = proj.plugins[i];
-	        	
-	        	for (var j = 0; j < plugin.widgets.length; j++) {
-	            	var widget = plugin.widgets[j];
-	            	if(widget.isProjModeCondition('event') && widget.isPluginModeCondition('event')){
-	            		widget.interceptReleased(x,y);
-	            	}
-	        	}
-	        	
-//	            if (plugin.isSelectable() && plugin.isLockSelected()) {
-//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-//			            var widget = plugin.widgets[j];
-//	                    widget.interceptReleased(x,y);
-//	                }
-//	            }
-//	            else {
-//	            	 for (var j = 0; j < plugin.widgets.length; j++) {
-//			            var widget = plugin.widgets[j];
-//	                    widget.interceptReleased(x, y);
-//	                }
-//	            }
-	        }
+	    	
+	    	var projs = this.getView().getProjections();
+	    	for (var p = 0; p < projs.length; p++) {
+	    		var proj = projs[p];
+		        for (var i = 0; i < proj.plugins.length; i++) {
+		        	var plugin = proj.plugins[i];
+		        	
+		        	for (var j = 0; j < plugin.widgets.length; j++) {
+		            	var widget = plugin.widgets[j];
+		            	if(widget.isProjModeCondition('paint') && widget.isPluginModeCondition('paint')){
+		            		//console.log("intercept release "+widget.name);
+		            		widget.interceptReleased(x,y);
+		            	}else{
+		            		//console.log("no condition to intercept release "+widget.name);
+		            	}
+		        	}
+		        }
+	    	}
 
 	    },
 	    
@@ -7386,22 +7482,18 @@ function stringInputToObject(color) {
 		    
 		    this.orphanLock = false;
 		    
+		    this.painted = false;
+		    
 		    
 		    //mode defines the painting and event conditions according to projection status and plugin selection status
-		    //for projection parameter : active|passive|always
-		    //for event parameter 	   : selected|unselected|always
+		    //for paint : projection parameter : active|passive|always , plugin parameter  selected|unselected|always
+		    //for event parameter : projection parameter : active|passive|always , plugin parameter  selected|unselected|always
 		    /** defines the widget mode */
 		    this.mode = (config.mode !== undefined)?config.mode : {paint : {proj : 'active', plugin : 'selected'},event: {proj : 'active', plugin : 'selected'}};
 		    
 		},
 		
 		
-		/**
-	     * callback method call on widget plugin host registering.
-	     */
-	    onRegister : function(){
-	    },
-	    
 	    /**
 	     * get widget Id
 	     * @return {String} widget Id
@@ -7606,10 +7698,12 @@ function stringInputToObject(color) {
 	     * create widget
 	     */
 	    create : function(){
+	    	if(this.painted) return;
 	    	var view = this.getHost().getView();
 			var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions,graphics : view.svgWidgetsGraphics});
 			g2d.deleteGraphicsElement(this.Id);
 			this.paint(g2d);
+			this.painted = true;
 	    },
 	    
 	    /**
@@ -7619,12 +7713,14 @@ function stringInputToObject(color) {
 	    	var view = this.getHost().getView();
 	    	var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions,graphics : view.svgWidgetsGraphics});
 	    	g2d.deleteGraphicsElement(this.Id);
+	    	this.painted = false;
 	    },
 	    
 	    /**
 	     * create ghost
 	     */
 	   createGhost : function() {
+		   this.destroy();
 		   var view = this.getHost().getView();
 		   var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions,graphics : view.svgWidgetsGraphics});
 		   g2d.deleteGraphicsElement(this.Id+'_ghost');
@@ -7784,6 +7880,7 @@ function stringInputToObject(color) {
 	     */
 	    paint : function(g2d) {
 	    	if(this.isProjModeCondition('paint') && this.isPluginModeCondition('paint')){
+	    		//console.log("paint widget "+this.name);
 	    		this.layoutFolder();
 		        this.paintWidget(g2d);
 	    	}
@@ -7796,7 +7893,7 @@ function stringInputToObject(color) {
 	    isPluginModeCondition : function(oper){
     		return (this.mode[oper].plugin == 'always' || (this.mode[oper].plugin == 'selected' && this.getHost().isLockSelected()) || (this.mode[oper].plugin == 'unselected' && !this.getHost().isLockSelected()));
     	},
-
+    	
 	    /**
 	     * prevent move operation if sensible shape are intercept
 	     * @param {number} the x coordinate
@@ -7854,6 +7951,69 @@ function stringInputToObject(color) {
 	        this.orphanLock = orphanLock;
 	    },
 	    
+	    /**
+	     * callback method call on widget plugin host registering.
+	     */
+	    onRegister : function(){
+	    },
+	    
+	    checkWidgetState : function(){
+	    	if(this.getHost() !== undefined && this.getHost().getProjection() !== undefined && this.getHost().getProjection() !== undefined){
+	    		if(this.isProjModeCondition('paint') && this.isPluginModeCondition('paint')){
+	    			this.create();
+	    		}else{
+	    			this.destroy();
+	    		}
+	    	}else{
+	    		//console.log("widget ready state KO");
+	    	}
+	    },
+	    
+	    attachLifeCycle : function(){
+	    	//console.log("attachLifeCycle for widget "+this.name);
+	    	var that = this;
+	    	var reason = 'widget attach attachLifeCycle '+this.name;
+	    	
+	    	this.getHost().addPluginListener('lock',function (plugin){
+	    		//console.log("widget "+that.name+" plugin lock");
+	    		that.checkWidgetState();
+			},'Plugin lock listener, create for reason : '+reason);
+			
+			this.getHost().addPluginListener('unlock',function (plugin){
+				//console.log("widget "+that.name+" plugin unlock");
+				that.checkWidgetState();
+			},'Plugin unlock listener, destroy for reason : '+reason);
+			
+			var activepassiveCheck = function (v){
+				that.assignFolder();
+				v.addViewListener('projectionActive',function(){
+					that.checkWidgetState();
+				},'Projection active listener, create for reason :'+reason);
+					
+				v.addViewListener('projectionPassive',function(){
+					that.checkWidgetState();
+				},'Projection passive listener, create for reason :'+reason);
+			};
+			
+			var check = function(p){
+				if(p.getProjection().getView() !== undefined){
+					activepassiveCheck(p.getProjection().getView());
+				}else{
+					p.getProjection().addProjectionListener('viewRegister',function(proj){
+						activepassiveCheck(proj.getView());
+					},'Wait for projection view registering for reason : '+reason);
+				}
+			};
+			if(this.getHost().getProjection() !== undefined){
+				check(this.getHost());
+			}else{
+				this.getHost().addPluginListener('projectionRegister',function (plugin){
+					check(plugin);
+				},'Plugin listener for projection register for reason : '+reason);
+			}
+			
+		},
+	    
 	    
 	    /**
 	     * helper method to attach listener on host plugin for:
@@ -7869,24 +8029,32 @@ function stringInputToObject(color) {
 	     */
 	    attachPluginLockUnlockFactory : function(reason){
 	    	var that = this;
-			this.getHost().addPluginListener('lock',function (plugin){
-				that.create();
-			},'Plugin lock listener, create for reason : '+reason);
-			
-			this.getHost().addPluginListener('unlock',function (plugin){
-				that.destroy();
-			},'Plugin lock listener, destroy for reason : '+reason);
-			
-			this.getHost().addPluginListener('projectionRegister',function (plugin){
-				if(plugin.getProjection().getView() !== undefined){
-						that.attachViewActivePassiveFactory();
-				}else{
-					//wait view registering
-					plugin.getProjection().addProjectionListener('viewRegister',function(proj){
-						that.attachViewActivePassiveFactory();
-					},'Wait for projection view registering for reason : '+reason);
-				}
-			},'Plugin listener for projection register for reason : '+reason);
+	    	if(this.mode.paint.plugin === 'always'){
+	    		that.create();
+	    	}
+	    	if(this.mode.paint.plugin === 'selected'){
+	    		this.getHost().addPluginListener('lock',function (plugin){
+					that.create();
+				},'Plugin lock listener, create for reason : '+reason);
+				
+				this.getHost().addPluginListener('unlock',function (plugin){
+					that.destroy();
+				},'Plugin unlock listener, destroy for reason : '+reason);
+	    	}
+	    	
+	    	if(this.mode.paint.proj === 'active'){
+	    		
+	    	}
+//			this.getHost().addPluginListener('projectionRegister',function (plugin){
+//				if(plugin.getProjection().getView() !== undefined){
+//						that.attachViewActivePassiveFactory();
+//				}else{
+//					//wait view registering
+//					plugin.getProjection().addProjectionListener('viewRegister',function(proj){
+//						that.attachViewActivePassiveFactory();
+//					},'Wait for projection view registering for reason : '+reason);
+//				}
+//			},'Plugin listener for projection register for reason : '+reason);
 	    },
 	    
 	    attachViewActivePassiveFactory : function(reason){
@@ -8523,6 +8691,8 @@ function stringInputToObject(color) {
 	    onButton1RolloverOn : function() {
 	    	if(this.button1RolloverDrawColor !== undefined)
 	    		this.svg.button1.setAttribute('stroke',this.button1RolloverDrawColor);
+	    	else
+	    		this.svg.button1.removeAttribute('stroke');
 	    	if(this.button1RolloverFillColor !== undefined)
 	    		this.svg.button1.setAttribute('fill',this.button1RolloverFillColor);
 	    },
@@ -8533,6 +8703,8 @@ function stringInputToObject(color) {
 	    onButton1RolloverOff : function() {
 	    	if(this.button1DrawColor !== undefined)
 	    		this.svg.button1.setAttribute('stroke',this.button1DrawColor);
+	    	else
+	    		this.svg.button1.removeAttribute('stroke');
 	    	if(this.button1FillColor !== undefined)
 	    		this.svg.button1.setAttribute('fill',this.button1FillColor);
 	    },
@@ -8543,6 +8715,8 @@ function stringInputToObject(color) {
 	    onButton2RolloverOn : function() {
 	    	if(this.button2RolloverDrawColor !== undefined)
 	    		this.svg.button2.setAttribute('stroke',this.button2RolloverDrawColor);
+	    	else
+	    		this.svg.button2.removeAttribute('stroke');
 	    	if(this.button2RolloverFillColor !== undefined)
 	    		this.svg.button2.setAttribute('fill',this.button2RolloverFillColor);
 	    },
@@ -8553,6 +8727,8 @@ function stringInputToObject(color) {
 	    onButton2RolloverOff : function() {
 	    	if(this.button1DrawColor !== undefined)
 	    		this.svg.button2.setAttribute('stroke',this.button2DrawColor);
+	    	else
+	    		this.svg.button2.removeAttribute('stroke');
 	    	if(this.button1FillColor !== undefined)
 	    		this.svg.button2.setAttribute('fill',this.button2FillColor);
 	    },
@@ -9985,60 +10161,6 @@ function stringInputToObject(color) {
 	});
 })();
 (function(){
-	
-	/**
-	 * Object JenScript.DeviceOutlinePlugin()
-	 * Defines outline device stroke
-	 * @param {Object} config
-	 * @param {String} [config.color] outline color, default darkgray color
-	 * @param {Number} [config.strokeWidth] outline stroke width, default 1 pixel
-	 */
-	JenScript.DeviceOutlinePlugin = function(config) {
-		this._init(config);
-	};
-	JenScript.Model.inheritPrototype(JenScript.DeviceOutlinePlugin, JenScript.Plugin);
-	JenScript.Model.addMethods(JenScript.DeviceOutlinePlugin,{
-		/**
-		 * Initialize outline device
-		 * @param {Object} config
-		 * @param {String} [config.color] outline color, darkgray if not defined
-		 * @param {Number} [config.strokeWidth] outline stroke width, default 1 pixel
-		 */
-		_init : function(config){
-			config = config || {};
-			this.color = (config.color !== undefined)?config.color : 'darkgray';
-			this.strokeWidth = (config.strokeWidth !== undefined)?config.strokeWidth : 1;
-			this.strokeOpacity = (config.strokeOpacity !== undefined)?config.strokeOpacity : 1;
-			config.priority = 1000;
-			config.name ='DeviceOutlinePlugin';
-			JenScript.Plugin.call(this, config);
-		},
-		
-		/**
-		 * paint device outline plugin
-		 * @param {Object} graphics context
-		 * @param {String} view part
-		 */
-		paintPlugin : function(g2d, part) {
-			if (part !== JenScript.ViewPart.Device) {
-				return;
-			}
-			var v = this.getProjection().getView();
-			var dp = v.devicePart;
-			var outline = new JenScript.SVGRect()
-										.origin(this.strokeWidth/2,this.strokeWidth/2)
-										.size(dp.width-this.strokeWidth,dp.height-this.strokeWidth)
-										.stroke(this.color)
-										.strokeOpacity(this.strokeOpacity)
-										.strokeWidth(this.strokeWidth)
-									    .fillNone();
-			
-			//this.svgPluginPartsGraphics[part].appendChild(outline.toSVG());
-			g2d.insertSVG(outline.toSVG());
-		}
-	});
-})();
-(function(){
 	/**
 	 * Object AbstractLabel()
 	 * Defines Abstract Label
@@ -10291,299 +10413,6 @@ function stringInputToObject(color) {
 					sl.parentNode.insertBefore(tr.toSVG(),sl);
 				}			
 		},
-	});
-	
-})();
-(function(){
-	/**
-	 * Object TextLabel()
-	 * Defines TextLabel Abstract Label
-	 * @param {Object} config
-	 * @param {String} [config.name] the label type name
-	 * @param {String} [config.text] the label text
-	 * @param {String} [config.textColor] the label text color
-	 * @param {Number} [config.fontSize] the label text font size
-	 * @param {String} [config.textAnchor] the label text anchor
-	 * @param {Object} [config.shader] the label fill shader
-	 * @param {Object} [config.shader.percents] the label fill shader percents
-	 * @param {Object} [config.shader.colors] the label fill shader colors
-	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
-	 * @param {String} [config.outlineColor] the label outline color
-	 * @param {String} [config.cornerRadius] the label outline corner radius
-	 * @param {String} [config.fillColor] the label fill color
-	 */
-	JenScript.TextLabel = function(config) {
-		this._init(config);
-	};
-	JenScript.Model.inheritPrototype(JenScript.TextLabel,JenScript.AbstractLabel);
-	JenScript.Model.addMethods(JenScript.TextLabel,{
-		
-		/**
-		 * Initialize  Label
-		 * @param {Object} config
-		 * @param {String} [config.name] the label type name
-		 * @param {String} [config.text] the label text
-		 * @param {String} [config.textColor] the label text color
-		 * @param {String} [config.location] the label location
-		 * @param {Number} [config.fontSize] the label text font size
-		 * @param {String} [config.textAnchor] the label text anchor
-		 * @param {Object} [config.shader] the label fill shader
-		 * @param {Object} [config.shader.percents] the label fill shader percents
-		 * @param {Object} [config.shader.colors] the label fill shader colors
-		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
-		 * @param {String} [config.outlineColor] the label outline color
-		 * @param {String} [config.cornerRadius] the label outline corner radius
-		 * @param {String} [config.fillColor] the label fill color
-		 */
-		_init : function(config){
-			JenScript.AbstractLabel.call(this,config);
-		},
-		
-		/**
-		 * paint label
-		 */
-		paint : function(g2d){
-			this.paintLabel(g2d);
-		}
-		
-	});
-})();
-(function(){
-	
-	
-	JenScript.TextLabelPlugin = function(config) {
-		this._init(config);
-	};
-	JenScript.Model.inheritPrototype(JenScript.TextLabelPlugin, JenScript.Plugin);
-	JenScript.Model.addMethods(JenScript.TextLabelPlugin,{
-		
-		_init : function(config){
-			config=config||{};
-			
-			// labels commons
-//			this.text;
-//			this.textAnchor = 'start';
-//			this.textColor=(config.textColor !== undefined)? config.textColor:'black';
-//			this.outlineColor=config.outlineColor;
-//			this.outlineWidth=(config.outlineWidth !== undefined)? config.outlineWidth:1;
-//			this.shader = config.shader;
-//			this.fillColor = config.fillColor;
-//			this.fontSize = (config.fontSize !== undefined)? config.fontSize :12;
-//			this.nature = (config.nature !== undefined)? config.nature :'Device';
-			config.name ='TextLabelPlugin';
-			this.labels = [];
-			JenScript.Plugin.call(this, config);
-		},
-		
-		/**
-		 * on projection register add 'bound changed' projection listener that invoke repaint plugin
-		 * when projection bound changed event occurs.
-		 */
-		onProjectionRegister : function(){
-			var that = this;
-			this.getProjection().addProjectionListener('boundChanged', function(){
-				that.repaintPlugin();
-			},'TextLabelPlugin projection bound changed');
-		},
-		
-		/**
-		 * add given label in this text plugin
-		 * @param {Object} label 
-		 */
-		addLabel : function(label){
-			if(label instanceof JenScript.TextLabel){
-				this.labels[this.labels.length] = label;
-				this.repaintPlugin();
-			}else{
-				throw new Error('TextLabel should be provided');
-			}
-		},
-		
-		/**
-		 * remove given label in this text plugin
-		 * @param {Object} label 
-		 */
-		removeLabel : function(label){
-			var ls = [];
-			for (var i = 0; i < this.labels.length; i++) {
-				if(!this.labels[i].equals(label))
-					ls[ls.length]=this.labels[i];
-			}
-			this.labels=ls;
-			this.repaintPlugin();
-		},
-		
-		
-		/**
-		 * paint text labels
-		 * @param {Object} graphics context 
-		 * @param {String} view part name
-		 */
-		paintPlugin : function(g2d, part) {
-			if (part !== JenScript.ViewPart.Device) {
-				return;
-			}
-			
-			for (var i = 0; i < this.labels.length; i++) {
-				this.labels[i].setProjection(this.getProjection());
-				this.labels[i].paint(g2d);
-			}
-		}
-		
-	});
-	
-	
-})();
-(function(){
-	
-	/**
-	 * Object TitleLegendPlugin()
-	 * Defines a plugin that takes the responsibility to manage title legend
-	 * @param {Object} config
-	 */
-	JenScript.TitleLegendPlugin = function(config) {
-		this._init(config);
-	};
-	JenScript.Model.inheritPrototype(JenScript.TitleLegendPlugin, JenScript.Plugin);
-	JenScript.Model.addMethods(JenScript.TitleLegendPlugin, {
-		
-		/**
-		 * Initialize Function Plugin
-		 * Defines a plugin that takes the responsibility to manage function
-		 * @param {Object} config
-		 */
-		_init : function(config){
-			config = config || {};
-			config.priority = 100;
-			config.name="TitleLegendPlugin";
-			this.text = config.text;
-			this.fontSize = (config.fontSize !== undefined)?config.fontSize:12;
-			this.textColor = (config.textColor !== undefined)?config.textColor:'red';
-			this.fontWeight = (config.fontWeight !== undefined)?config.fontWeight:'normal';
-			this.part = (config.part !== undefined)?config.part:JenScript.ViewPart.Device;
-			
-			this.layout = (config.layout !== undefined)?config.layout:'absolute'; //relative
-			
-			//absolute
-			this.x  = (config.x !== undefined)?config.x:30;
-			this.y  = (config.y !== undefined)?config.y:30;
-			this.textAnchor = (config.textAnchor !== undefined)?config.textAnchor:'middle';
-			this.rotate = (config.rotate !== undefined)?config.rotate:false;
-			this.rotateAngle = (config.rotateAngle !== undefined)?config.rotateAngle:90;
-			
-			//relative
-			this.xAlign  = (config.xAlign !== undefined)?config.xAlign:'right';
-			this.yAlign  = (config.yAlign !== undefined)?config.yAlign:'bottom';
-			this.xMargin  = (config.xMargin !== undefined)?config.xMargin:5;
-			this.yMargin  = (config.yMargin !== undefined)?config.yMargin:5;
-			
-		    JenScript.Plugin.call(this,config);
-		},
-		
-		
-		paintAbsoluteLegend : function(g2d,viewPart){
-			if(this.part === viewPart){
-				 var text = new JenScript.SVGElement().name('text')
-					.attr('id',JenScript.sequenceId++)
-					.attr('x',this.x)
-					.attr('y',this.y)
-					.attr('font-size',this.fontSize)
-					.attr('font-weight',this.fontWeight)
-					.attr('fill',this.textColor)
-					.attr('text-anchor',this.textAnchor)
-					.textContent(this.text);
-				 
-				 if(this.rotate)
-					 text.attr('transform','rotate('+this.rotateAngle+','+this.x+','+this.y+')');
-				 
-				 //var scatter = new JenScript.SVGRect().origin(this.x,this.y).size(5,5).fill('orange');
-				 //g2d.insertSVG(scatter.toSVG());
-				 
-				 g2d.insertSVG(text.buildHTML());
-			}
-		},
-		
-		paintRelativeLegend : function(g2d,viewPart){
-			
-			if(this.part === viewPart){
-				 
-				var cw = this.getProjection().getView().getComponent(viewPart).getWidth();
-				var ch = this.getProjection().getView().getComponent(viewPart).getHeight();
-				if(this.xAlign === 'right'){
-					this.x = cw - this.xMargin;
-				}
-				if(this.xAlign === 'left'){
-					this.x = this.xMargin;
-				}
-				if(this.xAlign === 'center'){
-					this.x = cw/2;
-				}
-				if(this.yAlign === 'top'){
-					this.y = this.fontSize + this.yMargin;
-				}
-				if(this.yAlign === 'bottom'){
-					this.y = ch- this.yMargin;
-				}
-				if(this.yAlign === 'center'){
-					this.y = ch/2;
-				}
-				
-				this.textAnchor = 'middle';
-				if(this.xAlign === 'right' && this.yAlign === 'top'){
-					this.textAnchor = 'end';
-				}
-				if(this.xAlign === 'right' && this.yAlign === 'bottom'){
-					if(this.rotate)
-						this.textAnchor = 'start';
-					else
-						this.textAnchor = 'end';
-				}
-				
-				
-				if(this.xAlign === 'left' && this.yAlign === 'top'){
-					this.textAnchor = 'start';
-				}
-				if(this.xAlign === 'left' && this.yAlign === 'bottom'){
-					if(this.rotate)
-						this.textAnchor = 'end';
-					else
-						this.textAnchor = 'start';
-				}
-				
-				var text = new JenScript.SVGElement().name('text')
-					.attr('id',JenScript.sequenceId++)
-					.attr('x',this.x)
-					.attr('y',this.y)
-					.attr('font-size',this.fontSize)
-					.attr('font-weight',this.fontWeight)
-					.attr('fill',this.textColor)
-					.attr('text-anchor',this.textAnchor)
-					.textContent(this.text);
-				 
-				 if(this.rotate)
-					 text.attr('transform','rotate('+this.rotateAngle+','+this.x+','+this.y+')');
-				 
-				 //var scatter = new JenScript.SVGRect().origin(this.x,this.y).size(5,5).fill('orange');
-				 //g2d.insertSVG(scatter.toSVG());
-				 
-				 g2d.insertSVG(text.buildHTML());
-			}
-		},
-		
-		/**
-		 * paint legend plugin
-		 */
-		 paintPlugin : function(g2d,viewPart) {
-			if(this.layout === 'absolute'){
-				this.paintAbsoluteLegend(g2d,viewPart);
-			}else if(this.layout === 'relative'){
-				this.paintRelativeLegend(g2d,viewPart);
-			}else{
-				throw new Error('Invalid legend layout');
-			}
-				
-		 } 
-		
 	});
 	
 })();

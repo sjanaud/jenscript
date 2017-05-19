@@ -43,13 +43,13 @@ module.exports = function(grunt) {
 								"src/widget/widget-button.js",
 								"src/widget/widget-button-plugin.js",
 
-								"src/plugins/outline/device-outline-plugin.js",
+								//"src/plugins/outline/device-outline-plugin.js",
 
 								"src/plugins/label/abstract-label.js",
-				            	"src/plugins/label/text-label.js",
-				            	"src/plugins/label/text-label-plugin.js",
+				            	//"src/plugins/label/text-label.js",
+				            	//"src/plugins/label/text-label-plugin.js",
 				            	
-				            	"src/plugins/legend/title-legend-plugin.js",
+				            	//"src/plugins/legend/title-legend-plugin.js",
 				            	
 				            	"src/plugins/image/image-plugin.js",
 				            	
@@ -57,6 +57,9 @@ module.exports = function(grunt) {
 								"src/glyph/general-metrics-path-plugin.js",
 								
 								],
+			 outline  		 : ["src/plugins/outline/device-outline-plugin.js"],
+			 label  		 : ["src/plugins/label/text-label.js","src/plugins/label/text-label-plugin.js"],
+			 legend  		 : ["src/plugins/legend/title-legend-plugin.js"],
 
 			 pie  		 : ["src/plugins/pie/pie-plugin.js",
 								"src/plugins/pie/pie.js",
@@ -230,6 +233,9 @@ module.exports = function(grunt) {
 			
 			 features 	  : [
 			                 	{name : "core",  parts : "<%= jenscript.core %>"},
+			                 	{name : "outline",  parts : "<%= jenscript.outline %>"},
+			                 	{name : "label",  parts : "<%= jenscript.label %>"},
+			                 	{name : "legend",  parts : "<%= jenscript.legend %>"},
 				                {name : "pie",  parts :"<%= jenscript.pie %>"},
 				                {name : "donut2d", parts :"<%= jenscript.donut2d %>"},
 				                {name : "donut3d", parts :"<%= jenscript.donut3d %>"},

@@ -1,11 +1,10 @@
 // JenScript -  JavaScript HTML5/SVG Library
-// Product of JenSoftAPI - Visualization Java & JS Libraries
-// version : 1.1.9
+// version : 1.2.0
 // Author : Sebastien Janaud 
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
-// Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-08
+// Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
+// build: 2017-05-19
 // All Rights reserved
 
 (function(){

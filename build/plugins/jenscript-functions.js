@@ -1,11 +1,10 @@
 // JenScript -  JavaScript HTML5/SVG Library
-// Product of JenSoftAPI - Visualization Java & JS Libraries
-// version : 1.1.9
+// version : 1.2.0
 // Author : Sebastien Janaud 
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
-// Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-08
+// Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
+// build: 2017-05-19
 // All Rights reserved
 
 (function(){
@@ -1503,8 +1502,8 @@
 			this.themeColor=(config.themeColor !== undefined)? config.themeColor:'red';
 			this.strokeWidth=(config.strokeWidth !== undefined)? config.strokeWidth:1;
 		    /** source function */
-		    this.source=config.source;
-		    this.source.hostFunction = this;
+		    this.source= config.source;
+		    //this.source.hostFunction = this;
 			this.hostPlugin;
 			this.Id = 'pathfunction'+JenScript.sequenceId++;
 			/** the geometry path */
@@ -2141,6 +2140,7 @@
 		_init : function(config){
 			config = config || {};
 			config.name = 'ScatterPathFunction';
+			this.radius = (config.radius !== undefined)? config.radius : 4;
 		    JenScript.AbstractPathFunction.call(this,config);
 		},
 		
@@ -2155,7 +2155,7 @@
 			var proj = this.getProjection();
 			for (var i = 0; i < userPointsFunction.length; i++) {
 				var p = userPointsFunction[i];
-				var scatter = new JenScript.SVGRect().origin(proj.userToPixelX(p.x),proj.userToPixelY(p.y)).size(3,3).fill(this.getThemeColor());
+				var scatter = new JenScript.SVGRect().origin(proj.userToPixelX(p.x)-this.radius/2,proj.userToPixelY(p.y)-this.radius/2).size(this.radius,this.radius).fill(this.getThemeColor());
 				g2d.insertSVG(scatter.toSVG());
 			}
 		}
@@ -2225,6 +2225,7 @@
 		     }
 	    	 for (var c = 0; c < this.getFunctions().length; c++) {
             	var pathFunction = this.getFunctions()[c];
+            	pathFunction.source.hostFunction = pathFunction;//required for share source between function
             	pathFunction.paintFunction(g2d);
 	         }
 	    },
@@ -2243,6 +2244,7 @@
 	        for (var c = 0; c < this.getFunctions().length; c++) {
             	var pathFunction = this.getFunctions()[c];
             	pathFunction.graphicsContext = g2d;
+            	pathFunction.source.hostFunction = pathFunction;//required for share source between function
 	            var metrics = pathFunction.getMetrics();
 //	            for (GlyphMetric glyphMetric : metrics) {
 //	                if (glyphMetric.getGlyphMetricMarkerPainter() != null) {

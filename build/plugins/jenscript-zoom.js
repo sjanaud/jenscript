@@ -1,11 +1,10 @@
 // JenScript -  JavaScript HTML5/SVG Library
-// Product of JenSoftAPI - Visualization Java & JS Libraries
-// version : 1.1.9
+// version : 1.2.0
 // Author : Sebastien Janaud 
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
-// Copyright (C) 2008 - 2015 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-08
+// Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
+// build: 2017-05-19
 // All Rights reserved
 
 (function(){
@@ -35,7 +34,7 @@
 			config = config || {};
 			
 			config.name = (config.name !== undefined)?config.name:'ZoomBoxPlugin';
-			//config.selectable = true;
+			config.selectable = true;
 			config.priority = 1000;
 			this.slaves = (config.slaves !== undefined)? config.slaves : [];
 			this.zoomBoxDrawColor = config.zoomBoxDrawColor ;
@@ -57,14 +56,13 @@
 			this.zoomFxBoxCurrentY;
 			this.boxHistory = [];
 			this.maxHistory = 8;
-			this.zoomBack = [];
+			this.forwardBound;
 			this.boxListeners = [];
 			
 			this.factor = (config.factor !== undefined)? config.factor : 1.1;
 			this.historyIndex = 0;
 			JenScript.Plugin.call(this,config);
 		},
-		
 
 		/**
 		 * when zoom box is being register in projection,
@@ -77,8 +75,6 @@
 			},that.toString());
 		},
 		
-		
-		
 		/**
 	     * fire translate start to listener
 	     */
@@ -90,8 +86,6 @@
 			}
 		},
 		
-		
-		
 		 /**
 	     * add zoom box listener
 	     * @param {String} action event type like start, stop, translate, L2R,B2T
@@ -101,51 +95,32 @@
 			var l={action:actionEvent,onEvent:listener};
 			this.boxListeners[this.boxListeners.length] = l;
 		},
+		
+		isBoxAuthorized : function(evt,part,x,y){
+			return ((part === JenScript.ViewPart.Device) && this.isLockSelected() && !this.isLockPassive() && !this.isWidgetSensible(x,y));
+		},
 
 		onPress : function(evt,part,x,y) {
 			//mozilla, prevent Default to enable dragging correctly
 			if(evt.preventDefault){
 				evt.preventDefault();
 			}
-			if(part !== JenScript.ViewPart.Device) return;
-			if (!this.isLockSelected()) {
-				return;
-			}
-
-			if (this.isLockPassive()) {
-				return;
-			}
-			
+			this.lockZoomingTransaction = false;
+			this.lockEffect = false;
 			this.drag = true;
+			if(this.isBoxAuthorized(evt,part,x,y)){
+				this.processZoomStart(new JenScript.Point2D(x,y));
+			}
 			
-			this.processZoomStart(new JenScript.Point2D(x,y));
 		},
 		
-//		u2p : function(plugin,u){
-//			 var p = this.getProjection().userToPixel(u);
-//			 return new JenScript.Point2D(p.x*plugin.sx+plugin.tx,p.y*plugin.sy+plugin.ty);
-//		},
-//		 
-//		p2u : function(plugin,p){
-//			return this.getProjection().pixelToUser(new JenScript.Point2D((p.x-plugin.tx)/plugin.sx,(p.y-plugin.ty)/plugin.sy));
-//		},
-//		
-//		
-//		minX : function(plugin){
-//			return this.p2u(plugin,{x : 0,y:0}).x;
-//		},
-//		
-//		maxX : function(plugin){
-//			return this.p2u(plugin,{x : this.getDevice().getWidth(),y:0}).x;
-//		},
-//		
-//		minY : function(plugin){
-//			return this.p2u(plugin,{x : 0,y:this.getDevice().getHeight()}).y;
-//		},
-//		
-//		maxY : function(plugin){
-//			return this.p2u(plugin,{x : 0,y:0}).y;
-//		},
+		
+		 processZoomFinish : function() {
+			 this.lockEffect=false;
+			 this.lockZoomingTransaction = false;
+			 this.repaintPlugin();
+			 this.fireEvent('boxFinish');
+		 },
 		
 		/**
 	     * start parameters for a start bound zoom box
@@ -154,7 +129,9 @@
 	     *            box start device point coordinate
 	     */
 	    processZoomStart : function(startBox) {
-	    	console.log("zoom box start : "+this.name);
+	    	if(this.boxHistory.length === 0){
+	    		this.createHistory();
+	    	}
             this.zoomBoxStartX = startBox.getX();
             this.zoomBoxStartY = startBox.getY();
             this.zoomBoxCurrentX = this.zoomBoxStartX;
@@ -171,28 +148,26 @@
 	    },
 		
 		onRelease : function(evt,part,x, y) {
-			if(part !== JenScript.ViewPart.Device) return;
+			//if(part !== JenScript.ViewPart.Device) return;
 			this.drag = false;
-			if (!this.isLockSelected()) {
-				return;
+			if (this.lockZoomingTransaction){
+				if (this.isForwardCondition()) {
+					this.processZoomOut();
+				} else if (this.isValidateBound()) {
+					this.processZoomIn();
+				}else{
+					this.processZoomFinish();
+				}
+			}else{
+				this.processZoomFinish();
 			}
-			if (this.isLockPassive()) {
-				return;
-			}
-			if (this.isForwardCondition()) {
-				this.processZoomOut();
-				//this.fireEvent('boxOut');
-			} else if (this.isValidateBound()) {
-				this.processZoomIn();
-				//this.fireEvent('boxIn');
-			}
-
 			this.repaintPlugin();
 		},
 		
 		onMove : function(evt,part,deviceX, deviceY) {
 			if(part !== JenScript.ViewPart.Device) return;
 			if (this.drag) {
+				this.isBoxAuthorized(evt,part,deviceX,deviceY);
 				this.processZoomBound(new JenScript.Point2D(deviceX,deviceY));
 				this.repaintPlugin();
 			}
@@ -235,6 +210,7 @@
 				if (this.zoomBoxCurrentX < this.zoomBoxStartX
 						|| this.zoomBoxCurrentY < this.zoomBoxStartY) {
 					return true;
+				}else{
 				}
 			} else if (this.mode.isBx()) {
 				if (this.zoomBoxCurrentX < this.zoomBoxStartX) {
@@ -249,15 +225,13 @@
 		},
 		
 		processZoomOut : function() {
-			var proj = this.getProjection();
-			var bound = this.boxHistory[this.boxHistory.length-1];
-			proj.bound(bound.minx,bound.maxx,bound.miny,bound.maxy);
+			if(this.forwardBound === undefined) return;
+			var bound = this.forwardBound;
+			this.getProjection().bound(bound.minx,bound.maxx,bound.miny,bound.maxy);
 			this.fireEvent('boxOut');
-			
 		},
 		
 		processZoomIn : function() {
-			console.log("process zoom in "+this.name);
 			this.lockEffect=true;
 			
 			var deviceStart = {
@@ -269,6 +243,13 @@
 				y : this.zoomBoxCurrentY
 			};
 			var proj = this.getProjection();
+			
+			this.forwardBound = {
+					minx : proj.minX,
+					maxx : proj.maxX,
+					miny : proj.minY,
+					maxy : proj.maxY
+			};
 			
 			this.zoomFxBoxStartX = this.zoomBoxStartX;
 			this.zoomFxBoxStartY = this.zoomBoxStartY;
@@ -282,26 +263,12 @@
 			var iMaxx = proj.maxX;
 			var iMiny = proj.minY;
 			var iMaxy = proj.maxY;
-
-			this.boxHistory[this.boxHistory.length] = {
-				minx : iMinx,
-				maxx : iMaxx,
-				miny : iMiny,
-				maxy : iMaxy
-			};
-			this.historyIndex = this.boxHistory.length-1;
-			console.log("zoom history count : "+this.boxHistory.length);
 			
 			var stepCount =  10;
 			var deltaMinx = Math.abs(proj.minX - userStartPoint.x) / stepCount;
 			var deltaMaxx = Math.abs(proj.maxX - userCurrentPoint.x) / stepCount;
 			var deltaMiny = Math.abs(proj.minY - userCurrentPoint.y) / stepCount;
 			var deltaMaxy = Math.abs(proj.maxY - userStartPoint.y) / stepCount;
-
-			// boxHistory[boxHistory.length] = {minx:userWindowStartPoint.x,
-			// maxx:userWindowCurrentPoint.x,
-			// miny:userWindowCurrentPoint.y,
-			// maxy:userWindowStartPoint.y};
 
 			var fxDeltaPixelMinx = Math.abs(proj.userToPixelX(deltaMinx)
 					- proj.userToPixelX(0));
@@ -312,7 +279,7 @@
 			var fxDeltaPixelMaxy = Math.abs(proj.userToPixelY(deltaMaxy)
 					- proj.userToPixelY(0));
 
-			var speedMillis = 20;
+			var speedMillis = 5;
 			
 			var scaleFactorX =   Math.abs((proj.maxX-proj.minX)/(userCurrentPoint.x-userStartPoint.x));
 			var scaleFactorY =   Math.abs((proj.maxY-proj.minY)/(userCurrentPoint.y-userStartPoint.y));
@@ -324,21 +291,15 @@
 				_p(i, function callback(rank,bound) {
 					that.repaintPlugin();
 					if (rank === stepCount) {
-						that.repaintPlugin();
-						that.lockEffect=false;
-						that.lockZoomingTransaction = false;
-						
 						setTimeout(function(){
 							that.getProjection().bound(bound[0],bound[1],bound[2],bound[3]);
-							
-							//finally real geometric transform
+							that.createHistory();
 							for (var s = 0; s < that.slaves.length; s++) {
 								var plugin = that.slaves[s];
-								//reset semantic transform
 								plugin.resetTransform();
 								plugin.repaintPlugin();
 						    }
-							that.fireEvent('boxFinish');
+							that.processZoomFinish();
 						},30);
 					}
 				});
@@ -397,6 +358,7 @@
 							
 							if(that.mode.isBx()){
 								deltaSy = 0;
+								console.log("is bx");
 							}
 							else if(that.mode.isBy()){
 								deltaSx = 0;
@@ -405,39 +367,45 @@
 							plugin.scale(plugin.sx+deltaSx,plugin.sy+deltaSy);
 							plugin.translate(plugin.tx-deltaX*i,plugin.ty-deltaY*i);
 					 }
-					
-					that.zoomBack[that.zoomBack.length] = {i : i, x : initcenterX, y:initcenterY, deltaSx:deltaSx,deltaSy:deltaSy,deltaX:deltaX,deltaY:deltaY};
-					
-					//console.log('test zback : '+that.zoomBack[0].i);
-					//that.zoomBack[that.zoomBack.length] = [i ,initcenterX, initcenterY,deltaSx,deltaSy,deltaX,deltaY];
 					callback(i,[m1,m2,m3,m4]);
 				}, millis);
 			}
 		},
 		
+		createHistory : function(){
+			var proj = this.getProjection();
+			this.boxHistory[this.boxHistory.length] = {
+					minx : proj.minX,
+					maxx : proj.maxX,
+					miny : proj.minY,
+					maxy : proj.maxY
+				};
+			this.historyIndex = this.boxHistory.length - 1;
+		},
+		
 		
 		backHistory : function() {
-			console.log("back history with index "+this.historyIndex);
-			console.log("history size "+this.boxHistory.length);
-			if(this.historyIndex-1 < 0)
-				this.historyIndex = this.boxHistory.length;
-			console.log("request for back : "+(this.historyIndex-1));
-			var b = this.boxHistory[this.historyIndex-1];
-			this.getProjection().bound(b.minx,b.maxx,b.miny,b.maxy);
-			this.historyIndex = this.historyIndex-1;
+			if(this.boxHistory.length > 0){
+				if(this.historyIndex-1 < 0)
+					this.historyIndex = this.boxHistory.length;
+				this.processHistory('backHistory',(this.historyIndex-1));
+			}
 		},
 		
 		nextHistory : function() {
-			console.log("next history with index "+this.historyIndex);
-			console.log("history size "+this.boxHistory.length);
-			if(this.historyIndex+1 >= this.boxHistory.length)
-				this.historyIndex = -1;
-			console.log("request for next : "+(this.historyIndex+1));
-			var b = this.boxHistory[this.historyIndex+1];
-			this.getProjection().bound(b.minx,b.maxx,b.miny,b.maxy);
-			this.historyIndex = this.historyIndex+1;
+			if(this.boxHistory.length > 0){
+				if(this.historyIndex+1 >= this.boxHistory.length)
+					this.historyIndex = -1;
+				this.processHistory('nextHistory',(this.historyIndex+1));
+			}
 		},
 		
+		processHistory : function(nature,index) {
+			var b = this.boxHistory[index];
+			this.getProjection().bound(b.minx,b.maxx,b.miny,b.maxy);
+			this.historyIndex = index;
+			this.fireEvent(nature);
+		},
 		
 		paintMarker : function(g2d, part) {
 			//todo paint markers near axis
@@ -496,9 +464,9 @@
 		 },
 		 
 		 paintPlugin : function(g2d, part) {
-				
 				if(part === JenScript.ViewPart.Device && this.lockZoomingTransaction) {
 					 if (!this.lockEffect && this.isValidateBound()) {
+						 console.log("paint target "+this.name);
 						this.paintTarget(g2d, part); 
 					 }
 					 else{
@@ -570,15 +538,20 @@
 	            	boxes[i].addBoxListener('boxIn',function (plugin){that.boxIn(plugin);});
 	            	boxes[i].addBoxListener('boxOut',function (plugin){that.boxOut(plugin);});
 	            	boxes[i].addBoxListener('boxFinish',function (plugin){that.boxFinish(plugin);});
-//	            	boxes[i].addBoxListener('boxHistory',function (plugin){that.translateB2TChanged(plugin);});
+	            	boxes[i].addBoxListener('nextHistory',function (plugin){that.nextHistory(plugin);});
+	            	boxes[i].addBoxListener('backHistory',function (plugin){that.backHistory(plugin);});
 //	            	boxes[i].addBoxListener('boxClearHistory',function (plugin){that.translateB2TChanged(plugin);});
 	            	boxes[i].addPluginListener('lock',function (plugin){that.pluginSelected(plugin);},'ZoomBox Synchronizer plugin lock listener');
-	            	boxes[i].addPluginListener('unlock',function (plugin){that.pluginSelected(plugin);},'ZoomBox Synchronizer plugin unlock listener');
+	            	boxes[i].addPluginListener('unlock',function (plugin){that.pluginUnlockSelected(plugin);},'ZoomBox Synchronizer plugin unlock listener');
+	            	boxes[i].addPluginListener('passive',function (plugin){that.pluginPassive(plugin);},'ZoomBox Synchronizer plugin passive listener');
+	            	boxes[i].addPluginListener('unpassive',function (plugin){that.pluginUnPassive(plugin);},'ZoomBox Synchronizer plugin unpassive listener');
 	                this.boxesList[this.boxesList.length] = boxes[i];
 	            }
 	            this.dispathingEvent = false;
 	        }
 		},
+		
+		
 	
 	    pluginSelected : function(source) {
 	        if (!this.dispathingEvent) {
@@ -586,8 +559,22 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						console.log('sync lock box'+plugin.name);
+						//console.log('sync lock box'+plugin.name);
 	                    plugin.select();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
+	    pluginPassive : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+						console.log('sync passive box'+plugin.name);
+	                    plugin.passive();
 	                }
 				}
 	            this.dispathingEvent = false;
@@ -601,8 +588,22 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						console.log('sync unlock box'+plugin.name);
+						console.log('sync unpassive box'+plugin.name);
 	                    plugin.unselect();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
+	    pluginUnPassive : function(source) {
+	        if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+						//console.log('sync lock box'+plugin.name);
+	                    plugin.unpassive();
 	                }
 				}
 	            this.dispathingEvent = false;
@@ -615,7 +616,7 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						console.log('sync start box'+plugin.name);
+						//console.log('sync start box'+plugin.name);
 						var deviceBoxStartSource = source.getBoxStartDevicePoint();
 	                    plugin.processZoomStart(deviceBoxStartSource);
 	                    plugin.repaintPlugin();
@@ -631,7 +632,7 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						console.log('sync bound box'+plugin.name);
+						//console.log('sync bound box'+plugin.name);
 	                    var deviceBoxCurrentSource = source.getBoxCurrentDevicePoint();
 	                    plugin.processZoomBound(deviceBoxCurrentSource);
 	                    plugin.repaintPlugin();
@@ -647,7 +648,7 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						console.log('sync in box'+plugin.name);
+						//console.log('sync in box'+plugin.name);
 	                    plugin.processZoomIn();
 	                }
 				}
@@ -669,7 +670,42 @@
 	    },
 	    
 	    boxFinish : function(source) {
-	        
+	    	 if (!this.dispathingEvent) {
+		            this.dispathingEvent = true;
+		            for (var i = 0; i < this.boxesList.length; i++) {
+						var plugin = this.boxesList[i];
+						if (plugin.Id !== source.Id) {
+		                    plugin.processZoomFinish();
+		                }
+					}
+		            this.dispathingEvent = false;
+		        }
+	    },
+	    
+	    nextHistory : function(source) {
+	    	if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.nextHistory();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
+	    },
+	    
+	    backHistory : function(source) {
+	    	if (!this.dispathingEvent) {
+	            this.dispathingEvent = true;
+	            for (var i = 0; i < this.boxesList.length; i++) {
+					var plugin = this.boxesList[i];
+					if (plugin.Id !== source.Id) {
+	                    plugin.backHistory();
+	                }
+				}
+	            this.dispathingEvent = false;
+	        }
 	    },
 	    
 	});
@@ -700,28 +736,28 @@
 	    	 this.getHost().nextHistory();
 	    },
 	    
-	    onRegister : function(){
-	    	var that = this;
-	    	var proj = this.getHost().getProjection();
-	    	if(proj !== undefined){
-	    		var view = proj.getView();
-	    		if(view !== undefined){
-	    			this.create();
-				}
-	    	}else{
-	    		this.getHost().addPluginListener('projectionRegister',function (plugin){
-	    			console.log("attach projection listener");
-					if(plugin.getProjection().getView() !== undefined){
-						that.create();
-					}else{
-						//wait view registering
-						plugin.getProjection().addProjectionListener('viewRegister',function(proj){
-							that.create();
-						},'Wait for projection view registering for box widget ');
-					}
-				},'Plugin listener for projection register for box widget');
-	    	}
-	    }
+//	    onRegister : function(){
+//	    	var that = this;
+//	    	var proj = this.getHost().getProjection();
+//	    	if(proj !== undefined){
+//	    		var view = proj.getView();
+//	    		if(view !== undefined){
+//	    			this.create();
+//				}
+//	    	}else{
+//	    		this.getHost().addPluginListener('projectionRegister',function (plugin){
+//	    			//console.log("attach projection listener");
+//					if(plugin.getProjection().getView() !== undefined){
+//						that.create();
+//					}else{
+//						//wait view registering
+//						plugin.getProjection().addProjectionListener('viewRegister',function(proj){
+//							that.create();
+//						},'Wait for projection view registering for box widget ');
+//					}
+//				},'Plugin listener for projection register for box widget');
+//	    	}
+//	    }
 	});
 })();
 (function(){
@@ -742,7 +778,7 @@
 			/** zoom milli tempo */
 			this.zoomMiliTempo = 100;
 			/** zoom factor */
-			this.factor = 30;
+			this.factor = 8;
 			/** current zoom process nature */
 			this.processNature;
 			this.lensListeners = [];
@@ -795,16 +831,7 @@
 		 */
 		startZoomIn : function(zoomNature) {
 			this.zoomInLock = true;
-			var that = this;
-			var execute = function(i){
-				setTimeout(function(){
-					that.zoomIn(zoomNature);
-				},i*that.zoomMiliTempo);
-			};
-			
-			for(var i= 0;i<10;i++){
-				execute(i);
-			}
+			this.zoomIn(zoomNature);
 		},
 		
 		/**
@@ -814,15 +841,7 @@
 		 */
 		startZoomOut : function(zoomNature) {
 			this.zoomOutLock = true;
-			var that = this;
-			var execute = function(){
-				setTimeout(function(i){
-					that.zoomOut(zoomNature);
-				},i*that.zoomMiliTempo);
-			};
-			for(var i= 0;i<10;i++){
-				execute(i);
-			}
+			this.zoomOut(zoomNature);
 		},
 		
 		/**
@@ -854,12 +873,15 @@
 			var pMinXMinYUser = proj.pixelToUser(pMinXMinYDevice);
 			var pMaxXMaxYUser = proj.pixelToUser(pMaxXMaxYDevice);
 				if(this.lensType == 'LensXY'){
+					console.log("zoom in xy")
 					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
 				else if(this.lensType === 'LensX'){
+					console.log("zoom in x")
 					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, proj.getMinY(), proj.getMaxY());
 				}
 				else if(this.lensType === 'LensY'){
+					console.log("zoom in y")
 					proj.bound(proj.getMinX(), proj.getMaxX(), pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
 			this.fireLensEvent('zoomIn');
@@ -929,7 +951,7 @@
 	            	lenses[i].addLensListener('zoomIn',function (plugin){that.zoomIn(plugin);},' Lens synchronizer, zoomIn listener');
 	            	lenses[i].addLensListener('zoomOut',function (plugin){that.zoomOut(plugin);},' Lens synchronizer, zoomOut listener');
 	            	lenses[i].addPluginListener('lock',function (plugin){that.pluginSelected(plugin);},'Lens Synchronizer plugin lock listener');
-	            	lenses[i].addPluginListener('unlock',function (plugin){that.pluginSelected(plugin);},'Lens Synchronizer plugin unlock listener');
+	            	lenses[i].addPluginListener('unlock',function (plugin){that.pluginUnlockSelected(plugin);},'Lens Synchronizer plugin unlock listener');
 	                this.lensList[this.lensList.length] = lenses[i];
 	            }
 	            this.dispathingEvent = false;
