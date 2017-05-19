@@ -9,17 +9,6 @@
 		
 		_init : function(config){
 			config=config||{};
-			
-			// labels commons
-//			this.text;
-//			this.textAnchor = 'start';
-//			this.textColor=(config.textColor !== undefined)? config.textColor:'black';
-//			this.outlineColor=config.outlineColor;
-//			this.outlineWidth=(config.outlineWidth !== undefined)? config.outlineWidth:1;
-//			this.shader = config.shader;
-//			this.fillColor = config.fillColor;
-//			this.fontSize = (config.fontSize !== undefined)? config.fontSize :12;
-//			this.nature = (config.nature !== undefined)? config.nature :'Device';
 			config.name ='TextLabelPlugin';
 			this.labels = [];
 			JenScript.Plugin.call(this, config);
