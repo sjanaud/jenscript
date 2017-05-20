@@ -8949,20 +8949,12 @@ function stringInputToObject(color) {
 		    this.margin = 4;
 		    /** round radius */
 		    this.radius = 3;
-		    /** inset */
 		    /** widget orientation */
 		    this.barOrientation = config.barOrientation;
 		    JenScript.AbstractWidgetGeometry.call(this,config);
 		   
 		    this.iconSize = (config.iconSize !== undefined)?config.iconSize: 20;
-		    //this.installSymbol();
-		    console.log("create icon tool bar");
 		},
-		
-//		installSymbol : function(){
-//			document.addEventListener&&document.addEventListener("DOMContentLoaded",function(){var a,f={},b,d,g,e=!1,h=document.getElementsByTagName("use"),c;XMLHttpRequest&&(e=new XMLHttpRequest,e="withCredentials"in e?XMLHttpRequest:XDomainRequest?XDomainRequest:!1);if(e)for(g=function(){var a=document.body,b=document.createElement("x");b.innerHTML=c.responseText;a.insertBefore(b.firstChild,a.firstChild)},d=0;d<h.length;d+=1)b=h[d].getAttribute("xlink:href").split("#"),a=b[0],b=b[1],a.length||!b||document.getElementById(b)||
-//			(a="https://cdn.linearicons.com/free/1.0.0/svgdefs.svg"),a.length&&(f[a]=f[a]||new e,c=f[a],c.onload||(c.onload=g,c.open("GET",a),c.send()))},!1);
-//		},
 		
 	    addButton : function(button){
 	    	this.buttons.push(button);
@@ -13978,7 +13970,7 @@ function stringInputToObject(color) {
 		_init : function(config){
 			config = config || {};
 		    /** offset radius */
-		    this.offsetRadius = 3;
+		    this.offsetRadius = (config.offsetRadius !== undefined)?config.offsetRadius : 3;
 		    /** gradient incidence angle degree */
 		    this.incidence = (config.incidence !== undefined)?config.incidence : 120;
 		    /** default shader fractions */

@@ -54,7 +54,7 @@
 		_init : function(config){
 			config = config || {};
 		    /** offset radius */
-		    this.offsetRadius = 3;
+		    this.offsetRadius = (config.offsetRadius !== undefined)?config.offsetRadius : 3;
 		    /** gradient incidence angle degree */
 		    this.incidence = (config.incidence !== undefined)?config.incidence : 120;
 		    /** default shader fractions */
