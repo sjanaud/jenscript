@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-19
+// build: 2017-05-20
 // All Rights reserved
 
 /**
@@ -8934,6 +8934,8 @@ function stringInputToObject(color) {
 	JenScript.Model.inheritPrototype(JenScript.IconToolBargeometry, JenScript.AbstractWidgetGeometry);
 	JenScript.Model.addMethods(JenScript.IconToolBargeometry,{
 		_init : function(config){
+			 /** margin */
+		    this.iconDefs = config.iconDefs;
 			/** widget bounding frame */
 		    this.bound2D;
 		    /** bar outline shape */
@@ -8953,14 +8955,14 @@ function stringInputToObject(color) {
 		    JenScript.AbstractWidgetGeometry.call(this,config);
 		   
 		    this.iconSize = (config.iconSize !== undefined)?config.iconSize: 20;
-		    this.installSymbol();
+		    //this.installSymbol();
+		    console.log("create icon tool bar");
 		},
 		
-		installSymbol : function(){
-			//alert('install defs');
-			document.addEventListener&&document.addEventListener("DOMContentLoaded",function(){var a,f={},b,d,g,e=!1,h=document.getElementsByTagName("use"),c;XMLHttpRequest&&(e=new XMLHttpRequest,e="withCredentials"in e?XMLHttpRequest:XDomainRequest?XDomainRequest:!1);if(e)for(g=function(){var a=document.body,b=document.createElement("x");b.innerHTML=c.responseText;a.insertBefore(b.firstChild,a.firstChild)},d=0;d<h.length;d+=1)b=h[d].getAttribute("xlink:href").split("#"),a=b[0],b=b[1],a.length||!b||document.getElementById(b)||
-			(a="https://cdn.linearicons.com/free/1.0.0/svgdefs.svg"),a.length&&(f[a]=f[a]||new e,c=f[a],c.onload||(c.onload=g,c.open("GET",a),c.send()))},!1);
-		},
+//		installSymbol : function(){
+//			document.addEventListener&&document.addEventListener("DOMContentLoaded",function(){var a,f={},b,d,g,e=!1,h=document.getElementsByTagName("use"),c;XMLHttpRequest&&(e=new XMLHttpRequest,e="withCredentials"in e?XMLHttpRequest:XDomainRequest?XDomainRequest:!1);if(e)for(g=function(){var a=document.body,b=document.createElement("x");b.innerHTML=c.responseText;a.insertBefore(b.firstChild,a.firstChild)},d=0;d<h.length;d+=1)b=h[d].getAttribute("xlink:href").split("#"),a=b[0],b=b[1],a.length||!b||document.getElementById(b)||
+//			(a="https://cdn.linearicons.com/free/1.0.0/svgdefs.svg"),a.length&&(f[a]=f[a]||new e,c=f[a],c.onload||(c.onload=g,c.open("GET",a),c.send()))},!1);
+//		},
 		
 	    addButton : function(button){
 	    	this.buttons.push(button);
@@ -8998,7 +9000,7 @@ function stringInputToObject(color) {
 	   
 	    solveButtonGeometry : function(button){
 	    	  var buttonSVG = new JenScript.SVGUse()
-	    	  		.xlinkHref('#'+button.icon)
+	    	  		.xlinkHref(this.iconDefs+'#'+button.icon)
 	    	  		.attr('x',button.bound.x)
 	    	  		.attr('y',button.bound.y)
 	    	  		.attr('width',this.iconSize)
