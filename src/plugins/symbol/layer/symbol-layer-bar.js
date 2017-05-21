@@ -361,6 +361,7 @@
 	            var barRec = new JenScript.SVGRect().origin(x, y).size(width,height);
 	            bar.setBarShape(barRec);
 	        }
+	        bar.setBound2D(new JenScript.Bound2D(x,y,width,height));
 	    },
 
 	    /**
@@ -429,6 +430,9 @@
 	            var barRec = new JenScript.SVGRect().Id(stackedBar.Id).origin(x, y).size(width, height);
 	            stackedBar.setBarShape(barRec);
 	        }
+	        
+	        bar.setBound2D(new JenScript.Bound2D(x,y,width,height));
+	        
 	        var stacks = stackedBar.getStacks();
 	        var count = 0;
 	        for (var i = 0; i < stacks.length; i++) {
@@ -497,6 +501,7 @@
 	            	 var barRec = new JenScript.SVGRect().Id(stack.Id).origin(stackedx,stackedy).size(stackedwidth, stackedheight);
 	                 stack.setBarShape(barRec);
 	            }
+	            stack.setBound2D(new JenScript.Bound2D(stackedx,stackedx,stackedwidth,stackedheight));
 	            count++;
 	        }
 	    },
@@ -567,7 +572,7 @@
 	        bar.setHost(this.getHost());
 	        var proj = this.getHost().getProjection();
 
-	        var p2dUser = null;
+	        var p2dUser = undefined;
 	        if (bar.isAscent()) {
 	            p2dUser = new JenScript.Point2D(bar.getBase() + bar.getValue(), 0);
 	        }
@@ -621,6 +626,7 @@
 	            var barRec = new JenScript.SVGRect().Id(this.Id).origin(x,y).size(width,height);
 	            bar.setBarShape(barRec);
 	        }
+	        bar.setBound2D(new JenScript.Bound2D(x,y,width,height));
 	    },
 
 	    /**
@@ -634,9 +640,8 @@
 	        }
 	        stackedBar.setHost(this.getHost());
 	        stackedBar.normalize();
-	        
-	        var w2d = getHost().getProjection();
-	        var p2dUser = null;
+	        var proj = this.getHost().getProjection();
+	        var p2dUser = undefined;
 	        if (stackedBar.isAscent()) {
 	            p2dUser = new JenScript.Point2D(stackedBar.getBase() + stackedBar.getValue(), 0);
 	        }
@@ -649,9 +654,9 @@
 	        if (!stackedBar.isBaseSet()) {
 	            throw new Error("stacked bar symbol base value should be supplied.");
 	        }
-	        var p2ddevice = w2d.userToPixel(p2dUser);
+	        var p2ddevice = proj.userToPixel(p2dUser);
 	        var p2dUserBase = new JenScript.Point2D(stackedBar.getBase(), 0);
-	        var p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
 	        var y = this.getComponentYLocation(stackedBar);
 	        var x = p2ddeviceBase.x;
 	        if (stackedBar.isAscent()) {
@@ -691,11 +696,13 @@
 	        	  var barRec = new JenScript.SVGRect().Id(stackedBar.Id).origin(x,y).size(width,height);
 	        	  stackedBar.setBarShape(barRec);
 	        }
+	        
+	        stackedBar.setBound2D(new JenScript.Bound2D(x,y,width,height));
+	        
 	        var stacks = stackedBar.getStacks();
 	        var count = 0;
-	        for (var int = 0; int < stacks.length; int++) {
+	        for (var i = 0; i < stacks.length; i++) {
 				var stack = stacks[i];
-
 	            stack.setThickness(stackedBar.getThickness());
 	            stack.setBase(stackedBar.getStackBase(stack));
 	            stack.setNature(stackedBar.getNature());
@@ -715,9 +722,9 @@
 	            else if (stackedBar.isDescent()) {
 	                stackedp2dUser = new JenScript.Point2D(stackedBar.getStackBase(stack) - stack.getNormalizedValue(), 0);
 	            }
-	            var stackedp2ddevice = w2d.userToPixel(stackedp2dUser);
+	            var stackedp2ddevice = proj.userToPixel(stackedp2dUser);
 	            var stackedp2dUserBase = new JenScript.Point2D(stackedBar.getStackBase(stack), 0);
-	            var stackedp2ddeviceBase = w2d.userToPixel(stackedp2dUserBase);
+	            var stackedp2ddeviceBase = proj.userToPixel(stackedp2dUserBase);
 
 	            var stackedy = this.getComponentYLocation(stackedBar);
 	            var stackedx = stackedp2ddeviceBase.x;
@@ -758,13 +765,14 @@
 	                }
 	                else {
 	                	var barRec = new JenScript.SVGRect().Id(stack.Id).origin(stackedx,stackedy).size(stackedwidth,stackedheight);
-	                	stackedBar.setBarShape(barRec);
+	                	stack.setBarShape(barRec);
 	                }
 	            }
 	            else {
 	            	 var barRec = new JenScript.SVGRect().Id(stack.Id).origin(stackedx,stackedy).size(stackedwidth,stackedheight);
-		        	 stackedBar.setBarShape(barRec);
+	            	 stack.setBarShape(barRec);
 	            }
+	            stack.setBound2D(new JenScript.Bound2D(stackedx,stackedy,stackedwidth,stackedheight));
 	            count++;
 	        }
 	    },

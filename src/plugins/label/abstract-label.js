@@ -7,7 +7,7 @@
 	 * @param {String} [config.text] the label text
 	 * @param {String} [config.textColor] the label text color
 	 * @param {Number} [config.fontSize] the label text font size
-	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {String} [config.textAnchor] the label text anchor, start , middle, end
 	 * @param {Object} [config.shader] the label fill shader
 	 * @param {Object} [config.shader.percents] the label fill shader percents
 	 * @param {Object} [config.shader.colors] the label fill shader colors
@@ -59,6 +59,10 @@
 			this.outlineColor = config.outlineColor;
 			this.fillColor = config.fillColor;
 			this.fillOpacity =  (config.fillOpacity !== undefined)? config.fillOpacity : 1;
+			
+			
+			this.rotate =  (config.rotate !== undefined)? config.rotate : false;
+			this.rotateAngle =  (config.rotateAngle !== undefined)? config.rotateAngle : -90;
 			
 			this.proj;
 			this.nature = (config.nature !== undefined)? config.nature : 'Device';
@@ -212,15 +216,18 @@
 												.attr('font-size',this.getFontSize())
 												.attr('fill',c)
 												.attr('text-anchor',this.getTextAnchor())
-												.textContent(this.getText())
-												.buildHTML();
-			label.child(sl);
+												.textContent(this.getText());
+			if(this.rotate)
+				sl.attr('transform','translate(0,0) rotate('+this.rotateAngle+','+lx+','+ly+')')
+												
+			var element = sl.buildHTML();									
+			label.child(element);
 			g2d.deleteGraphicsElement(this.Id);
 			var svgLabel = label.toSVG();
 			this.svg.label = svgLabel;
 			g2d.insertSVG(svgLabel);
 			if(this.paintType !== 'None'){
-				var svgRect = sl.getBBox();
+				var svgRect = element.getBBox();
 						
 				var tr = new JenScript.SVGRect().origin((svgRect.x-10),(svgRect.y-2))
 								.size((svgRect.width+20),(svgRect.height+4))
@@ -248,7 +255,7 @@
 							tr.stroke(this.getOutlineColor()).strokeWidth(this.outlineWidth);
 						}
 					}
-					sl.parentNode.insertBefore(tr.toSVG(),sl);
+					element.parentNode.insertBefore(tr.toSVG(),element);
 				}			
 		},
 	});

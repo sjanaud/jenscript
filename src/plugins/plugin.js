@@ -94,6 +94,19 @@
 			}
 		},
 		
+		getSouth : function(h){
+			return this.getProjection().getView().south;
+		},
+		getWest : function(h){
+			return this.getProjection().getView().west;
+		},
+		getNorth : function(h){
+			return this.getProjection().getView().north;
+		},
+		getEast : function(h){
+			return this.getProjection().getView().east;
+		},
+		
 		
 		/**
 		 * get convenient way to get Device

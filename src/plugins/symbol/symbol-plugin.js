@@ -99,12 +99,12 @@
 	    * @param {String} viewPart the view part
 	    */
 	    paintPlugin : function(g2d,viewPart) {
-	    	if(viewPart !== 'Device') return;
+	    	//if(viewPart !== 'Device') return;
 	        this.solveLayers();
 	        for (var i = 0; i < this.countLayers(); i++) {
 	        	var layer = this.getLayer(i);
 	            layer.paintLayer(g2d,viewPart,'SymbolLayer');
-	            //layer.paintLayer(g2d,viewPart,'LabelLayer');
+	            layer.paintLayer(g2d,viewPart,'LabelLayer');
 	        }
 	    },
 	    

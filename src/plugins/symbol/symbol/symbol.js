@@ -291,7 +291,7 @@
 	        if (this.layer === undefined) {
 	            return 0;
 	        }
-	        if (nature == SymbolNature.Vertical) {
+	        if (this.nature == 'Vertical') {
 	            throw new Error("Vertical symbol has no location y");
 	        }
 	        return this.layer.getComponentYLocation(this);
@@ -306,7 +306,7 @@
 	        if (this.layer === undefined) {
 	            return 0;
 	        }
-	        return this.getLocationY() - this.getThickness() / 2;
+	        return this.getLocationY() + this.getThickness() / 2;
 	    },
 
 	    /**
@@ -375,11 +375,5 @@
 	        this.userObject = userObject;
 	    }
 	
-	
 	});
-	
-	
-
-   
-    
 })();

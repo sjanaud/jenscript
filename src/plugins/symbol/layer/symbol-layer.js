@@ -262,7 +262,6 @@
 	        var flattenSymbols = this.getFlattenSymbolComponents();
 	        var total = 0;
 	        var glues = [];
-	        
 	        for (var i = 0; i < flattenSymbols.length; i++) {
 				var bc = flattenSymbols[i];
 	            if (bc.isFiller && bc.getFillerType() === 'Glue') {

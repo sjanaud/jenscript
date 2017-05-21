@@ -36,7 +36,6 @@
 	     	g2d.deleteGraphicsElement(this.Id+bar.Id);
 		   	var elem =  bar.getBarShape().Id(this.Id+bar.Id).fill(bar.themeColor).fillOpacity(bar.opacity).toSVG();
 		   	g2d.insertSVG(elem);
-		   	//set bar bound2D
 		   	var bbox = elem.getBBox();
 		   	bar.setBound2D(new JenScript.Bound2D(bbox.x,bbox.y,bbox.width,bbox.height));
 	    }
