@@ -123,7 +123,7 @@
 		   	    	}
 	            }
 	        }
-	        if (viewPart !== 'Device'   && paintRequest === 'LabelLayer') {
+	        if (paintRequest === 'LabelLayer') {
 	            this.paintSymbolsAxisLabel(g2d,symbols,viewPart);
 	        }
 	    },
@@ -381,7 +381,7 @@
 	            p2dUser = new JenScript.Point2D(0, stackedBar.getBase() + stackedBar.getValue());
 	        }
 	        if (stackedBar.isDescent()) {
-	            p2dUser = new new JenScript.Point2D(0, stackedBar.getBase() - stackedBar.getValue());
+	            p2dUser = new JenScript.Point2D(0, stackedBar.getBase() - stackedBar.getValue());
 	        }
 	        if (!stackedBar.isValueSet()) {
 	            throw new Error("stacked bar symbol ascent or descent value should be supplied.");
@@ -431,7 +431,7 @@
 	            stackedBar.setBarShape(barRec);
 	        }
 	        
-	        bar.setBound2D(new JenScript.Bound2D(x,y,width,height));
+	        stackedBar.setBound2D(new JenScript.Bound2D(x,y,width,height));
 	        
 	        var stacks = stackedBar.getStacks();
 	        var count = 0;
