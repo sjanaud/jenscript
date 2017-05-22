@@ -143,7 +143,7 @@ module.exports = function(grunt) {
 								"src/plugins/symbol/painter/symbol-painter-effect.js",
 								"src/plugins/symbol/painter/symbol-painter-stroke.js",
 								"src/plugins/symbol/painter/symbol-painter-axis.js",
-								//"src/plugins/symbol/painter/symbol-painter-label.js",
+								"src/plugins/symbol/painter/symbol-painter-label.js",
 								"src/plugins/symbol/painter/symbol-painter-point.js",
 								"src/plugins/symbol/painter/symbol-painter-polyline.js",
 								"src/plugins/symbol/layer/symbol-layer.js",
