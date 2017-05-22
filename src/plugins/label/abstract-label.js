@@ -61,8 +61,10 @@
 			this.fillOpacity =  (config.fillOpacity !== undefined)? config.fillOpacity : 1;
 			
 			
-			this.rotate =  (config.rotate !== undefined)? config.rotate : false;
-			this.rotateAngle =  (config.rotateAngle !== undefined)? config.rotateAngle : -90;
+			//this.rotate =  (config.rotate !== undefined)? config.rotate : false;
+			this.rotateAngle =  (config.rotateAngle !== undefined)? config.rotateAngle : 0;
+			this.tx =  (config.tx !== undefined)? config.tx : 0;
+			this.ty =  (config.ty !== undefined)? config.ty : 0;
 			
 			this.proj;
 			this.nature = (config.nature !== undefined)? config.nature : 'Device';
@@ -216,10 +218,9 @@
 												.attr('font-size',this.getFontSize())
 												.attr('fill',c)
 												.attr('text-anchor',this.getTextAnchor())
+												.attr('transform','translate('+this.tx+','+this.ty+') rotate('+this.rotateAngle+','+lx+','+ly+')')
 												.textContent(this.getText());
-			if(this.rotate)
-				sl.attr('transform','translate(0,0) rotate('+this.rotateAngle+','+lx+','+ly+')')
-												
+			
 			var element = sl.buildHTML();									
 			label.child(element);
 			g2d.deleteGraphicsElement(this.Id);
