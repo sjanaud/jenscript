@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-20
+// build: 2017-05-22
 // All Rights reserved
 
 (function(){
@@ -300,7 +300,7 @@
 	        if (this.layer === undefined) {
 	            return 0;
 	        }
-	        if (nature == SymbolNature.Vertical) {
+	        if (this.nature == 'Vertical') {
 	            throw new Error("Vertical symbol has no location y");
 	        }
 	        return this.layer.getComponentYLocation(this);
@@ -315,7 +315,7 @@
 	        if (this.layer === undefined) {
 	            return 0;
 	        }
-	        return this.getLocationY() - this.getThickness() / 2;
+	        return this.getLocationY() + this.getThickness() / 2;
 	    },
 
 	    /**
@@ -384,13 +384,7 @@
 	        this.userObject = userObject;
 	    }
 	
-	
 	});
-	
-	
-
-   
-    
 })();
 (function(){
 	
@@ -1400,7 +1394,6 @@
 	     	g2d.deleteGraphicsElement(this.Id+bar.Id);
 		   	var elem =  bar.getBarShape().Id(this.Id+bar.Id).fill(bar.themeColor).fillOpacity(bar.opacity).toSVG();
 		   	g2d.insertSVG(elem);
-		   	//set bar bound2D
 		   	var bbox = elem.getBBox();
 		   	bar.setBound2D(new JenScript.Bound2D(bbox.x,bbox.y,bbox.width,bbox.height));
 	    }
@@ -1509,12 +1502,12 @@
 		},
 		
 		paintBarEffect : function(g2d,bar){
-			 if (bar.getNature() === 'Vertical') {
-		            this.v(g2d,bar);
-		        }
-		        if (bar.getNature() === 'Horizontal') {
-		            this.h(g2d,bar);
-		        }
+			if (bar.getNature() === 'Vertical') {
+		        this.v(g2d,bar);
+	        }
+	        if (bar.getNature() === 'Horizontal') {
+	            this.h(g2d,bar);
+	        }
 		},
 		
 		 v : function(g2d,bar) {
@@ -1604,96 +1597,88 @@
 
 	    h : function(g2d, bar) {
 
-//	        Projection w2d = bar.getHost().getProjection();
-//
-//	        Point2D p2dUser = null;
-//	        if (bar.isAscent()) {
-//	            p2dUser = new JenScript.Point2D(bar.getBase() + bar.getValue(), 0);
-//	        }
-//	        if (bar.isDescent()) {
-//	            p2dUser = new JenScript.Point2D(bar.getBase() - bar.getValue(), 0);
-//	        }
-//
-//	        Point2D p2ddevice = w2d.userToPixel(p2dUser);
-//
-//	        Point2D p2dUserBase = new JenScript.Point2D(bar.getBase(), 0);
-//	        Point2D p2ddeviceBase = w2d.userToPixel(p2dUserBase);
-//
-//	        double y = bar.getLocationY();
-//	        double x = (int) p2ddeviceBase.getX();
-//	        if (bar.isAscent()) {
-//	            x = (int) p2ddeviceBase.getX();
-//	        }
-//	        if (bar.isDescent()) {
-//	            x = (int) p2ddevice.getX();
-//	        }
-//
-//	        double height = bar.getThickness();
-//	        double width = Math.abs(p2ddevice.getX() - p2ddeviceBase.getX());
-//
-//	        Shape shapeEffect = null;
-//
-//	        int inset = 2;
-//	        x = x + inset;
-//	        y = y + inset;
-//	        width = width - 2 * inset;
-//	        height = height - 2 * inset;
-//	        if (bar.getMorpheStyle() == MorpheStyle.Round) {
-//	            double round = bar.getRound();
-//	            GeneralPath barPath = new GeneralPath();
-//	            if (bar.isAscent()) {
-//	                barPath.moveTo(x, y);
-//	                barPath.lineTo(x + width - round, y);
-//	                barPath.quadTo(x + width, y, x + width, y + round);
-//	                barPath.lineTo(x + width, y + height / 2);
-//	                barPath.lineTo(x, y + height / 2);
-//	                barPath.closePath();
-//	            }
-//	            else if (bar.isDescent()) {
-//	                barPath.moveTo(x + round, y);
-//	                barPath.lineTo(x + width, y);
-//	                barPath.lineTo(x + width, y + height / 2);
-//	                barPath.lineTo(x, y + height / 2);
-//	                barPath.quadTo(x, y, x + round, y);
-//	                barPath.closePath();
-//	            }
-//	            shapeEffect = barPath;
-//	        }
-//	        else {
-//	            Rectangle2D barRec = new Rectangle2D.Double(x, y, width, height / 2);
-//	            shapeEffect = barRec;
-//	        }
-//
-//	        Rectangle2D boun2D2 = shapeEffect.getBounds2D();
-//
-//	        Point2D start = null;
-//	        Point2D end = null;
-//	        if (bar.isAscent()) {
-//	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getCenterY());
-//	            end = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(),
-//	                                     boun2D2.getCenterY());
-//	        }
-//	        else if (bar.isDescent()) {
-//	            start = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(),
-//	                                       boun2D2.getCenterY());
-//	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getCenterY());
-//	        }
-//	        float[] dist = { 0.0f, 1.0f };
-//	        Color[] colors = {'rgba(255, 255, 255, 120),
-//	               'rgba(255, 255, 255, 80) };
-//	        LinearGradientPaint p2 = new LinearGradientPaint(start, end, dist,
-//	                                                         colors);
-//
-//	        g2d.setPaint(p2);
-//
-//	        g2d.fill(shapeEffect);
+	        var proj = bar.getHost().getProjection();
+
+	        var p2dUser = null;
+	        if (bar.isAscent()) {
+	            p2dUser = new JenScript.Point2D(bar.getBase() + bar.getValue(), 0);
+	        }
+	        if (bar.isDescent()) {
+	            p2dUser = new JenScript.Point2D(bar.getBase() - bar.getValue(), 0);
+	        }
+
+	        var p2ddevice = proj.userToPixel(p2dUser);
+
+	        var p2dUserBase = new JenScript.Point2D(bar.getBase(), 0);
+	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
+
+	        var y = bar.getLocationY();
+	        var x = p2ddeviceBase.getX();
+	        if (bar.isDescent()) {
+	            x = p2ddevice.getX();
+	        }
+
+	        var height = bar.getThickness();
+	        var width = Math.abs(p2ddevice.getX() - p2ddeviceBase.getX());
+
+	        var shapeEffect = null;
+
+	        var inset = 2;
+	        x = x + inset;
+	        y = y + inset;
+	        width = width - 2 * inset;
+	        height = height - 2 * inset;
+	        if (bar.getMorpheStyle() == 'Round') {
+	            var round = bar.getRound();
+	            var barPath = new JenScript.SVGPath().Id(this.Id);
+	            if (bar.isAscent()) {
+	                barPath.moveTo(x, y);
+	                barPath.lineTo(x + width - round, y);
+	                barPath.quadTo(x + width, y, x + width, y + round);
+	                barPath.lineTo(x + width, y + height / 2);
+	                barPath.lineTo(x, y + height / 2);
+	                barPath.close();
+	            }
+	            else if (bar.isDescent()) {
+	                barPath.moveTo(x + round, y);
+	                barPath.lineTo(x + width, y);
+	                barPath.lineTo(x + width, y + height / 2);
+	                barPath.lineTo(x, y + height / 2);
+	                barPath.quadTo(x, y, x + round, y);
+	                barPath.close();
+	            }
+	            shapeEffect = barPath;
+	        }
+	        else {
+	            var barRec = new JenScript.SVGRect().Id(this.Id).origin(x, y).size(width, height/2);
+	            shapeEffect = barRec;
+	        }
+
+	        var boun2D2 = new JenScript.Bound2D(x, y,width, height);
+	        var start = null;
+	        var end = null;
+	        if (bar.isAscent()) {
+	            start = new JenScript.Point2D(boun2D2.getX(), boun2D2.getCenterY());
+	            end = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(),
+	                                     boun2D2.getCenterY());
+	        }
+	        else if (bar.isDescent()) {
+	            start = new JenScript.Point2D(boun2D2.getX() + boun2D2.getWidth(),
+	                                       boun2D2.getCenterY());
+	            end = new JenScript.Point2D(boun2D2.getX(), boun2D2.getCenterY());
+	        }
+	        var dist =  [ '0%', '100%' ];
+	        var colors = ['rgba(255, 255, 255, 0.3)','rgba(255, 255, 255, 0.5)'];
+	               
+	        var gradient1= new JenScript.SVGLinearGradient().Id(this.Id+'gradient').from(start.x, start.y).to(end.x, end.y).shade(dist,colors);
+	        g2d.deleteGraphicsElement(this.gradientId);
+	        g2d.definesSVG(gradient1.toSVG());
+	        
+	        var el = shapeEffect.fillURL(this.Id+'gradient').toSVG();
+	        g2d.insertSVG(el);
 	    }
 		
-		
-		
 	});
-	
-	
 	
 	
 	JenScript.SymbolBarEffect1 = function(config) {
@@ -1719,9 +1704,7 @@
 		
 		v : function(g2d, bar) {
 
-	        // Graphics2D partGraphics =bar.getPart().getGraphics2D();
-
-	        var w2d = bar.getHost().getProjection();
+	        var proj = bar.getHost().getProjection();
 
 	        var p2dUser = null;
 	        if (bar.isAscent()) {
@@ -1730,10 +1713,10 @@
 	        if (bar.isDescent()) {
 	            p2dUser = new JenScript.Point2D(0, bar.getBase() - bar.getValue());
 	        }
-	        var p2ddevice = w2d.userToPixel(p2dUser);
+	        var p2ddevice = proj.userToPixel(p2dUser);
 
 	        var p2dUserBase = new JenScript.Point2D(0, bar.getBase());
-	        var p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
 
 	        var x = bar.getLocationX();
 	        var y =  p2ddevice.getY();
@@ -1799,7 +1782,7 @@
 
 	    h : function(g2d, bar) {
 
-//	        Projection w2d = bar.getHost().getProjection();
+//	        Projection proj = bar.getHost().getProjection();
 //
 //	        Point2D p2dUser = null;
 //	        if (bar.isAscent()) {
@@ -1809,10 +1792,10 @@
 //	            p2dUser = new JenScript.Point2D(bar.getBase() - bar.getValue(), 0);
 //	        }
 //
-//	        Point2D p2ddevice = w2d.userToPixel(p2dUser);
+//	        Point2D p2ddevice = proj.userToPixel(p2dUser);
 //
 //	        Point2D p2dUserBase = new JenScript.Point2D(bar.getBase(), 0);
-//	        Point2D p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+//	        Point2D p2ddeviceBase = proj.userToPixel(p2dUserBase);
 //
 //	        double y = bar.getLocationY();
 //	        double x = (int) p2ddeviceBase.getX();
@@ -1922,7 +1905,7 @@
 		
 		v : function(g2d, bar) {
 
-	        var w2d = bar.getHost().getProjection();
+	        var proj = bar.getHost().getProjection();
 
 	        var p2dUser = null;
 	        if (bar.isAscent()) {
@@ -1931,10 +1914,10 @@
 	        if (bar.isDescent()) {
 	            p2dUser = new JenScript.Point2D(0, bar.getBase() - bar.getValue());
 	        }
-	        var p2ddevice = w2d.userToPixel(p2dUser);
+	        var p2ddevice = proj.userToPixel(p2dUser);
 
 	        var p2dUserBase = new JenScript.Point2D(0, bar.getBase());
-	        var p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
 
 	        var x = bar.getLocationX();
 	        var y =  p2ddevice.getY();
@@ -2022,7 +2005,7 @@
 
 	    h:function(g2d, bar) {
 
-//	        Projection w2d = bar.getHost().getProjection();
+//	        Projection proj = bar.getHost().getProjection();
 //
 //	        Point2D p2dUser = null;
 //	        if (bar.isAscent()) {
@@ -2032,10 +2015,10 @@
 //	            p2dUser = new JenScript.Point2D(bar.getBase() - bar.getValue(), 0);
 //	        }
 //
-//	        Point2D p2ddevice = w2d.userToPixel(p2dUser);
+//	        Point2D p2ddevice = proj.userToPixel(p2dUser);
 //
 //	        Point2D p2dUserBase = new JenScript.Point2D(bar.getBase(), 0);
-//	        Point2D p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+//	        Point2D p2ddeviceBase = proj.userToPixel(p2dUserBase);
 //
 //	        double y = bar.getLocationY();
 //	        double x = (int) p2ddeviceBase.getX();
@@ -2160,7 +2143,7 @@
 	        if (bar.getHost() === undefined || bar.getHost().getProjection() === undefined) {
 	            return;
 	        }
-	        var w2d = bar.getHost().getProjection();
+	        var proj = bar.getHost().getProjection();
 	        var p2dUser = null;
 	        if (bar.isAscent()) {
 	            p2dUser = new JenScript.Point2D(0, bar.getBase() + bar.getValue());
@@ -2168,9 +2151,9 @@
 	        if (bar.isDescent()) {
 	            p2dUser = new JenScript.Point2D(0, bar.getBase() - bar.getValue());
 	        }
-	        var p2ddevice = w2d.userToPixel(p2dUser);
+	        var p2ddevice = proj.userToPixel(p2dUser);
 	        var p2dUserBase = new JenScript.Point2D(0, bar.getBase());
-	        var p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
 
 	        var x = bar.getLocationX();
 	        var y = p2ddevice.getY();
@@ -2248,7 +2231,7 @@
 
 	    h : function(g2d,bar) {
 
-//	        Projection w2d = bar.getHost().getProjection();
+//	        Projection proj = bar.getHost().getProjection();
 //
 //	        Point2D p2dUser = null;
 //	        if (bar.isAscent()) {
@@ -2258,10 +2241,10 @@
 //	            p2dUser = new JenScript.Point2D(bar.getBase() - bar.getValue(), 0);
 //	        }
 //
-//	        Point2D p2ddevice = w2d.userToPixel(p2dUser);
+//	        Point2D p2ddevice = proj.userToPixel(p2dUser);
 //
 //	        Point2D p2dUserBase = new JenScript.Point2D(bar.getBase(), 0);
-//	        Point2D p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+//	        Point2D p2ddeviceBase = proj.userToPixel(p2dUserBase);
 //
 //	        double y = bar.getLocationY();
 //	        double x = (int) p2ddeviceBase.getX();
@@ -2391,6 +2374,253 @@
 	
 })();
 (function(){
+	
+	/**
+	 * Object SymbolAbstractLabel()
+	 * Defines Symbol Abstract Label
+	 * @param {Object} config
+	 * @param {String} [config.name] the label type name
+	 * @param {String} [config.text] the label text
+	 * @param {String} [config.textColor] the label text color
+	 * @param {Number} [config.fontSize] the label text font size
+	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {Object} [config.shader] the label fill shader
+	 * @param {Object} [config.shader.percents] the label fill shader percents
+	 * @param {Object} [config.shader.colors] the label fill shader colors
+	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+	 * @param {String} [config.outlineColor] the label outline color
+	 * @param {String} [config.cornerRadius] the label outline corner radius
+	 * @param {String} [config.fillColor] the label fill color
+	 */
+	JenScript.SymbolAbstractLabel = function(config) {
+		this._init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolAbstractLabel,JenScript.AbstractLabel);
+	JenScript.Model.addMethods(JenScript.SymbolAbstractLabel,{
+		
+		/**
+		 * Initialize Abstract Symbol Label
+		 * @param {Object} config
+		 * @param {String} [config.name] the label type name
+		 * @param {String} [config.text] the label text
+		 * @param {String} [config.textColor] the label text color
+		 * @param {Number} [config.fontSize] the label text font size
+		 * @param {String} [config.textAnchor] the label text anchor
+		 * @param {Object} [config.shader] the label fill shader
+		 * @param {Object} [config.shader.percents] the label fill shader percents
+		 * @param {Object} [config.shader.colors] the label fill shader colors
+		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+		 * @param {String} [config.outlineColor] the label outline color
+		 * @param {String} [config.cornerRadius] the label outline corner radius
+		 * @param {String} [config.fillColor] the label fill color
+		 */
+		_init : function(config){
+			JenScript.AbstractLabel.call(this,config);
+		},
+		
+		/**
+		 * Abstract label paint for Symbol
+		 */
+		paintSymbol : function(g2d,symbol,part){
+			throw new Error('paintSymbolLabel method should be provide by override');
+		}
+		
+	});
+	
+	
+	/**
+	 * Object SymbolAxisLabel()
+	 * Defines symbol axis label 
+	 * @param {Object} config
+	 * @param {String} [config.name] the label type name
+	 * @param {String} [config.text] the label text
+	 * @param {String} [config.textColor] the label text color
+	 * @param {Number} [config.fontSize] the label text font size
+	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {Object} [config.shader] the label fill shader
+	 * @param {Object} [config.shader.percents] the label fill shader percents
+	 * @param {Object} [config.shader.colors] the label fill shader colors
+	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+	 * @param {String} [config.outlineColor] the label outline color
+	 * @param {String} [config.cornerRadius] the label outline corner radius
+	 * @param {String} [config.fillColor] the label fill color
+	 * @param {String} [config.rotate] active rotate
+	 * @param {String} [config.rotateAngle] the label rotation angle
+	 * @param {String} [config.part] the label view part, east, west, south, east, device
+	 * @param {String} [config.position] the label position, top, bottom, middle
+	 */
+	JenScript.SymbolAxisLabel = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolAxisLabel, JenScript.SymbolAbstractLabel);
+	JenScript.Model.addMethods(JenScript.SymbolAxisLabel, {
+		
+		/**
+		 * Initialize Symbol Axis Label
+		 * @param {Object} config
+		 * @param {String} [config.name] the label type name
+		 * @param {String} [config.text] the label text
+		 * @param {String} [config.textColor] the label text color
+		 * @param {Number} [config.fontSize] the label text font size
+		 * @param {String} [config.textAnchor] the label text anchor
+		 * @param {Object} [config.shader] the label fill shader
+		 * @param {Object} [config.shader.percents] the label fill shader percents
+		 * @param {Object} [config.shader.colors] the label fill shader colors
+		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+		 * @param {String} [config.outlineColor] the label outline color
+		 * @param {String} [config.cornerRadius] the label outline corner radius
+		 * @param {String} [config.fillColor] the label fill color
+		 * @param {String} [config.rotate] active rotate
+		 * @param {String} [config.rotateAngle] the label rotation angle
+		 * @param {String} [config.part] the label view part, east, west, south, east, device
+		 * 
+		 */
+		__init : function(config){
+			config = config || {};
+			config.name = 'JenScript.SymbolAxisLabel';
+			this.part = (config.part !== undefined)? config.part:'West';
+			JenScript.SymbolAbstractLabel.call(this, config);
+		},
+		
+		/**
+		 *Paint default label Symbol
+		 */
+		paintSymbol : function(g2d,symbol,part){
+			if (symbol.getNature() === 'Vertical') {
+				this.paintVLabel(g2d,symbol,part);
+		    }
+		    if (symbol.getNature() === 'Horizontal') {
+		    	this.paintHLabel(g2d,symbol,part);
+		    }
+		},
+		
+		paintHLabel : function(g2d,symbol,part){
+			var cy = symbol.getCenterY();
+			var w = symbol.getHost().getWest();
+			if(this.part === 'West' && part === 'West'){
+		        this.setLocation(new JenScript.Point2D(w-5,cy));
+			}
+			if(this.part === 'East'  && part === 'East'){
+		        this.setLocation(new JenScript.Point2D(5,cy));
+			}
+			this.paintLabel(g2d);
+		},
+		
+		paintVLabel : function(g2d,symbol,part){
+			var cx = symbol.getCenterX();
+			var w = symbol.getHost().getWest();
+			var n = symbol.getHost().getNorth();
+			if(this.part === 'South' && part === 'South'){
+		        this.setLocation(new JenScript.Point2D(w+cx,5));
+			}
+			else if(this.part === 'North' && part === 'North'){
+		        this.setLocation(new JenScript.Point2D(w+cx,n-5));
+			}
+			this.paintLabel(g2d);
+		},
+	});
+	
+	
+	/**
+	 * Object SymbolBarLabel()
+	 * Defines symbol bar label 
+	 * @param {Object} config
+	 * @param {String} [config.name] the label type name
+	 * @param {String} [config.text] the label text
+	 * @param {String} [config.textColor] the label text color
+	 * @param {Number} [config.fontSize] the label text font size
+	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {Object} [config.shader] the label fill shader
+	 * @param {Object} [config.shader.percents] the label fill shader percents
+	 * @param {Object} [config.shader.colors] the label fill shader colors
+	 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+	 * @param {String} [config.outlineColor] the label outline color
+	 * @param {String} [config.cornerRadius] the label outline corner radius
+	 * @param {String} [config.fillColor] the label fill color
+	 * @param {String} [config.rotate] active rotate
+	 * @param {String} [config.rotateAngle] the label rotation angle
+	 * @param {String} [config.part] the label view part, east, west, south, east, device
+	 * @param {String} [config.position] the label position, top, bottom, middle
+	 */
+	JenScript.SymbolBarLabel = function(config) {
+		this.__init(config);
+	};
+	JenScript.Model.inheritPrototype(JenScript.SymbolBarLabel, JenScript.SymbolAbstractLabel);
+	JenScript.Model.addMethods(JenScript.SymbolBarLabel, {
+		
+		/**
+		 * Initialize Symbol Default Label
+		 * @param {Object} config
+		 * @param {String} [config.name] the label type name
+		 * @param {String} [config.text] the label text
+		 * @param {String} [config.textColor] the label text color
+		 * @param {Number} [config.fontSize] the label text font size
+		 * @param {String} [config.textAnchor] the label text anchor
+		 * @param {Object} [config.shader] the label fill shader
+		 * @param {Object} [config.shader.percents] the label fill shader percents
+		 * @param {Object} [config.shader.colors] the label fill shader colors
+		 * @param {String} [config.paintType] the label paint type should be , Both, Stroke, Fill, None
+		 * @param {String} [config.outlineColor] the label outline color
+		 * @param {String} [config.cornerRadius] the label outline corner radius
+		 * @param {String} [config.fillColor] the label fill color
+		 * @param {String} [config.rotate] active rotate
+		 * @param {String} [config.rotateAngle] the label rotation angle
+		 * @param {String} [config.part] the label view part, east, west, south, east, device
+		 * 
+		 */
+		__init : function(config){
+			config = config || {};
+			config.name = 'JenScript.SymbolBarLabel';
+			this.part = (config.part !== undefined)? config.part:'West';
+			this.barAnchor = (config.barAnchor !== undefined)? config.barAnchor:'middle';
+			JenScript.SymbolAbstractLabel.call(this, config);
+		},
+		
+		/**
+		 *Paint default label Symbol
+		 */
+		paintSymbol : function(g2d,symbol,part){
+			if (symbol.getNature() === 'Vertical') {
+				this.paintVLabel(g2d,symbol,part);
+		    }
+		    if (symbol.getNature() === 'Horizontal') {
+		    	this.paintHLabel(g2d,symbol,part);
+		    }
+		},
+		
+		paintHLabel : function(g2d,symbol,part){
+		  if(part === 'Device'){
+				var b = symbol.getBound2D();
+				if(this.barAnchor === 'bottom'){
+					 this.setLocation(new JenScript.Point2D(b.getX(),b.getCenterY()));
+				}
+				else if(this.barAnchor === 'top'){
+					 this.setLocation(new JenScript.Point2D(b.getX()+b.getWidth(),b.getCenterY()));
+				}
+				else if(this.barAnchor === 'middle'){
+					 this.setLocation(new JenScript.Point2D(b.getCenterX(),b.getCenterY()));
+				}
+				this.paintLabel(g2d);
+			}
+		},
+		
+		paintVLabel : function(g2d,symbol,part){
+			if(part === 'Device'){
+				var b = symbol.getBound2D();
+		        if(this.barAnchor === 'bottom'){
+					 this.setLocation(new JenScript.Point2D(b.getCenterX(),b.getY()+b.getHeight()));
+				}
+				else if(this.barAnchor === 'top'){
+					 this.setLocation(new JenScript.Point2D(b.getCenterX(),b.getY()));
+				}
+				else if(this.barAnchor === 'middle'){
+					 this.setLocation(new JenScript.Point2D(b.getCenterX(),b.getCenterY()));
+				}
+				this.paintLabel(g2d);
+			}
+		},
+		
+	});
 	
 })();
 (function(){
@@ -2734,7 +2964,6 @@
 	        var flattenSymbols = this.getFlattenSymbolComponents();
 	        var total = 0;
 	        var glues = [];
-	        
 	        for (var i = 0; i < flattenSymbols.length; i++) {
 				var bc = flattenSymbols[i];
 	            if (bc.isFiller && bc.getFillerType() === 'Glue') {
@@ -2896,7 +3125,7 @@
 		   	    	}
 	            }
 	        }
-	        if (viewPart !== 'Device'   && paintRequest === 'LabelLayer') {
+	        if (paintRequest === 'LabelLayer') {
 	            this.paintSymbolsAxisLabel(g2d,symbols,viewPart);
 	        }
 	    },
@@ -3134,6 +3363,7 @@
 	            var barRec = new JenScript.SVGRect().origin(x, y).size(width,height);
 	            bar.setBarShape(barRec);
 	        }
+	        bar.setBound2D(new JenScript.Bound2D(x,y,width,height));
 	    },
 
 	    /**
@@ -3153,7 +3383,7 @@
 	            p2dUser = new JenScript.Point2D(0, stackedBar.getBase() + stackedBar.getValue());
 	        }
 	        if (stackedBar.isDescent()) {
-	            p2dUser = new new JenScript.Point2D(0, stackedBar.getBase() - stackedBar.getValue());
+	            p2dUser = new JenScript.Point2D(0, stackedBar.getBase() - stackedBar.getValue());
 	        }
 	        if (!stackedBar.isValueSet()) {
 	            throw new Error("stacked bar symbol ascent or descent value should be supplied.");
@@ -3202,6 +3432,9 @@
 	            var barRec = new JenScript.SVGRect().Id(stackedBar.Id).origin(x, y).size(width, height);
 	            stackedBar.setBarShape(barRec);
 	        }
+	        
+	        stackedBar.setBound2D(new JenScript.Bound2D(x,y,width,height));
+	        
 	        var stacks = stackedBar.getStacks();
 	        var count = 0;
 	        for (var i = 0; i < stacks.length; i++) {
@@ -3270,6 +3503,7 @@
 	            	 var barRec = new JenScript.SVGRect().Id(stack.Id).origin(stackedx,stackedy).size(stackedwidth, stackedheight);
 	                 stack.setBarShape(barRec);
 	            }
+	            stack.setBound2D(new JenScript.Bound2D(stackedx,stackedx,stackedwidth,stackedheight));
 	            count++;
 	        }
 	    },
@@ -3340,7 +3574,7 @@
 	        bar.setHost(this.getHost());
 	        var proj = this.getHost().getProjection();
 
-	        var p2dUser = null;
+	        var p2dUser = undefined;
 	        if (bar.isAscent()) {
 	            p2dUser = new JenScript.Point2D(bar.getBase() + bar.getValue(), 0);
 	        }
@@ -3394,6 +3628,7 @@
 	            var barRec = new JenScript.SVGRect().Id(this.Id).origin(x,y).size(width,height);
 	            bar.setBarShape(barRec);
 	        }
+	        bar.setBound2D(new JenScript.Bound2D(x,y,width,height));
 	    },
 
 	    /**
@@ -3407,9 +3642,8 @@
 	        }
 	        stackedBar.setHost(this.getHost());
 	        stackedBar.normalize();
-	        
-	        var w2d = getHost().getProjection();
-	        var p2dUser = null;
+	        var proj = this.getHost().getProjection();
+	        var p2dUser = undefined;
 	        if (stackedBar.isAscent()) {
 	            p2dUser = new JenScript.Point2D(stackedBar.getBase() + stackedBar.getValue(), 0);
 	        }
@@ -3422,9 +3656,9 @@
 	        if (!stackedBar.isBaseSet()) {
 	            throw new Error("stacked bar symbol base value should be supplied.");
 	        }
-	        var p2ddevice = w2d.userToPixel(p2dUser);
+	        var p2ddevice = proj.userToPixel(p2dUser);
 	        var p2dUserBase = new JenScript.Point2D(stackedBar.getBase(), 0);
-	        var p2ddeviceBase = w2d.userToPixel(p2dUserBase);
+	        var p2ddeviceBase = proj.userToPixel(p2dUserBase);
 	        var y = this.getComponentYLocation(stackedBar);
 	        var x = p2ddeviceBase.x;
 	        if (stackedBar.isAscent()) {
@@ -3464,11 +3698,13 @@
 	        	  var barRec = new JenScript.SVGRect().Id(stackedBar.Id).origin(x,y).size(width,height);
 	        	  stackedBar.setBarShape(barRec);
 	        }
+	        
+	        stackedBar.setBound2D(new JenScript.Bound2D(x,y,width,height));
+	        
 	        var stacks = stackedBar.getStacks();
 	        var count = 0;
-	        for (var int = 0; int < stacks.length; int++) {
+	        for (var i = 0; i < stacks.length; i++) {
 				var stack = stacks[i];
-
 	            stack.setThickness(stackedBar.getThickness());
 	            stack.setBase(stackedBar.getStackBase(stack));
 	            stack.setNature(stackedBar.getNature());
@@ -3488,9 +3724,9 @@
 	            else if (stackedBar.isDescent()) {
 	                stackedp2dUser = new JenScript.Point2D(stackedBar.getStackBase(stack) - stack.getNormalizedValue(), 0);
 	            }
-	            var stackedp2ddevice = w2d.userToPixel(stackedp2dUser);
+	            var stackedp2ddevice = proj.userToPixel(stackedp2dUser);
 	            var stackedp2dUserBase = new JenScript.Point2D(stackedBar.getStackBase(stack), 0);
-	            var stackedp2ddeviceBase = w2d.userToPixel(stackedp2dUserBase);
+	            var stackedp2ddeviceBase = proj.userToPixel(stackedp2dUserBase);
 
 	            var stackedy = this.getComponentYLocation(stackedBar);
 	            var stackedx = stackedp2ddeviceBase.x;
@@ -3531,13 +3767,14 @@
 	                }
 	                else {
 	                	var barRec = new JenScript.SVGRect().Id(stack.Id).origin(stackedx,stackedy).size(stackedwidth,stackedheight);
-	                	stackedBar.setBarShape(barRec);
+	                	stack.setBarShape(barRec);
 	                }
 	            }
 	            else {
 	            	 var barRec = new JenScript.SVGRect().Id(stack.Id).origin(stackedx,stackedy).size(stackedwidth,stackedheight);
-		        	 stackedBar.setBarShape(barRec);
+	            	 stack.setBarShape(barRec);
 	            }
+	            stack.setBound2D(new JenScript.Bound2D(stackedx,stackedy,stackedwidth,stackedheight));
 	            count++;
 	        }
 	    },
@@ -3991,12 +4228,12 @@
 	    * @param {String} viewPart the view part
 	    */
 	    paintPlugin : function(g2d,viewPart) {
-	    	if(viewPart !== 'Device') return;
+	    	//if(viewPart !== 'Device') return;
 	        this.solveLayers();
 	        for (var i = 0; i < this.countLayers(); i++) {
 	        	var layer = this.getLayer(i);
 	            layer.paintLayer(g2d,viewPart,'SymbolLayer');
-	            //layer.paintLayer(g2d,viewPart,'LabelLayer');
+	            layer.paintLayer(g2d,viewPart,'LabelLayer');
 	        }
 	    },
 	    

@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-20
+// build: 2017-05-22
 // All Rights reserved
 
 (function(){
@@ -1274,7 +1274,7 @@
 		_init : function(config){
 			config = config || {};
 		    /** offset radius */
-		    this.offsetRadius = 3;
+		    this.offsetRadius = (config.offsetRadius !== undefined)?config.offsetRadius : 3;
 		    /** gradient incidence angle degree */
 		    this.incidence = (config.incidence !== undefined)?config.incidence : 120;
 		    /** default shader fractions */

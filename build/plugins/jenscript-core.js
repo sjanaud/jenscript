@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-20
+// build: 2017-05-22
 // All Rights reserved
 
 /**
@@ -6705,6 +6705,19 @@ function stringInputToObject(color) {
 			}
 		},
 		
+		getSouth : function(h){
+			return this.getProjection().getView().south;
+		},
+		getWest : function(h){
+			return this.getProjection().getView().west;
+		},
+		getNorth : function(h){
+			return this.getProjection().getView().north;
+		},
+		getEast : function(h){
+			return this.getProjection().getView().east;
+		},
+		
 		
 		/**
 		 * get convenient way to get Device
@@ -10533,7 +10546,7 @@ function stringInputToObject(color) {
 	 * @param {String} [config.text] the label text
 	 * @param {String} [config.textColor] the label text color
 	 * @param {Number} [config.fontSize] the label text font size
-	 * @param {String} [config.textAnchor] the label text anchor
+	 * @param {String} [config.textAnchor] the label text anchor, start , middle, end
 	 * @param {Object} [config.shader] the label fill shader
 	 * @param {Object} [config.shader.percents] the label fill shader percents
 	 * @param {Object} [config.shader.colors] the label fill shader colors
@@ -10585,6 +10598,12 @@ function stringInputToObject(color) {
 			this.outlineColor = config.outlineColor;
 			this.fillColor = config.fillColor;
 			this.fillOpacity =  (config.fillOpacity !== undefined)? config.fillOpacity : 1;
+			
+			
+			//this.rotate =  (config.rotate !== undefined)? config.rotate : false;
+			this.rotateAngle =  (config.rotateAngle !== undefined)? config.rotateAngle : 0;
+			this.tx =  (config.tx !== undefined)? config.tx : 0;
+			this.ty =  (config.ty !== undefined)? config.ty : 0;
 			
 			this.proj;
 			this.nature = (config.nature !== undefined)? config.nature : 'Device';
@@ -10738,15 +10757,17 @@ function stringInputToObject(color) {
 												.attr('font-size',this.getFontSize())
 												.attr('fill',c)
 												.attr('text-anchor',this.getTextAnchor())
-												.textContent(this.getText())
-												.buildHTML();
-			label.child(sl);
+												.attr('transform','translate('+this.tx+','+this.ty+') rotate('+this.rotateAngle+','+lx+','+ly+')')
+												.textContent(this.getText());
+			
+			var element = sl.buildHTML();									
+			label.child(element);
 			g2d.deleteGraphicsElement(this.Id);
 			var svgLabel = label.toSVG();
 			this.svg.label = svgLabel;
 			g2d.insertSVG(svgLabel);
 			if(this.paintType !== 'None'){
-				var svgRect = sl.getBBox();
+				var svgRect = element.getBBox();
 						
 				var tr = new JenScript.SVGRect().origin((svgRect.x-10),(svgRect.y-2))
 								.size((svgRect.width+20),(svgRect.height+4))
@@ -10774,7 +10795,7 @@ function stringInputToObject(color) {
 							tr.stroke(this.getOutlineColor()).strokeWidth(this.outlineWidth);
 						}
 					}
-					sl.parentNode.insertBefore(tr.toSVG(),sl);
+					element.parentNode.insertBefore(tr.toSVG(),element);
 				}			
 		},
 	});

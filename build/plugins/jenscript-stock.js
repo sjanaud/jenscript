@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-20
+// build: 2017-05-22
 // All Rights reserved
 
 (function(){
@@ -650,6 +650,8 @@
 		_init : function(config){
 			config = config || {};
 			this.volumeColor = (config.volumeColor !== undefined)?config.volumeColor:'cyan';
+			this.bearishColor = config.bearishColor;
+			this.bullishColor = config.bullishColor;
 			JenScript.StockLayer.call(this,{ name : "VolumeBarLayer"});
 		},
 		
@@ -670,7 +672,10 @@
 				var svgLayer = new JenScript.SVGGroup().Id(this.Id);
 				for (var i = 0; i < this.getGeometries().length; i++) {
 					var geom = this.getGeometries()[i];
-					svgLayer.child(geom.deviceVolumeGap.fill(this.volumeColor).strokeNone().toSVG());
+					var bearc = (this.bearishColor !== undefined)?this.bearishColor:this.plugin.getBearishColor();
+					var bullc = (this.bullishColor !== undefined)?this.bullishColor:this.plugin.getBullishColor();
+					var fillColor = (geom.getStock().isBearish())? bearc:bullc;
+					svgLayer.child(geom.deviceVolumeGap.fill(fillColor).strokeNone().toSVG());
 				}
 				g2d.deleteGraphicsElement(this.Id);
 				g2d.insertSVG(svgLayer.toSVG());
