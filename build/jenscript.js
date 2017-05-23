@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-22
+// build: 2017-05-23
 // All Rights reserved
 
 /**
@@ -26595,11 +26595,13 @@ function stringInputToObject(color) {
 			var w = symbol.getHost().getWest();
 			if(this.part === 'West' && part === 'West'){
 		        this.setLocation(new JenScript.Point2D(w-5,cy));
+		        this.paintLabel(g2d);
 			}
 			if(this.part === 'East'  && part === 'East'){
 		        this.setLocation(new JenScript.Point2D(5,cy));
+		        this.paintLabel(g2d);
 			}
-			this.paintLabel(g2d);
+			
 		},
 		
 		paintVLabel : function(g2d,symbol,part){
@@ -26608,11 +26610,13 @@ function stringInputToObject(color) {
 			var n = symbol.getHost().getNorth();
 			if(this.part === 'South' && part === 'South'){
 		        this.setLocation(new JenScript.Point2D(w+cx,5));
+		        this.paintLabel(g2d);
 			}
 			else if(this.part === 'North' && part === 'North'){
 		        this.setLocation(new JenScript.Point2D(w+cx,n-5));
+		        this.paintLabel(g2d);
 			}
-			this.paintLabel(g2d);
+			
 		},
 	});
 	
