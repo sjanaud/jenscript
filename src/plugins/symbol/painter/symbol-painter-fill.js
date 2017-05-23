@@ -62,10 +62,9 @@
 	    },
 
 	   v : function(g2d,bar) {
-		   
 		   	//g2d.insertSVG(bar.getBarShape().Id(this.Id+bar.Id).stroke(bar.getThemeColor()).fillNone().toSVG());
 		   	g2d.deleteGraphicsElement(this.Id+bar.Id);
-		   	var elem =  bar.getBarShape().Id(this.Id+bar.Id).toSVG();
+		   	var elem =  bar.getBarShape().Id(this.Id+bar.Id).fillOpacity(bar.opacity).toSVG();
 		   	g2d.insertSVG(elem);
 	        var bbox = elem.getBBox();
 	        var start = new JenScript.Point2D(bbox.x, bbox.y + bbox.height/2);
@@ -86,7 +85,7 @@
 
 	    h : function(g2d,bar) {
 	    	g2d.deleteGraphicsElement(bar.Id);
-		   	var elem =  bar.getBarShape().Id(bar.Id).toSVG();
+		   	var elem =  bar.getBarShape().Id(bar.Id).fillOpacity(bar.opacity).toSVG();
 		   	g2d.insertSVG(elem);
 	        var bbox = elem.getBBox();
 	        var start = new JenScript.Point2D(bbox.x+bbox.width/2,bbox.y);
