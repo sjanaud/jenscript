@@ -8,7 +8,6 @@
 	JenScript.Model.addMethods(JenScript.VolumeBarGeometry, {
 		__init : function(config){
 			config = config || {};
-			this.lowHighColor = 'darkgray';
 			this.deviceVolumeGap;
 		},
 		
@@ -29,7 +28,6 @@
 	JenScript.Model.addMethods(JenScript.VolumeBarLayer, {
 		_init : function(config){
 			config = config || {};
-			this.volumeColor = (config.volumeColor !== undefined)?config.volumeColor:'cyan';
 			this.bearishColor = config.bearishColor;
 			this.bullishColor = config.bullishColor;
 			JenScript.StockLayer.call(this,{ name : "VolumeBarLayer"});
