@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-23
+// build: 2017-05-25
 // All Rights reserved
 
 /**
@@ -10766,6 +10766,10 @@ function stringInputToObject(color) {
 			var svgLabel = label.toSVG();
 			this.svg.label = svgLabel;
 			g2d.insertSVG(svgLabel);
+			
+			var labelBBox = svgLabel.getBBox();
+			var labelCTM = svgLabel.getCTM();
+			
 			if(this.paintType !== 'None'){
 				var svgRect = element.getBBox();
 						
@@ -10795,7 +10799,16 @@ function stringInputToObject(color) {
 							tr.stroke(this.getOutlineColor()).strokeWidth(this.outlineWidth);
 						}
 					}
-					element.parentNode.insertBefore(tr.toSVG(),element);
+					var bgLabel = tr.attr('transform','translate('+this.tx+','+this.ty+') rotate('+this.rotateAngle+','+lx+','+ly+')').toSVG();
+					element.parentNode.insertBefore(bgLabel,element);
+					//element.transform.baseVal.initialize()
+					
+					var setTM = function(element, m){
+						element.transform.baseVal.initialize(element.ownerSVGElement.createSVGTransformFromMatrix(m));
+					}
+
+					//setTM(bgLabel,labelCTM);
+					
 				}			
 		},
 	});

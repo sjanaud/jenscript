@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-23
+// build: 2017-05-25
 // All Rights reserved
 
 (function(){
@@ -628,7 +628,6 @@
 	JenScript.Model.addMethods(JenScript.VolumeBarGeometry, {
 		__init : function(config){
 			config = config || {};
-			this.lowHighColor = 'darkgray';
 			this.deviceVolumeGap;
 		},
 		
@@ -649,7 +648,6 @@
 	JenScript.Model.addMethods(JenScript.VolumeBarLayer, {
 		_init : function(config){
 			config = config || {};
-			this.volumeColor = (config.volumeColor !== undefined)?config.volumeColor:'cyan';
 			this.bearishColor = config.bearishColor;
 			this.bullishColor = config.bullishColor;
 			JenScript.StockLayer.call(this,{ name : "VolumeBarLayer"});
