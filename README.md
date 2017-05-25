@@ -1,7 +1,7 @@
 # JenScript
 
-<img width="180" height="180" src="http://jenscript.io/svg/jenscript.svg" align="left">
-**JenScript** is a JavaScript HTML5/SVG library for Visualization and Chart in web modern browsers.
+<a href="http://jenscript.io"><img width="180" height="180" src="http://jenscript.io/svg/jenscript.svg" style="margin: 50px 0px" align="left"></a>
+**Jenscript** is a JavaScript HTML5/SVG library for visualization and chart in web modern browsers.
 
 
 ## Links
