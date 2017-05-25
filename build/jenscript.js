@@ -30665,7 +30665,7 @@ function stringInputToObject(color) {
 		
 		
 		solveLayer : function() {
-			//this.geometries = [];
+			this.geometries = [];
 			for (var i = 0; i < this.plugin.getBoundedStocks().length; i++) {
 				var stock = this.plugin.getBoundedStocks()[i];
 				var geom = new JenScript.CandleStickGeometry();
