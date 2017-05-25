@@ -40,6 +40,7 @@ standalone jenscript plugins. For example, [donut3d](https://github.com/sjanaud/
 
 ## View Model
 
+```
 DOM--
     |
     |--View--
@@ -52,5 +53,5 @@ DOM--
             |              |         |
             |              |         |-- Widget
             |              |
-          
+```          
 
