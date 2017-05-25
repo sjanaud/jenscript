@@ -103,7 +103,6 @@ var JenScript = {};
 		        View: function(config) {
 		            this.init(config);
 		        },
-		    	
 		        
 		        /**
 		         * Object Projection()
@@ -10801,14 +10800,6 @@ function stringInputToObject(color) {
 					}
 					var bgLabel = tr.attr('transform','translate('+this.tx+','+this.ty+') rotate('+this.rotateAngle+','+lx+','+ly+')').toSVG();
 					element.parentNode.insertBefore(bgLabel,element);
-					//element.transform.baseVal.initialize()
-					
-					var setTM = function(element, m){
-						element.transform.baseVal.initialize(element.ownerSVGElement.createSVGTransformFromMatrix(m));
-					}
-
-					//setTM(bgLabel,labelCTM);
-					
 				}			
 		},
 	});
