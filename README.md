@@ -4,9 +4,10 @@
 **Jenscript** is a JavaScript HTML5/SVG library for visualization and charting in web modern browsers. Jenscript provides most of commons charts
 like pie, donuts, lines, spline, scatter, stocks, bar symbols, gantt, ray, metrics and tools like zoom, pan, widgets and projections selectors.
 
-Learn more ? [Home](http://jenscript.io)  
+Learn more ? [Jenscript](http://jenscript.io)  
   
     
+<br><br>
 
 ## Links
 
