@@ -51,7 +51,7 @@ dom--
             |             |--plugin
             |             |--plugin-.
             |                       |-- widget
-            |			    		|-- widget
+            |                       |-- widget
             |             
             |              
             |--projection-.
