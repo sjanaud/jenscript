@@ -38,5 +38,19 @@ standalone jenscript plugins. For example, [donut3d](https://github.com/sjanaud/
 <script src="http://jenscript.io/plugin/jenscript-donut3d.min.js"></script>
 ```
 
+## View Model
 
+DOM--
+    |
+    |--View--
+            |
+            |--Projection--
+            |              |
+            |              |--Plugin
+            |              |
+            |              |--Plugin--
+            |              |         |
+            |              |         |-- Widget
+            |              |
+          
 
