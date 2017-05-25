@@ -227,6 +227,10 @@
 			var svgLabel = label.toSVG();
 			this.svg.label = svgLabel;
 			g2d.insertSVG(svgLabel);
+			
+			var labelBBox = svgLabel.getBBox();
+			var labelCTM = svgLabel.getCTM();
+			
 			if(this.paintType !== 'None'){
 				var svgRect = element.getBBox();
 						
@@ -256,7 +260,8 @@
 							tr.stroke(this.getOutlineColor()).strokeWidth(this.outlineWidth);
 						}
 					}
-					element.parentNode.insertBefore(tr.toSVG(),element);
+					var bgLabel = tr.attr('transform','translate('+this.tx+','+this.ty+') rotate('+this.rotateAngle+','+lx+','+ly+')').toSVG();
+					element.parentNode.insertBefore(bgLabel,element);
 				}			
 		},
 	});
