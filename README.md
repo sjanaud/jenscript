@@ -41,17 +41,27 @@ standalone jenscript plugins. For example, [donut3d](https://github.com/sjanaud/
 ## View Model
 
 ```
-DOM--
+dom--
     |
-    |--View--
+    |--view--
             |
-            |--Projection--
-            |              |
-            |              |--Plugin
-            |              |
-            |              |--Plugin--
-            |              |         |
-            |              |         |-- Widget
-            |              |
+            |--projection-.
+            |             |
+            |             |--plugin
+            |             |--plugin
+            |             |--plugin-.
+            |                       |-- widget
+            |			    		|-- widget
+            |             
+            |              
+            |--projection-.
+                          |
+                          |--plugin-.
+                          |         |_ widget
+                          |--plugin
+                          |--plugin-.
+                                    |
+                                    |-- widget
+                          
 ```          
 
