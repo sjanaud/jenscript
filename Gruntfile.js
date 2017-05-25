@@ -297,6 +297,14 @@ module.exports = function(grunt) {
 			    src: '*',
 			    dest: "<%= exportDir %>",
 			 },
+			 
+			 exportmodules: {
+				    expand: true,
+				    cwd : 'build/plugins',
+				    filter: 'isFile',
+				    src: '*',
+				    dest: "<%= exportDir %>",
+				 },
 		},
 	});
 	grunt.loadNpmTasks("grunt-contrib-concat");
