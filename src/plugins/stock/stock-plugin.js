@@ -175,5 +175,44 @@
 				that.repaintPlugin();
 			},'Stock plugin listener for projection bound changed');
 		},
+		
+		
+		
+		onPress : function(evt,part,x, y) {
+			//mozilla, prevent Default to enable dragging correctly
+			if(evt.preventDefault){
+				evt.preventDefault();
+			}
+					
+			if(this.isTranslateAuthorized(evt,part,x,y)){
+				//console.log('Translate authorize to start : '+this.Id+" proj "+this.getProjection().name);
+				this.startTranslate(new JenScript.Point2D(x,y));
+			}else{
+				//console.log('Translate NOT authorize to start : '+this.Id);
+			}
+		},
+		
+		onMove : function(evt,part,x, y) {
+			for (var i = 0; i < this.stockLayers.length; i++) {
+				var l = this.stockLayers[i];
+				l.onMove(evt,part,x, y);
+			}
+		},
+
+		onPress : function(evt,part,x, y) {
+			for (var i = 0; i < this.stockLayers.length; i++) {
+				var l = this.stockLayers[i];
+				l.onPress(evt,part,x, y);
+			}
+		},
+
+		onRelease : function(evt,part,x, y) {
+			for (var i = 0; i < this.stockLayers.length; i++) {
+				var l = this.stockLayers[i];
+				l.onRelease(evt,part,x, y);
+			}
+		},
+		
+		
 	});
 })();

@@ -18,7 +18,26 @@
 			this.low = config.low;
 			this.high = config.high;
 			this.volume = config.volume;
+			
+			
+			 this.lockEnter = false;
 		},
+		
+		/**
+	     * return true if mouse has just enter in this ray, false otherwise
+	     * 
+	     * @return enter flag
+	     */
+	    isLockEnter : function(){
+	        return this.lockEnter;
+	    },
+
+	    /**
+	     * lock ray enter flag
+	     */
+	    setLockEnter : function(lock){
+	        this.lockEnter = lock;
+	    },
 		
 		getFixing :function() {
 			return this.fixing;

@@ -329,7 +329,7 @@
 	    },
 
 	    /**
-	     * return true if mouse has just enter in this ray, false otherwise
+	     * return true if mouse has just enter in this symbol, false otherwise
 	     * 
 	     * @return enter flag
 	     */
@@ -338,7 +338,7 @@
 	    },
 
 	    /**
-	     * lock ray enter flag
+	     * lock enter flag
 	     */
 	    setLockEnter : function(lock){
 	        this.lockEnter = lock;

@@ -24438,7 +24438,7 @@ function stringInputToObject(color) {
 	    },
 
 	    /**
-	     * return true if mouse has just enter in this ray, false otherwise
+	     * return true if mouse has just enter in this symbol, false otherwise
 	     * 
 	     * @return enter flag
 	     */
@@ -24447,7 +24447,7 @@ function stringInputToObject(color) {
 	    },
 
 	    /**
-	     * lock ray enter flag
+	     * lock enter flag
 	     */
 	    setLockEnter : function(lock){
 	        this.lockEnter = lock;
@@ -30236,6 +30236,45 @@ function stringInputToObject(color) {
 				that.repaintPlugin();
 			},'Stock plugin listener for projection bound changed');
 		},
+		
+		
+		
+		onPress : function(evt,part,x, y) {
+			//mozilla, prevent Default to enable dragging correctly
+			if(evt.preventDefault){
+				evt.preventDefault();
+			}
+					
+			if(this.isTranslateAuthorized(evt,part,x,y)){
+				//console.log('Translate authorize to start : '+this.Id+" proj "+this.getProjection().name);
+				this.startTranslate(new JenScript.Point2D(x,y));
+			}else{
+				//console.log('Translate NOT authorize to start : '+this.Id);
+			}
+		},
+		
+		onMove : function(evt,part,x, y) {
+			for (var i = 0; i < this.stockLayers.length; i++) {
+				var l = this.stockLayers[i];
+				l.onMove(evt,part,x, y);
+			}
+		},
+
+		onPress : function(evt,part,x, y) {
+			for (var i = 0; i < this.stockLayers.length; i++) {
+				var l = this.stockLayers[i];
+				l.onPress(evt,part,x, y);
+			}
+		},
+
+		onRelease : function(evt,part,x, y) {
+			for (var i = 0; i < this.stockLayers.length; i++) {
+				var l = this.stockLayers[i];
+				l.onRelease(evt,part,x, y);
+			}
+		},
+		
+		
 	});
 })();
 (function(){
@@ -30258,7 +30297,26 @@ function stringInputToObject(color) {
 			this.low = config.low;
 			this.high = config.high;
 			this.volume = config.volume;
+			
+			
+			 this.lockEnter = false;
 		},
+		
+		/**
+	     * return true if mouse has just enter in this ray, false otherwise
+	     * 
+	     * @return enter flag
+	     */
+	    isLockEnter : function(){
+	        return this.lockEnter;
+	    },
+
+	    /**
+	     * lock ray enter flag
+	     */
+	    setLockEnter : function(lock){
+	        this.lockEnter = lock;
+	    },
 		
 		getFixing :function() {
 			return this.fixing;
@@ -30458,6 +30516,7 @@ function stringInputToObject(color) {
 			this.name = config.name;
 			this.plugin;
 			this.geometries = [];
+			this.stockListeners = [];
 		},
 		
 		clearGeometries : function(){
@@ -30495,6 +30554,52 @@ function stringInputToObject(color) {
 		 */
 		paintLayer : function(g2d,art){},
 		
+		/**
+		 * on move callback
+		 */
+		onMove : function(evt,part,x, y) {
+		},
+
+		/**
+		 * on press callback
+		 */
+		onPress : function(evt,part,x, y) {
+		},
+
+		/**
+		 * on release callback
+		 */
+		onRelease : function(evt,part,x, y) {
+		},
+		
+		/**
+	     * add stock listener with given action
+	     * 
+	     * @param {String}   stock action event type
+	     * @param {Function} listener
+	     * @param {String}   listener owner name
+	     */
+		addStockListener  : function(actionEvent,listener,name){
+			if(name === undefined)
+				throw new Error('Symbol listener, listener name should be supplied.');
+			var l = {action:actionEvent , onEvent : listener, name:name};
+			this.stockListeners[this.stockListeners.length] = l;
+		},
+		
+		/**
+		 * fire listener when stock is entered, exited, pressed, released or any event that could occur in this layer
+		 * @param {actionEvent}   event type name
+		 * @param {Object}   event object
+		 */
+		fireStockEvent : function(actionEvent,event){
+			for (var i = 0; i < this.stockListeners.length; i++) {
+				var l = this.stockListeners[i];
+				if(actionEvent === l.action){
+					l.onEvent(event);
+				}
+			}
+		},
+		
 	});
 })();
 (function(){
@@ -30513,6 +30618,7 @@ function stringInputToObject(color) {
 			
 			/**rectangle open/close shape*/
 			this.deviceOpenCloseGap;
+			this.bound;
 		},
 		
 		solveItemGeometry : function(){
@@ -30531,6 +30637,11 @@ function stringInputToObject(color) {
 				this.deviceOpenCloseGap = new JenScript.SVGRect().origin(deviceFixingStart, deviceClose.y).size(deviceFixingDuration, Math.abs(deviceOpen.y - deviceClose.y));
 			}
 		},
+		
+		getBound2D : function(){
+			return this.deviceOpenCloseGap.getBound2D();
+		}
+		
 	});
 	
 	JenScript.CandleStickLayer = function(config) {
@@ -30554,7 +30665,7 @@ function stringInputToObject(color) {
 		
 		
 		solveLayer : function() {
-			this.geometries = [];
+			//this.geometries = [];
 			for (var i = 0; i < this.plugin.getBoundedStocks().length; i++) {
 				var stock = this.plugin.getBoundedStocks()[i];
 				var geom = new JenScript.CandleStickGeometry();
@@ -30564,6 +30675,74 @@ function stringInputToObject(color) {
 				this.addGeometry(geom);
 			}
 		},
+		
+	    onRelease : function(evt,part,x, y) {
+	    	this.stockCheck('release',evt,x,y);
+	    },
+	   
+	    onPress : function(evt,part,x, y) {
+	    	this.stockCheck('press',evt,x,y);
+	    },
+	   
+	    onMove : function(evt,part,x, y) {
+	    	this.stockCheck('move',evt,x,y);
+	    },
+	    
+	    /**
+	     * check symbol event
+	     * 
+	     * @param {String}  action the action press, release, move, etc.
+	     * @param {Object}  original event
+	     * @param {Number}  x location
+	     * @param {Number}  y location
+	     */
+	    stockCheck: function(action, evt,x,y){
+	    	var that=this;
+	    	var _d = function(geom){
+	    	   if(action === 'press')
+	    		   that.fireStockEvent('press',{stock : geom.getStock(), x:x,y:y, device :{x:x,y:y}});
+               else if(action === 'release')
+            	   that.fireStockEvent('release',{stock : geom.getStock(), x:x,y:y, device :{x:x,y:y}});
+               else 
+            	   that.stockEnterExitTracker(geom,x,y);
+	    	};
+	    	var _c = function(geom){
+	    		var contains = (geom.getBound2D() !== undefined  && geom.getBound2D().contains(x,y));
+        		if(action !== 'move' && contains && geom.getStock().isLockEnter()){
+        			_d(geom);
+        		}
+        		else if (action === 'move') {
+                	_d(geom);
+                }
+	    	};
+	        for (var i = 0; i < this.geometries.length; i++) {
+	        	_c(this.geometries[i]);
+	        }
+	    },
+
+	    /**
+	     * track stock enter or exit for the given stock and device location x,y
+	     * 
+	     * @param {Object}  stock symbol
+	     * @param {Number}  x location in device coordinate
+	     * @param {Number}  y location in device coordinate
+	     */
+	    stockEnterExitTracker : function(geom,x,y) {
+	        if (geom.getBound2D() === undefined) {
+	            return;
+	        }
+	        if (geom.getBound2D().contains(x, y) && !geom.getStock().isLockEnter()) {
+	        	geom.getStock().setLockEnter(true);
+	            this.fireStockEvent('enter',{stock : geom.getStock(), x:x,y:y, device :{x:x,y:y}});
+	        }
+	        if (geom.getBound2D().contains(x, y) && geom.getStock().isLockEnter()) {
+	            this.fireStockEvent('move',{stock : geom.getStock(), x:x,y:y, device :{x:x,y:y}});
+	        }
+	        else if (!geom.getBound2D().contains(x, y) && geom.getStock().isLockEnter()) {
+	        	geom.getStock().setLockEnter(false);
+	            this.fireStockEvent('exit',{stock : geom.getStock(), x:x,y:y, device :{x:x,y:y}});
+	        }
+	    },
 
 		paintLayer : function(g2d,part) {
 			if (part === 'Device') {

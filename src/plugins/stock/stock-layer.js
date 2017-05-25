@@ -9,6 +9,7 @@
 			this.name = config.name;
 			this.plugin;
 			this.geometries = [];
+			this.stockListeners = [];
 		},
 		
 		clearGeometries : function(){
@@ -45,6 +46,52 @@
 		 *            part to paint
 		 */
 		paintLayer : function(g2d,art){},
+		
+		/**
+		 * on move callback
+		 */
+		onMove : function(evt,part,x, y) {
+		},
+
+		/**
+		 * on press callback
+		 */
+		onPress : function(evt,part,x, y) {
+		},
+
+		/**
+		 * on release callback
+		 */
+		onRelease : function(evt,part,x, y) {
+		},
+		
+		/**
+	     * add stock listener with given action
+	     * 
+	     * @param {String}   stock action event type
+	     * @param {Function} listener
+	     * @param {String}   listener owner name
+	     */
+		addStockListener  : function(actionEvent,listener,name){
+			if(name === undefined)
+				throw new Error('Symbol listener, listener name should be supplied.');
+			var l = {action:actionEvent , onEvent : listener, name:name};
+			this.stockListeners[this.stockListeners.length] = l;
+		},
+		
+		/**
+		 * fire listener when stock is entered, exited, pressed, released or any event that could occur in this layer
+		 * @param {actionEvent}   event type name
+		 * @param {Object}   event object
+		 */
+		fireStockEvent : function(actionEvent,event){
+			for (var i = 0; i < this.stockListeners.length; i++) {
+				var l = this.stockListeners[i];
+				if(actionEvent === l.action){
+					l.onEvent(event);
+				}
+			}
+		},
 		
 	});
 })();
