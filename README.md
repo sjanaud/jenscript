@@ -38,7 +38,7 @@ standalone jenscript plugins. For example, [donut3d](https://github.com/sjanaud/
 <script src="http://jenscript.io/plugin/jenscript-donut3d.min.js"></script>
 ```
 
-## View Model
+## View tree model
 
 ```
 dom--
@@ -46,16 +46,12 @@ dom--
     |--view--
             |
             |--projection-.
-            |             |
             |             |--plugin
             |             |--plugin
             |             |--plugin-.
             |                       |-- widget
             |                       |-- widget
-            |             
-            |              
             |--projection-.
-                          |
                           |--plugin-.
                           |         |_ widget
                           |--plugin
