@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-25
+// build: 2017-05-26
 // All Rights reserved
 
 /**
@@ -10583,6 +10583,7 @@ function stringInputToObject(color) {
 			this.opacity =  (config.opacity !== undefined)? config.opacity : 1;
 			this.name = (config.name !== undefined)? config.name:'Unamed Label';
 			this.location = (config.location !== undefined)? config.location:new JenScript.Point2D(0,0);
+			this.visible = true;
 			
 			this.text = (config.text !== undefined)? config.text:'Label';
 			this.textColor = config.textColor;
@@ -10638,6 +10639,14 @@ function stringInputToObject(color) {
 
 		getText : function() {
 			return this.text;
+		},
+		
+		setVisible : function(visible) {
+			this.visible = visible;
+		},
+
+		isVisible : function() {
+			return this.visible;
 		},
 		
 		setX : function(x) {
@@ -10739,6 +10748,10 @@ function stringInputToObject(color) {
 		 * @param {Object} graphics context
 		 */
 		paintLabel : function(g2d){
+			if(!this.isVisible()){
+				g2d.deleteGraphicsElement(this.Id);
+				return;
+			}
 			var label = new JenScript.SVGGroup().Id(this.Id).opacity(this.opacity);
 			var lx,ly;
 			if(this.proj !== undefined && this.nature === 'User'){
