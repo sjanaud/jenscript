@@ -457,7 +457,6 @@
 		 paintPlugin : function(g2d, part) {
 				if(part === JenScript.ViewPart.Device && this.lockZoomingTransaction) {
 					 if (!this.lockEffect && this.isValidateBound()) {
-						 console.log("paint target "+this.name);
 						this.paintTarget(g2d, part); 
 					 }
 					 else{
