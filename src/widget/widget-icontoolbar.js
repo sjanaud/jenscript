@@ -198,13 +198,41 @@
 	    onEnter : function(button) {
 	    	if(button.enter)
 	    		button.enter();
+	    	this.showTooltip(button);
 	    	this.updateButtons();
 	    },
 	    
 	    onExit : function(button) {
 	    	if(button.exit)
 	    		button.exit();
+	    	this.hideTooltip(button);
 	    	this.updateButtons();
+	    },
+	    
+	    showTooltip : function(button) {
+	    	if(button.tooltip !== undefined){
+	    		if(button.tooltip.position === 'top')
+	    			button.tooltip.setArrowAnchor({x : button.bound.x + button.bound.width/2, y : button.bound.y - 10});
+	    		if(button.tooltip.position === 'right')
+	    			button.tooltip.setArrowAnchor({x : button.bound.x + button.bound.width + 10, y : button.bound.y +  button.bound.height/2});
+	    		if(button.tooltip.position === 'left')
+	    			button.tooltip.setArrowAnchor({x : button.bound.x - 10, y : button.bound.y +  button.bound.height/2});
+	    		if(button.tooltip.position === 'bottom')
+	    			button.tooltip.setArrowAnchor({x : button.bound.x + button.bound.width/2, y : button.bound.y +  button.bound.height + 10});
+	    		button.tooltip.setVisible(true);
+	    		var view = this.getHost().getView();
+				var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions,graphics : view.svgWidgetsGraphics});
+	    		button.tooltip.paintTooltip(g2d);
+        	}
+	    },
+	    
+	    hideTooltip : function(button) {
+	    	if(button.tooltip !== undefined){
+	    		button.tooltip.setVisible(false);
+	    		var view = this.getHost().getView();
+				var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions, graphics : view.svgWidgetsGraphics});
+	    		button.tooltip.paintTooltip(g2d);
+        	}
 	    },
 
 	    onPress : function(button) {
@@ -246,6 +274,7 @@
 		        	this.updateButton(b);
 	    	  }
 	    },
+	    
 	  
 
 	    /**
@@ -356,7 +385,6 @@
 			}
 			
 	        g2d.insertSVG(svgRoot.toSVG());
-	        
 	        this.onPaintEnd();
 	    }
 	});
