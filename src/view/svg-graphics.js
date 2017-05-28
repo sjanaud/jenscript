@@ -282,6 +282,10 @@
 			this.rootBuilder.attr('clip-path','url(#'+clipId+')');
 			return this;
 		},
+		mask : function(maskId){
+			this.rootBuilder.attr('mask','url(#'+maskId+')');
+			return this;
+		},
 		fontSize : function(fontSize){
 			this.rootBuilder.attr('font-size',fontSize);
 			return this;
