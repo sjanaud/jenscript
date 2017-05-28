@@ -1,10 +1,10 @@
 // JenScript -  JavaScript HTML5/SVG Library
-// version : 1.2.0
+// version : 1.3.0
 // Author : Sebastien Janaud 
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-25
+// build: 2017-05-28
 // All Rights reserved
 
 (function(){
@@ -338,7 +338,7 @@
 	    },
 
 	    /**
-	     * return true if mouse has just enter in this ray, false otherwise
+	     * return true if mouse has just enter in this symbol, false otherwise
 	     * 
 	     * @return enter flag
 	     */
@@ -347,7 +347,7 @@
 	    },
 
 	    /**
-	     * lock ray enter flag
+	     * lock enter flag
 	     */
 	    setLockEnter : function(lock){
 	        this.lockEnter = lock;

@@ -1,10 +1,10 @@
 // JenScript -  JavaScript HTML5/SVG Library
-// version : 1.2.0
+// version : 1.3.0
 // Author : Sebastien Janaud 
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-25
+// build: 2017-05-28
 // All Rights reserved
 
 /**
@@ -17,7 +17,7 @@ var JenScript = {};
 	
 		JenScript = {
 				
-				version : '1.2.0',
+				version : '1.3.0',
 				views : [],
 				sequenceId: 0,
 				SVG_NS : 'http://www.w3.org/2000/svg',
@@ -103,7 +103,6 @@ var JenScript = {};
 		        View: function(config) {
 		            this.init(config);
 		        },
-		    	
 		        
 		        /**
 		         * Object Projection()
@@ -3712,6 +3711,10 @@ function stringInputToObject(color) {
 		},
 		clip : function(clipId){
 			this.rootBuilder.attr('clip-path','url(#'+clipId+')');
+			return this;
+		},
+		mask : function(maskId){
+			this.rootBuilder.attr('mask','url(#'+maskId+')');
 			return this;
 		},
 		fontSize : function(fontSize){
@@ -9129,13 +9132,41 @@ function stringInputToObject(color) {
 	    onEnter : function(button) {
 	    	if(button.enter)
 	    		button.enter();
+	    	this.showTooltip(button);
 	    	this.updateButtons();
 	    },
 	    
 	    onExit : function(button) {
 	    	if(button.exit)
 	    		button.exit();
+	    	this.hideTooltip(button);
 	    	this.updateButtons();
+	    },
+	    
+	    showTooltip : function(button) {
+	    	if(button.tooltip !== undefined){
+	    		if(button.tooltip.position === 'top')
+	    			button.tooltip.setArrowAnchor({x : button.bound.x + button.bound.width/2, y : button.bound.y - 10});
+	    		if(button.tooltip.position === 'right')
+	    			button.tooltip.setArrowAnchor({x : button.bound.x + button.bound.width + 10, y : button.bound.y +  button.bound.height/2});
+	    		if(button.tooltip.position === 'left')
+	    			button.tooltip.setArrowAnchor({x : button.bound.x - 10, y : button.bound.y +  button.bound.height/2});
+	    		if(button.tooltip.position === 'bottom')
+	    			button.tooltip.setArrowAnchor({x : button.bound.x + button.bound.width/2, y : button.bound.y +  button.bound.height + 10});
+	    		button.tooltip.setVisible(true);
+	    		var view = this.getHost().getView();
+				var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions,graphics : view.svgWidgetsGraphics});
+	    		button.tooltip.paintTooltip(g2d);
+        	}
+	    },
+	    
+	    hideTooltip : function(button) {
+	    	if(button.tooltip !== undefined){
+	    		button.tooltip.setVisible(false);
+	    		var view = this.getHost().getView();
+				var g2d =  new JenScript.Graphics({definitions : view.svgWidgetsDefinitions, graphics : view.svgWidgetsGraphics});
+	    		button.tooltip.paintTooltip(g2d);
+        	}
 	    },
 
 	    onPress : function(button) {
@@ -9177,6 +9208,7 @@ function stringInputToObject(color) {
 		        	this.updateButton(b);
 	    	  }
 	    },
+	    
 	  
 
 	    /**
@@ -9287,7 +9319,6 @@ function stringInputToObject(color) {
 			}
 			
 	        g2d.insertSVG(svgRoot.toSVG());
-	        
 	        this.onPaintEnd();
 	    }
 	});
@@ -10584,6 +10615,7 @@ function stringInputToObject(color) {
 			this.opacity =  (config.opacity !== undefined)? config.opacity : 1;
 			this.name = (config.name !== undefined)? config.name:'Unamed Label';
 			this.location = (config.location !== undefined)? config.location:new JenScript.Point2D(0,0);
+			this.visible = true;
 			
 			this.text = (config.text !== undefined)? config.text:'Label';
 			this.textColor = config.textColor;
@@ -10639,6 +10671,14 @@ function stringInputToObject(color) {
 
 		getText : function() {
 			return this.text;
+		},
+		
+		setVisible : function(visible) {
+			this.visible = visible;
+		},
+
+		isVisible : function() {
+			return this.visible;
 		},
 		
 		setX : function(x) {
@@ -10740,6 +10780,10 @@ function stringInputToObject(color) {
 		 * @param {Object} graphics context
 		 */
 		paintLabel : function(g2d){
+			if(!this.isVisible()){
+				g2d.deleteGraphicsElement(this.Id);
+				return;
+			}
 			var label = new JenScript.SVGGroup().Id(this.Id).opacity(this.opacity);
 			var lx,ly;
 			if(this.proj !== undefined && this.nature === 'User'){
