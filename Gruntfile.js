@@ -56,6 +56,7 @@ module.exports = function(grunt) {
 			 outline  		 : ["src/plugins/outline/device-outline-plugin.js"],
 			 label  		 : ["src/plugins/label/text-label.js","src/plugins/label/text-label-plugin.js"],
 			 legend  		 : ["src/plugins/legend/title-legend-plugin.js"],
+			 tooltip  		 : ["src/plugins/tooltip/tooltip.js","src/plugins/tooltip/tooltip-plugin.js"],
 
 			 pie  		 : ["src/plugins/pie/pie-plugin.js",
 								"src/plugins/pie/pie.js",
@@ -232,6 +233,7 @@ module.exports = function(grunt) {
 			                 	{name : "outline",  parts : "<%= jenscript.outline %>"},
 			                 	{name : "label",  parts : "<%= jenscript.label %>"},
 			                 	{name : "legend",  parts : "<%= jenscript.legend %>"},
+			                 	{name : "tooltip",  parts : "<%= jenscript.tooltip %>"},
 				                {name : "pie",  parts :"<%= jenscript.pie %>"},
 				                {name : "donut2d", parts :"<%= jenscript.donut2d %>"},
 				                {name : "donut3d", parts :"<%= jenscript.donut3d %>"},
