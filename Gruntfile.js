@@ -53,12 +53,17 @@ module.exports = function(grunt) {
 								"src/glyph/general-metrics-path-plugin.js",
 								
 								],
-			 outline  		 : ["src/plugins/outline/device-outline-plugin.js"],
-			 label  		 : ["src/plugins/label/text-label.js","src/plugins/label/text-label-plugin.js"],
-			 legend  		 : ["src/plugins/legend/title-legend-plugin.js"],
-			 tooltip  		 : ["src/plugins/tooltip/tooltip.js","src/plugins/tooltip/tooltip-plugin.js"],
+			 outline  	 : [	"src/plugins/outline/device-outline-plugin.js"],
+			 
+			 label  	 : [	"src/plugins/label/text-label.js",
+			        	    	"src/plugins/label/text-label-plugin.js"],
+			        	    	
+			 legend  	 : [	"src/plugins/legend/title-legend-plugin.js"],
+			 
+			 tooltip  	 : [	"src/plugins/tooltip/tooltip.js",
+			          	    	"src/plugins/tooltip/tooltip-plugin.js"],
 
-			 pie  		 : ["src/plugins/pie/pie-plugin.js",
+			 pie  		 : [	"src/plugins/pie/pie-plugin.js",
 								"src/plugins/pie/pie.js",
 								"src/plugins/pie/pie-slice.js",
 								"src/plugins/pie/pie-stroke.js",
