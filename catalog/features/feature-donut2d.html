@@ -12,7 +12,7 @@
 	
 	<script type="text/javascript">
 	function oDonut2D(container, width, height,scale) {
-
+	
 		var view = new JenScript.View({
 			name : container,
 			width : width,
@@ -82,7 +82,7 @@
 			outlineWidth : 2,
 			//textColor :'white'
 		});
-		s1.addSliceLabel(s1Label);
+		s1.setSliceLabel(s1Label);
 
 		var s2Label = new JenScript.Donut2DRadialLabel({
 			text : "Platinium",
@@ -92,7 +92,7 @@
 			outlineWidth : 2,
 			//textColor :'white'
 		});
-		s2.addSliceLabel(s2Label);
+		s2.setSliceLabel(s2Label);
 
 		var s3Label = new JenScript.Donut2DRadialLabel({
 			text : "Rhodium",
@@ -103,7 +103,7 @@
 			//textColor :'white'
 			
 		});
-		s3.addSliceLabel(s3Label);
+		s3.setSliceLabel(s3Label);
 
 		var s4Label = new JenScript.Donut2DRadialLabel({
 			text : "Gold",
@@ -113,7 +113,7 @@
 			outlineWidth : 2,
 			//textColor :'white'
 		});
-		s4.addSliceLabel(s4Label);
+		s4.setSliceLabel(s4Label);
 
 		var s5Label = new JenScript.Donut2DRadialLabel({
 			text : "Uranium",
@@ -123,17 +123,14 @@
 			outlineWidth : 2,
 			textColor :JenScript.Color.lighten(s5.getThemeColor(),50)
 		});
-		s5.addSliceLabel(s5Label);
+		s5.setSliceLabel(s5Label);
 
 		
 
 		donut2DPlugin.repaintPlugin();
-
 	}
-	
 	oDonut2D('donut2dWebView',600,450,1);
 	</script>
-	
 	<table style="padding-top: 20px;font-size: 11px;" class="table table-hover table-condensed">
 	    	<thead id="catalogs-page-header">
 	    		<tr>
@@ -144,7 +141,7 @@
 					<th><small><span class="boldblue1">Description</span></small></th>
 				</tr>
 			</thead>				   
-	    	<tbody>
+	    		<tbody>
 		    	<tr>
 					<td>Donut2D Plugin</td>
 					<td>Donut2D plugin takes responsibility to paint donuts</td>							
@@ -177,11 +174,13 @@
 	</table>
 
 <div>
-	<span class="boldmarron" style="font-size:24px;font-family: 'myriad', sans-serif;">Donut2D Catalog</span>
+	<span class="boldmarron" style="font-size:24px;font-family: 'myriad', sans-serif;">Donut3D Catalog</span>
 </div>
 <div style="padding-top: 5px;">
 		<i class="icon-hand-right"></i>&nbsp;<span>Click on table row to open JenScript view.</small>
 </div>
 <div id="jscatalog"></div>
 <div style="margin-top: 40px;" id="sourceHolder"></div>	
+
+
 </div>

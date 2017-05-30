@@ -65,7 +65,6 @@
 		},
 		 
 		p2u : function(p){
-			 //??
 			return this.getProjection().pixelToUser(new JenScript.Point2D((p.x-this.tx)/this.sx,(p.y-this.ty)/this.sy));
 			//return this.getProjection().pixelToUser(new JenScript.Point2D(p.x/plugin.sx-plugin.tx,p.y/plugin.sy-plugin.ty));
 		},
@@ -213,7 +212,6 @@
 		},
 		
 		onProjectionRegister: function(){
-			//console.log("abstract plugin onProjectionRegister "+this.name);
 		},
 		
 		/**
@@ -284,9 +282,7 @@
 		 * @deprecated
 		 */
 		onClick : function(evt,part,x, y) {
-			// console.info(this.name," abstract plugin on click callback ",x,y);
 		},
-
 		
 		/**
 		 * move callback
@@ -296,7 +292,6 @@
 		 * @param {Number} y pixel coordinate
 		 */
 		onMove : function(evt,part,x, y) {
-			// console.info(this.name," abstract plugin on move callback");
 		},
 
 		/**
@@ -307,7 +302,6 @@
 		 * @param {Number} y pixel coordinate
 		 */
 		onPress : function(evt,part,x, y) {
-			// console.info(this.name," abstract plugin on press callback");
 		},
 
 		/**
@@ -318,9 +312,7 @@
 		 * @param {Number} y pixel coordinate
 		 */
 		onRelease : function(evt,part,x, y) {
-			 //console.info(this.name," abstract plugin on release callback");
 		},
-
 		
 		/**
 		 * enter part callback
@@ -330,7 +322,6 @@
 		 * @param {Number} y pixel coordinate
 		 */
 		onEnter : function(evt,part,x, y) {
-			// console.info(this.name," abstract plugin on enter callback");
 		},
 
 		/**
@@ -341,7 +332,6 @@
 		 * @param {Number} y pixel coordinate
 		 */
 		onExit : function(evt,part,x, y) {
-			// console.info(this.name," abstract plugin on exit callback");
 		},
 		
 		/**
@@ -352,9 +342,7 @@
 		 * @param {Number} y pixel coordinate
 		 */
 		onWheel : function(evt,part,x, y) {
-			// console.info(this.name," abstract plugin on exit callback");
 		},
-		
 		
 		/**
 		 * return true if this plugin hosts widgets, false otherwise
@@ -374,7 +362,6 @@
 			}
 			return false;
 		},
-		
 		
 	    /**
 	     * register widget

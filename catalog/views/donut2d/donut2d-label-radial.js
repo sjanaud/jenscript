@@ -66,27 +66,27 @@ function createDonut2DLabelRadial(container, width, height) {
 	var s1Label = new JenScript.Donut2DRadialLabel({
 		text : "Silver"
 	});
-	s1.addSliceLabel(s1Label);
+	s1.setSliceLabel(s1Label);
 
 	var s2Label = new JenScript.Donut2DRadialLabel({
 		text : "Platinium"
 	});
-	s2.addSliceLabel(s2Label);
+	s2.setSliceLabel(s2Label);
 
 	var s3Label = new JenScript.Donut2DRadialLabel({
 		text : "Rhodium"
 	});
-	s3.addSliceLabel(s3Label);
+	s3.setSliceLabel(s3Label);
 
 	var s4Label = new JenScript.Donut2DRadialLabel({
 		text : "Gold"
 	});
-	s4.addSliceLabel(s4Label);
+	s4.setSliceLabel(s4Label);
 
 	var s5Label = new JenScript.Donut2DRadialLabel({
 		text : "Uranium"
 	});
-	s5.addSliceLabel(s5Label);
+	s5.setSliceLabel(s5Label);
 
 
 	donut2DPlugin.repaintPlugin();

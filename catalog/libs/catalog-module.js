@@ -69,13 +69,13 @@ function showJSFeature(feature) {
 			//load views from catalog
 			loadViews();
 			//load feature page
-			$('#headerJavascriptHolder').load('/catalog/features/feature-'+feature+'.html',function() {
+			$('#headerJavascriptHolder').load('/catalog/features/feature-'+feature+'.html',function( responseText,  textStatus, jqXHR) {
+			
 				prettyPrint();
 				$('#jscatalog').load('/catalog/fragments/jscatalog.html',function() {
 					var tbody='';
 					var count=0;
 					for (var property in views) {
-						console.log('view : '+views[property].name);
 					    if (views.hasOwnProperty(property)) {
 					    	var idname = 'c'+count++;
 					    	var link ='<span"  id="'+idname+'" rel="popover" data-toggle="popover" data-placement="top" data-trigger="hover">'+views[property].name+'</span>';
@@ -226,7 +226,7 @@ function loadViewFile(viewName){
 	if(view !== undefined){
 		$.getScript(catalogJSBase+'/'+view.file)
     	.done(function( script, textStatus ) {
-    		console.log("success load "+viewName+" with file resource : "+view.file);
+    		//console.log("success load "+viewName+" with file resource : "+view.file);
     	})
     	.fail(function( jqxhr, settings, exception ) {
     		console.log('failed load  '+viewName+' with error '+exception);
@@ -252,7 +252,7 @@ function getViewByName(viewName){
 function loadViews(){
 	for (var property in views) {
 	    if (views.hasOwnProperty(property)) {
-	        console.log("load view  : "+views[property].name);
+	        //console.log("load view  : "+views[property].name);
 	        loadViewFile(views[property].name);
 	    }
 	}

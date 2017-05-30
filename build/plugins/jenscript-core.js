@@ -5219,7 +5219,7 @@ function stringInputToObject(color) {
 				}
 				if (s.addEventListener) {
 					// IE9, Chrome, Safari, Opera
-					s.addEventListener("mousewheel", MouseWheelHandler, false);
+					//s.addEventListener("mousewheel", MouseWheelHandler, false);
 					// Firefox
 					s.addEventListener("DOMMouseScroll", MouseWheelHandler, false);
 				}
@@ -6679,7 +6679,6 @@ function stringInputToObject(color) {
 		},
 		 
 		p2u : function(p){
-			 //??
 			return this.getProjection().pixelToUser(new JenScript.Point2D((p.x-this.tx)/this.sx,(p.y-this.ty)/this.sy));
 			//return this.getProjection().pixelToUser(new JenScript.Point2D(p.x/plugin.sx-plugin.tx,p.y/plugin.sy-plugin.ty));
 		},
@@ -6898,7 +6897,6 @@ function stringInputToObject(color) {
 		 * @deprecated
 		 */
 		onClick : function(evt,part,x, y) {
-			// console.info(this.name," abstract plugin on click callback ",x,y);
 		},
 
 		
@@ -6910,7 +6908,6 @@ function stringInputToObject(color) {
 		 * @param {Number} y pixel coordinate
 		 */
 		onMove : function(evt,part,x, y) {
-			// console.info(this.name," abstract plugin on move callback");
 		},
 
 		/**
