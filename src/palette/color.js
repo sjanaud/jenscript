@@ -130,18 +130,18 @@ JenScript.Color.prototype = {
 
         return hexNames[rgbToHex(this._r, this._g, this._b, true)] || false;
     },
-    toFilter: function(secondColor) {
-        var hex8String = '#' + rgbaToHex(this._r, this._g, this._b, this._a);
-        var secondHex8String = hex8String;
-        var gradientType = this._gradientType ? "GradientType = 1, " : "";
-
-        if (secondColor) {
-            var s = JenScript.Color(secondColor);
-            secondHex8String = s.toHex8String();
-        }
-
-        return "progid:DXImageTransform.Microsoft.gradient("+gradientType+"startColorstr="+hex8String+",endColorstr="+secondHex8String+")";
-    },
+//    toFilter: function(secondColor) {
+//        var hex8String = '#' + rgbaToHex(this._r, this._g, this._b, this._a);
+//        var secondHex8String = hex8String;
+//        var gradientType = this._gradientType ? "GradientType = 1, " : "";
+//
+//        if (secondColor) {
+//            var s = JenScript.Color(secondColor);
+//            secondHex8String = s.toHex8String();
+//        }
+//
+//        return "progid:DXImageTransform.Microsoft.gradient("+gradientType+"startColorstr="+hex8String+",endColorstr="+secondHex8String+")";
+//    },
     toString: function(format) {
         var formatSet = !!format;
         format = format || this._format;
@@ -465,23 +465,23 @@ JenScript.Color.random = function() {
 // Thanks to less.js for some of the basics here
 // <https://github.com/cloudhead/less.js/blob/master/lib/less/functions.js>
 
-JenScript.Color.desaturate = function (color, amount) {
-    amount = (amount === 0) ? 0 : (amount || 10);
-    var hsl = JenScript.Color(color).toHsl();
-    hsl.s -= amount / 100;
-    hsl.s = clamp01(hsl.s);
-    return JenScript.Color(hsl);
-};
-JenScript.Color.saturate = function (color, amount) {
-    amount = (amount === 0) ? 0 : (amount || 10);
-    var hsl = JenScript.Color(color).toHsl();
-    hsl.s += amount / 100;
-    hsl.s = clamp01(hsl.s);
-    return JenScript.Color(hsl);
-};
-JenScript.Color.greyscale = function(color) {
-    return JenScript.Color.desaturate(color, 100);
-};
+//JenScript.Color.desaturate = function (color, amount) {
+//    amount = (amount === 0) ? 0 : (amount || 10);
+//    var hsl = JenScript.Color(color).toHsl();
+//    hsl.s -= amount / 100;
+//    hsl.s = clamp01(hsl.s);
+//    return JenScript.Color(hsl);
+//};
+//JenScript.Color.saturate = function (color, amount) {
+//    amount = (amount === 0) ? 0 : (amount || 10);
+//    var hsl = JenScript.Color(color).toHsl();
+//    hsl.s += amount / 100;
+//    hsl.s = clamp01(hsl.s);
+//    return JenScript.Color(hsl);
+//};
+//JenScript.Color.greyscale = function(color) {
+//    return JenScript.Color.desaturate(color, 100);
+//};
 JenScript.Color.lighten = function(color, amount) {
     amount = (amount === 0) ? 0 : (amount || 10);
     var hsl = JenScript.Color(color).toHsl();
@@ -504,112 +504,112 @@ JenScript.Color.darken = function (color, amount) {
     hsl.l = clamp01(hsl.l);
     return JenScript.Color(hsl);
 };
-JenScript.Color.complement = function(color) {
-    var hsl = JenScript.Color(color).toHsl();
-    hsl.h = (hsl.h + 180) % 360;
-    return JenScript.Color(hsl);
-};
-// Spin takes a positive or negative amount within [-360, 360] indicating the change of hue.
-// Values outside of this range will be wrapped into this range.
-JenScript.Color.spin = function(color, amount) {
-    var hsl = JenScript.Color(color).toHsl();
-    var hue = (mathRound(hsl.h) + amount) % 360;
-    hsl.h = hue < 0 ? 360 + hue : hue;
-    return JenScript.Color(hsl);
-};
-JenScript.Color.mix = function(color1, color2, amount) {
-    amount = (amount === 0) ? 0 : (amount || 50);
-
-    var rgb1 = JenScript.Color(color1).toRgb();
-    var rgb2 = JenScript.Color(color2).toRgb();
-
-    var p = amount / 100;
-    var w = p * 2 - 1;
-    var a = rgb2.a - rgb1.a;
-
-    var w1;
-
-    if (w * a == -1) {
-        w1 = w;
-    } else {
-        w1 = (w + a) / (1 + w * a);
-    }
-
-    w1 = (w1 + 1) / 2;
-
-    var w2 = 1 - w1;
-
-    var rgba = {
-        r: rgb2.r * w1 + rgb1.r * w2,
-        g: rgb2.g * w1 + rgb1.g * w2,
-        b: rgb2.b * w1 + rgb1.b * w2,
-        a: rgb2.a * p  + rgb1.a * (1 - p)
-    };
-
-    return JenScript.Color(rgba);
-};
+//JenScript.Color.complement = function(color) {
+//    var hsl = JenScript.Color(color).toHsl();
+//    hsl.h = (hsl.h + 180) % 360;
+//    return JenScript.Color(hsl);
+//};
+//// Spin takes a positive or negative amount within [-360, 360] indicating the change of hue.
+//// Values outside of this range will be wrapped into this range.
+//JenScript.Color.spin = function(color, amount) {
+//    var hsl = JenScript.Color(color).toHsl();
+//    var hue = (mathRound(hsl.h) + amount) % 360;
+//    hsl.h = hue < 0 ? 360 + hue : hue;
+//    return JenScript.Color(hsl);
+//};
+//JenScript.Color.mix = function(color1, color2, amount) {
+//    amount = (amount === 0) ? 0 : (amount || 50);
+//
+//    var rgb1 = JenScript.Color(color1).toRgb();
+//    var rgb2 = JenScript.Color(color2).toRgb();
+//
+//    var p = amount / 100;
+//    var w = p * 2 - 1;
+//    var a = rgb2.a - rgb1.a;
+//
+//    var w1;
+//
+//    if (w * a == -1) {
+//        w1 = w;
+//    } else {
+//        w1 = (w + a) / (1 + w * a);
+//    }
+//
+//    w1 = (w1 + 1) / 2;
+//
+//    var w2 = 1 - w1;
+//
+//    var rgba = {
+//        r: rgb2.r * w1 + rgb1.r * w2,
+//        g: rgb2.g * w1 + rgb1.g * w2,
+//        b: rgb2.b * w1 + rgb1.b * w2,
+//        a: rgb2.a * p  + rgb1.a * (1 - p)
+//    };
+//
+//    return JenScript.Color(rgba);
+//};
 
 // Combination Functions
 // ---------------------
 // Thanks to jQuery xColor for some of the ideas behind these
 // <https://github.com/infusion/jQuery-xcolor/blob/master/jquery.xcolor.js>
 
-JenScript.Color.triad = function(color) {
-    var hsl = JenScript.Color(color).toHsl();
-    var h = hsl.h;
-    return [
-        JenScript.Color(color),
-        JenScript.Color({ h: (h + 120) % 360, s: hsl.s, l: hsl.l }),
-        JenScript.Color({ h: (h + 240) % 360, s: hsl.s, l: hsl.l })
-    ];
-};
-JenScript.Color.tetrad = function(color) {
-    var hsl = JenScript.Color(color).toHsl();
-    var h = hsl.h;
-    return [
-        JenScript.Color(color),
-        JenScript.Color({ h: (h + 90) % 360, s: hsl.s, l: hsl.l }),
-        JenScript.Color({ h: (h + 180) % 360, s: hsl.s, l: hsl.l }),
-        JenScript.Color({ h: (h + 270) % 360, s: hsl.s, l: hsl.l })
-    ];
-};
-JenScript.Color.splitcomplement = function(color) {
-    var hsl = JenScript.Color(color).toHsl();
-    var h = hsl.h;
-    return [
-        JenScript.Color(color),
-        JenScript.Color({ h: (h + 72) % 360, s: hsl.s, l: hsl.l}),
-        JenScript.Color({ h: (h + 216) % 360, s: hsl.s, l: hsl.l})
-    ];
-};
-JenScript.Color.analogous = function(color, results, slices) {
-    results = results || 6;
-    slices = slices || 30;
-
-    var hsl = JenScript.Color(color).toHsl();
-    var part = 360 / slices;
-    var ret = [JenScript.Color(color)];
-
-    for (hsl.h = ((hsl.h - (part * results >> 1)) + 720) % 360; --results; ) {
-        hsl.h = (hsl.h + part) % 360;
-        ret.push(JenScript.Color(hsl));
-    }
-    return ret;
-};
-JenScript.Color.monochromatic = function(color, results) {
-    results = results || 6;
-    var hsv = JenScript.Color(color).toHsv();
-    var h = hsv.h, s = hsv.s, v = hsv.v;
-    var ret = [];
-    var modification = 1 / results;
-
-    while (results--) {
-        ret.push(JenScript.Color({ h: h, s: s, v: v}));
-        v = (v + modification) % 1;
-    }
-
-    return ret;
-};
+//JenScript.Color.triad = function(color) {
+//    var hsl = JenScript.Color(color).toHsl();
+//    var h = hsl.h;
+//    return [
+//        JenScript.Color(color),
+//        JenScript.Color({ h: (h + 120) % 360, s: hsl.s, l: hsl.l }),
+//        JenScript.Color({ h: (h + 240) % 360, s: hsl.s, l: hsl.l })
+//    ];
+//};
+//JenScript.Color.tetrad = function(color) {
+//    var hsl = JenScript.Color(color).toHsl();
+//    var h = hsl.h;
+//    return [
+//        JenScript.Color(color),
+//        JenScript.Color({ h: (h + 90) % 360, s: hsl.s, l: hsl.l }),
+//        JenScript.Color({ h: (h + 180) % 360, s: hsl.s, l: hsl.l }),
+//        JenScript.Color({ h: (h + 270) % 360, s: hsl.s, l: hsl.l })
+//    ];
+//};
+//JenScript.Color.splitcomplement = function(color) {
+//    var hsl = JenScript.Color(color).toHsl();
+//    var h = hsl.h;
+//    return [
+//        JenScript.Color(color),
+//        JenScript.Color({ h: (h + 72) % 360, s: hsl.s, l: hsl.l}),
+//        JenScript.Color({ h: (h + 216) % 360, s: hsl.s, l: hsl.l})
+//    ];
+//};
+//JenScript.Color.analogous = function(color, results, slices) {
+//    results = results || 6;
+//    slices = slices || 30;
+//
+//    var hsl = JenScript.Color(color).toHsl();
+//    var part = 360 / slices;
+//    var ret = [JenScript.Color(color)];
+//
+//    for (hsl.h = ((hsl.h - (part * results >> 1)) + 720) % 360; --results; ) {
+//        hsl.h = (hsl.h + part) % 360;
+//        ret.push(JenScript.Color(hsl));
+//    }
+//    return ret;
+//};
+//JenScript.Color.monochromatic = function(color, results) {
+//    results = results || 6;
+//    var hsv = JenScript.Color(color).toHsv();
+//    var h = hsv.h, s = hsv.s, v = hsv.v;
+//    var ret = [];
+//    var modification = 1 / results;
+//
+//    while (results--) {
+//        ret.push(JenScript.Color({ h: h, s: s, v: v}));
+//        v = (v + modification) % 1;
+//    }
+//
+//    return ret;
+//};
 
 
 // Readability Functions
@@ -620,63 +620,63 @@ JenScript.Color.monochromatic = function(color, results) {
 // Analyze the 2 colors and returns an object with the following properties:
 //    `brightness`: difference in brightness between the two colors
 //    `color`: difference in color/hue between the two colors
-JenScript.Color.readability = function(color1, color2) {
-    var c1 = JenScript.Color(color1);
-    var c2 = JenScript.Color(color2);
-    var rgb1 = c1.toRgb();
-    var rgb2 = c2.toRgb();
-    var brightnessA = c1.getBrightness();
-    var brightnessB = c2.getBrightness();
-    var colorDiff = (
-        Math.max(rgb1.r, rgb2.r) - Math.min(rgb1.r, rgb2.r) +
-        Math.max(rgb1.g, rgb2.g) - Math.min(rgb1.g, rgb2.g) +
-        Math.max(rgb1.b, rgb2.b) - Math.min(rgb1.b, rgb2.b)
-    );
-
-    return {
-        brightness: Math.abs(brightnessA - brightnessB),
-        color: colorDiff
-    };
-};
+//JenScript.Color.readability = function(color1, color2) {
+//    var c1 = JenScript.Color(color1);
+//    var c2 = JenScript.Color(color2);
+//    var rgb1 = c1.toRgb();
+//    var rgb2 = c2.toRgb();
+//    var brightnessA = c1.getBrightness();
+//    var brightnessB = c2.getBrightness();
+//    var colorDiff = (
+//        Math.max(rgb1.r, rgb2.r) - Math.min(rgb1.r, rgb2.r) +
+//        Math.max(rgb1.g, rgb2.g) - Math.min(rgb1.g, rgb2.g) +
+//        Math.max(rgb1.b, rgb2.b) - Math.min(rgb1.b, rgb2.b)
+//    );
+//
+//    return {
+//        brightness: Math.abs(brightnessA - brightnessB),
+//        color: colorDiff
+//    };
+//};
 
 // `readable`
 // http://www.w3.org/TR/AERT#color-contrast
 // Ensure that foreground and background color combinations provide sufficient contrast.
 // *Example*
 //    JenScript.Color.readable("#000", "#111") => false
-JenScript.Color.readable = function(color1, color2) {
-    var readability = JenScript.Color.readability(color1, color2);
-    return readability.brightness > 125 && readability.color > 500;
-};
+//JenScript.Color.readable = function(color1, color2) {
+//    var readability = JenScript.Color.readability(color1, color2);
+//    return readability.brightness > 125 && readability.color > 500;
+//};
 
 // `mostReadable`
 // Given a base color and a list of possible foreground or background
 // colors for that base, returns the most readable color.
 // *Example*
 //    JenScript.Color.mostReadable("#123", ["#fff", "#000"]) => "#000"
-JenScript.Color.mostReadable = function(baseColor, colorList) {
-    var bestColor = null;
-    var bestScore = 0;
-    var bestIsReadable = false;
-    for (var i=0; i < colorList.length; i++) {
-
-        // We normalize both around the "acceptable" breaking point,
-        // but rank brightness constrast higher than hue.
-
-        var readability = JenScript.Color.readability(baseColor, colorList[i]);
-        var readable = readability.brightness > 125 && readability.color > 500;
-        var score = 3 * (readability.brightness / 125) + (readability.color / 500);
-
-        if ((readable && ! bestIsReadable) ||
-            (readable && bestIsReadable && score > bestScore) ||
-            ((! readable) && (! bestIsReadable) && score > bestScore)) {
-            bestIsReadable = readable;
-            bestScore = score;
-            bestColor = JenScript.Color(colorList[i]);
-        }
-    }
-    return bestColor;
-};
+//JenScript.Color.mostReadable = function(baseColor, colorList) {
+//    var bestColor = null;
+//    var bestScore = 0;
+//    var bestIsReadable = false;
+//    for (var i=0; i < colorList.length; i++) {
+//
+//        // We normalize both around the "acceptable" breaking point,
+//        // but rank brightness constrast higher than hue.
+//
+//        var readability = JenScript.Color.readability(baseColor, colorList[i]);
+//        var readable = readability.brightness > 125 && readability.color > 500;
+//        var score = 3 * (readability.brightness / 125) + (readability.color / 500);
+//
+//        if ((readable && ! bestIsReadable) ||
+//            (readable && bestIsReadable && score > bestScore) ||
+//            ((! readable) && (! bestIsReadable) && score > bestScore)) {
+//            bestIsReadable = readable;
+//            bestScore = score;
+//            bestColor = JenScript.Color(colorList[i]);
+//        }
+//    }
+//    return bestColor;
+//};
 
 // http://www.w3.org/TR/css3-color/#svg-color
 var names = JenScript.Color.names = {

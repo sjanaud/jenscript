@@ -252,7 +252,7 @@
 			/** zoom level & center position */
 			this.level =(config.level !== undefined)?config.level : 3;
 			this.square =(config.square !== undefined)?config.square : 256;
-			this.centerPosition =(config.centerPosition !== undefined)?config.centerPosition : new JenScript.GeoPosition(48.8380405,-0.5938274);
+			this.centerPosition =(config.centerPosition !== undefined)?config.centerPosition : new JenScript.GeoPosition(20,0);
 			/** dalle projection */
 			this.projection= new JenScript.DalleProjection(this.level,this.square);
 			

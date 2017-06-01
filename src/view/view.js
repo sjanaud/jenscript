@@ -78,18 +78,24 @@
 			this.viewForegrounds = [];
 			this.foregroundEnable = true;
 			
-			/**view projections*/
+			/** view projections */
 			this.projections = [];
 			
-			/**active projection*/
+			/** active projection */
 			this.activeProjection;
 			
 			/** the widget folder guard interval */
 			this.folderGuardInterval = 4;
 			
+			/** view listeners */
 			this.listeners = [];
 			
 			this.dispatcherStrategy = (config.dispatcher !== undefined)? config.dispatcher : 'foreground';
+			
+			/** projection event propagation and visibility policies*/
+			//this.policy = (config.policy !== undefined)?config.policy:{ paint : 'INHERITS' , event : 'ACTIVE' /**ALWAYS, MAYBE, INHERITS*/, isEventReceiver : function(){return false;}};
+			
+			
 			/**
 			 * the widget plug-in is a specific plug-in to handle widget and window meta
 			 * data
@@ -678,20 +684,17 @@
 		
 		/**
 		 * attach projection lock/unlock listener that update projection visibility
-		 * based on active state and paintMode (ACTIVE or ALWAYS)
+		 * based on active state and projection policy
 		 */
 		attachProjectionActiveListener : function(projection){
 			projection.addProjectionListener('lockActive',function(proj){
-				//proj.svgRootElement.setAttribute('opacity',1);
 				proj.svgRootGroup.setAttribute('opacity',1);
 			},'view projection active listener to change projection opacity');
 			projection.addProjectionListener('unlockActive',function(proj){
-				if(proj.paintMode === 'ACTIVE')
-					//proj.svgRootElement.setAttribute('opacity',0);
-					proj.svgRootGroup.setAttribute('opacity',0);
-				if(proj.paintMode === 'ALWAYS')
-					//proj.svgRootElement.setAttribute('opacity',1);
+				if(proj.isAuthorizedPolicy('paint'))
 					proj.svgRootGroup.setAttribute('opacity',1);
+				else
+					proj.svgRootGroup.setAttribute('opacity',0);
 			},'view projection unactive listener to change projection opacity');
 		},
 		

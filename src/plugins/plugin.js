@@ -93,17 +93,21 @@
 			}
 		},
 		
+		getProjections : function() {
+			return this.getView().getProjections();
+		},
+		
 		getSouth : function(h){
-			return this.getProjection().getView().south;
+			return this.getView().south;
 		},
 		getWest : function(h){
-			return this.getProjection().getView().west;
+			return this.getView().west;
 		},
 		getNorth : function(h){
-			return this.getProjection().getView().north;
+			return this.getView().north;
 		},
 		getEast : function(h){
-			return this.getProjection().getView().east;
+			return this.getView().east;
 		},
 		
 		
@@ -112,7 +116,7 @@
 		 */
 		getDevice : function(){
 			try{
-				return this.getProjection().getView().getDevice();
+				return this.getView().getDevice();
 			}catch(e){
 				return undefined;
 			}
@@ -122,7 +126,7 @@
 		 * get widget plugin
 		 */
 		getWidgetPlugin: function(){
-			return this.getProjection().getView().getWidgetPlugin();
+			return this.getView().getWidgetPlugin();
 		},
 		
 		/**
@@ -352,13 +356,24 @@
 		},
 		
 		/**
-		 * return true if the given point (x,y) intercepts widgets sensible shapes
+		 * return true if the given point (x,y) intercepts any widgets sensible shapes
+		 * in all registered projection in the shared view.
+		 * @param {Number} x pixel coordinate
+		 * @param {Number} y pixel coordinate
 		 */
 		isWidgetSensible : function(x,y){
-			for (var i = 0; i < this.widgets.length; i++) {
-				var w = this.widgets[i];
-				if(w.isSensible(x,y))
-					return true;
+			
+			var projs = this.getProjection().getView().getProjections();
+			for (var p = 0; p < projs.length; p++) {
+				for (var k = 0; k < projs[p].getPlugins().length; k++) {
+					var ws = projs[p].getPlugins()[k].getWidgets();
+					for (var l = 0; l < ws.length; l++) {
+						if(ws[l].isSensible(x,y)){
+							return true;
+						}
+							
+					}
+				}
 			}
 			return false;
 		},
@@ -374,6 +389,10 @@
             widget.attachLifeCycle();
             widget.onRegister();
             this.widgets[this.widgets.length]=widget;
+	    },
+	    
+	    getWidgets: function() {
+	    	return this.widgets;
 	    }
 	});
 })();

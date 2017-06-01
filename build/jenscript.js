@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-29
+// build: 2017-06-01
 // All Rights reserved
 
 /**
@@ -367,18 +367,18 @@ JenScript.Color.prototype = {
 
         return hexNames[rgbToHex(this._r, this._g, this._b, true)] || false;
     },
-    toFilter: function(secondColor) {
-        var hex8String = '#' + rgbaToHex(this._r, this._g, this._b, this._a);
-        var secondHex8String = hex8String;
-        var gradientType = this._gradientType ? "GradientType = 1, " : "";
-
-        if (secondColor) {
-            var s = JenScript.Color(secondColor);
-            secondHex8String = s.toHex8String();
-        }
-
-        return "progid:DXImageTransform.Microsoft.gradient("+gradientType+"startColorstr="+hex8String+",endColorstr="+secondHex8String+")";
-    },
+//    toFilter: function(secondColor) {
+//        var hex8String = '#' + rgbaToHex(this._r, this._g, this._b, this._a);
+//        var secondHex8String = hex8String;
+//        var gradientType = this._gradientType ? "GradientType = 1, " : "";
+//
+//        if (secondColor) {
+//            var s = JenScript.Color(secondColor);
+//            secondHex8String = s.toHex8String();
+//        }
+//
+//        return "progid:DXImageTransform.Microsoft.gradient("+gradientType+"startColorstr="+hex8String+",endColorstr="+secondHex8String+")";
+//    },
     toString: function(format) {
         var formatSet = !!format;
         format = format || this._format;
@@ -702,23 +702,23 @@ JenScript.Color.random = function() {
 // Thanks to less.js for some of the basics here
 // <https://github.com/cloudhead/less.js/blob/master/lib/less/functions.js>
 
-JenScript.Color.desaturate = function (color, amount) {
-    amount = (amount === 0) ? 0 : (amount || 10);
-    var hsl = JenScript.Color(color).toHsl();
-    hsl.s -= amount / 100;
-    hsl.s = clamp01(hsl.s);
-    return JenScript.Color(hsl);
-};
-JenScript.Color.saturate = function (color, amount) {
-    amount = (amount === 0) ? 0 : (amount || 10);
-    var hsl = JenScript.Color(color).toHsl();
-    hsl.s += amount / 100;
-    hsl.s = clamp01(hsl.s);
-    return JenScript.Color(hsl);
-};
-JenScript.Color.greyscale = function(color) {
-    return JenScript.Color.desaturate(color, 100);
-};
+//JenScript.Color.desaturate = function (color, amount) {
+//    amount = (amount === 0) ? 0 : (amount || 10);
+//    var hsl = JenScript.Color(color).toHsl();
+//    hsl.s -= amount / 100;
+//    hsl.s = clamp01(hsl.s);
+//    return JenScript.Color(hsl);
+//};
+//JenScript.Color.saturate = function (color, amount) {
+//    amount = (amount === 0) ? 0 : (amount || 10);
+//    var hsl = JenScript.Color(color).toHsl();
+//    hsl.s += amount / 100;
+//    hsl.s = clamp01(hsl.s);
+//    return JenScript.Color(hsl);
+//};
+//JenScript.Color.greyscale = function(color) {
+//    return JenScript.Color.desaturate(color, 100);
+//};
 JenScript.Color.lighten = function(color, amount) {
     amount = (amount === 0) ? 0 : (amount || 10);
     var hsl = JenScript.Color(color).toHsl();
@@ -741,112 +741,112 @@ JenScript.Color.darken = function (color, amount) {
     hsl.l = clamp01(hsl.l);
     return JenScript.Color(hsl);
 };
-JenScript.Color.complement = function(color) {
-    var hsl = JenScript.Color(color).toHsl();
-    hsl.h = (hsl.h + 180) % 360;
-    return JenScript.Color(hsl);
-};
-// Spin takes a positive or negative amount within [-360, 360] indicating the change of hue.
-// Values outside of this range will be wrapped into this range.
-JenScript.Color.spin = function(color, amount) {
-    var hsl = JenScript.Color(color).toHsl();
-    var hue = (mathRound(hsl.h) + amount) % 360;
-    hsl.h = hue < 0 ? 360 + hue : hue;
-    return JenScript.Color(hsl);
-};
-JenScript.Color.mix = function(color1, color2, amount) {
-    amount = (amount === 0) ? 0 : (amount || 50);
-
-    var rgb1 = JenScript.Color(color1).toRgb();
-    var rgb2 = JenScript.Color(color2).toRgb();
-
-    var p = amount / 100;
-    var w = p * 2 - 1;
-    var a = rgb2.a - rgb1.a;
-
-    var w1;
-
-    if (w * a == -1) {
-        w1 = w;
-    } else {
-        w1 = (w + a) / (1 + w * a);
-    }
-
-    w1 = (w1 + 1) / 2;
-
-    var w2 = 1 - w1;
-
-    var rgba = {
-        r: rgb2.r * w1 + rgb1.r * w2,
-        g: rgb2.g * w1 + rgb1.g * w2,
-        b: rgb2.b * w1 + rgb1.b * w2,
-        a: rgb2.a * p  + rgb1.a * (1 - p)
-    };
-
-    return JenScript.Color(rgba);
-};
+//JenScript.Color.complement = function(color) {
+//    var hsl = JenScript.Color(color).toHsl();
+//    hsl.h = (hsl.h + 180) % 360;
+//    return JenScript.Color(hsl);
+//};
+//// Spin takes a positive or negative amount within [-360, 360] indicating the change of hue.
+//// Values outside of this range will be wrapped into this range.
+//JenScript.Color.spin = function(color, amount) {
+//    var hsl = JenScript.Color(color).toHsl();
+//    var hue = (mathRound(hsl.h) + amount) % 360;
+//    hsl.h = hue < 0 ? 360 + hue : hue;
+//    return JenScript.Color(hsl);
+//};
+//JenScript.Color.mix = function(color1, color2, amount) {
+//    amount = (amount === 0) ? 0 : (amount || 50);
+//
+//    var rgb1 = JenScript.Color(color1).toRgb();
+//    var rgb2 = JenScript.Color(color2).toRgb();
+//
+//    var p = amount / 100;
+//    var w = p * 2 - 1;
+//    var a = rgb2.a - rgb1.a;
+//
+//    var w1;
+//
+//    if (w * a == -1) {
+//        w1 = w;
+//    } else {
+//        w1 = (w + a) / (1 + w * a);
+//    }
+//
+//    w1 = (w1 + 1) / 2;
+//
+//    var w2 = 1 - w1;
+//
+//    var rgba = {
+//        r: rgb2.r * w1 + rgb1.r * w2,
+//        g: rgb2.g * w1 + rgb1.g * w2,
+//        b: rgb2.b * w1 + rgb1.b * w2,
+//        a: rgb2.a * p  + rgb1.a * (1 - p)
+//    };
+//
+//    return JenScript.Color(rgba);
+//};
 
 // Combination Functions
 // ---------------------
 // Thanks to jQuery xColor for some of the ideas behind these
 // <https://github.com/infusion/jQuery-xcolor/blob/master/jquery.xcolor.js>
 
-JenScript.Color.triad = function(color) {
-    var hsl = JenScript.Color(color).toHsl();
-    var h = hsl.h;
-    return [
-        JenScript.Color(color),
-        JenScript.Color({ h: (h + 120) % 360, s: hsl.s, l: hsl.l }),
-        JenScript.Color({ h: (h + 240) % 360, s: hsl.s, l: hsl.l })
-    ];
-};
-JenScript.Color.tetrad = function(color) {
-    var hsl = JenScript.Color(color).toHsl();
-    var h = hsl.h;
-    return [
-        JenScript.Color(color),
-        JenScript.Color({ h: (h + 90) % 360, s: hsl.s, l: hsl.l }),
-        JenScript.Color({ h: (h + 180) % 360, s: hsl.s, l: hsl.l }),
-        JenScript.Color({ h: (h + 270) % 360, s: hsl.s, l: hsl.l })
-    ];
-};
-JenScript.Color.splitcomplement = function(color) {
-    var hsl = JenScript.Color(color).toHsl();
-    var h = hsl.h;
-    return [
-        JenScript.Color(color),
-        JenScript.Color({ h: (h + 72) % 360, s: hsl.s, l: hsl.l}),
-        JenScript.Color({ h: (h + 216) % 360, s: hsl.s, l: hsl.l})
-    ];
-};
-JenScript.Color.analogous = function(color, results, slices) {
-    results = results || 6;
-    slices = slices || 30;
-
-    var hsl = JenScript.Color(color).toHsl();
-    var part = 360 / slices;
-    var ret = [JenScript.Color(color)];
-
-    for (hsl.h = ((hsl.h - (part * results >> 1)) + 720) % 360; --results; ) {
-        hsl.h = (hsl.h + part) % 360;
-        ret.push(JenScript.Color(hsl));
-    }
-    return ret;
-};
-JenScript.Color.monochromatic = function(color, results) {
-    results = results || 6;
-    var hsv = JenScript.Color(color).toHsv();
-    var h = hsv.h, s = hsv.s, v = hsv.v;
-    var ret = [];
-    var modification = 1 / results;
-
-    while (results--) {
-        ret.push(JenScript.Color({ h: h, s: s, v: v}));
-        v = (v + modification) % 1;
-    }
-
-    return ret;
-};
+//JenScript.Color.triad = function(color) {
+//    var hsl = JenScript.Color(color).toHsl();
+//    var h = hsl.h;
+//    return [
+//        JenScript.Color(color),
+//        JenScript.Color({ h: (h + 120) % 360, s: hsl.s, l: hsl.l }),
+//        JenScript.Color({ h: (h + 240) % 360, s: hsl.s, l: hsl.l })
+//    ];
+//};
+//JenScript.Color.tetrad = function(color) {
+//    var hsl = JenScript.Color(color).toHsl();
+//    var h = hsl.h;
+//    return [
+//        JenScript.Color(color),
+//        JenScript.Color({ h: (h + 90) % 360, s: hsl.s, l: hsl.l }),
+//        JenScript.Color({ h: (h + 180) % 360, s: hsl.s, l: hsl.l }),
+//        JenScript.Color({ h: (h + 270) % 360, s: hsl.s, l: hsl.l })
+//    ];
+//};
+//JenScript.Color.splitcomplement = function(color) {
+//    var hsl = JenScript.Color(color).toHsl();
+//    var h = hsl.h;
+//    return [
+//        JenScript.Color(color),
+//        JenScript.Color({ h: (h + 72) % 360, s: hsl.s, l: hsl.l}),
+//        JenScript.Color({ h: (h + 216) % 360, s: hsl.s, l: hsl.l})
+//    ];
+//};
+//JenScript.Color.analogous = function(color, results, slices) {
+//    results = results || 6;
+//    slices = slices || 30;
+//
+//    var hsl = JenScript.Color(color).toHsl();
+//    var part = 360 / slices;
+//    var ret = [JenScript.Color(color)];
+//
+//    for (hsl.h = ((hsl.h - (part * results >> 1)) + 720) % 360; --results; ) {
+//        hsl.h = (hsl.h + part) % 360;
+//        ret.push(JenScript.Color(hsl));
+//    }
+//    return ret;
+//};
+//JenScript.Color.monochromatic = function(color, results) {
+//    results = results || 6;
+//    var hsv = JenScript.Color(color).toHsv();
+//    var h = hsv.h, s = hsv.s, v = hsv.v;
+//    var ret = [];
+//    var modification = 1 / results;
+//
+//    while (results--) {
+//        ret.push(JenScript.Color({ h: h, s: s, v: v}));
+//        v = (v + modification) % 1;
+//    }
+//
+//    return ret;
+//};
 
 
 // Readability Functions
@@ -857,63 +857,63 @@ JenScript.Color.monochromatic = function(color, results) {
 // Analyze the 2 colors and returns an object with the following properties:
 //    `brightness`: difference in brightness between the two colors
 //    `color`: difference in color/hue between the two colors
-JenScript.Color.readability = function(color1, color2) {
-    var c1 = JenScript.Color(color1);
-    var c2 = JenScript.Color(color2);
-    var rgb1 = c1.toRgb();
-    var rgb2 = c2.toRgb();
-    var brightnessA = c1.getBrightness();
-    var brightnessB = c2.getBrightness();
-    var colorDiff = (
-        Math.max(rgb1.r, rgb2.r) - Math.min(rgb1.r, rgb2.r) +
-        Math.max(rgb1.g, rgb2.g) - Math.min(rgb1.g, rgb2.g) +
-        Math.max(rgb1.b, rgb2.b) - Math.min(rgb1.b, rgb2.b)
-    );
-
-    return {
-        brightness: Math.abs(brightnessA - brightnessB),
-        color: colorDiff
-    };
-};
+//JenScript.Color.readability = function(color1, color2) {
+//    var c1 = JenScript.Color(color1);
+//    var c2 = JenScript.Color(color2);
+//    var rgb1 = c1.toRgb();
+//    var rgb2 = c2.toRgb();
+//    var brightnessA = c1.getBrightness();
+//    var brightnessB = c2.getBrightness();
+//    var colorDiff = (
+//        Math.max(rgb1.r, rgb2.r) - Math.min(rgb1.r, rgb2.r) +
+//        Math.max(rgb1.g, rgb2.g) - Math.min(rgb1.g, rgb2.g) +
+//        Math.max(rgb1.b, rgb2.b) - Math.min(rgb1.b, rgb2.b)
+//    );
+//
+//    return {
+//        brightness: Math.abs(brightnessA - brightnessB),
+//        color: colorDiff
+//    };
+//};
 
 // `readable`
 // http://www.w3.org/TR/AERT#color-contrast
 // Ensure that foreground and background color combinations provide sufficient contrast.
 // *Example*
 //    JenScript.Color.readable("#000", "#111") => false
-JenScript.Color.readable = function(color1, color2) {
-    var readability = JenScript.Color.readability(color1, color2);
-    return readability.brightness > 125 && readability.color > 500;
-};
+//JenScript.Color.readable = function(color1, color2) {
+//    var readability = JenScript.Color.readability(color1, color2);
+//    return readability.brightness > 125 && readability.color > 500;
+//};
 
 // `mostReadable`
 // Given a base color and a list of possible foreground or background
 // colors for that base, returns the most readable color.
 // *Example*
 //    JenScript.Color.mostReadable("#123", ["#fff", "#000"]) => "#000"
-JenScript.Color.mostReadable = function(baseColor, colorList) {
-    var bestColor = null;
-    var bestScore = 0;
-    var bestIsReadable = false;
-    for (var i=0; i < colorList.length; i++) {
-
-        // We normalize both around the "acceptable" breaking point,
-        // but rank brightness constrast higher than hue.
-
-        var readability = JenScript.Color.readability(baseColor, colorList[i]);
-        var readable = readability.brightness > 125 && readability.color > 500;
-        var score = 3 * (readability.brightness / 125) + (readability.color / 500);
-
-        if ((readable && ! bestIsReadable) ||
-            (readable && bestIsReadable && score > bestScore) ||
-            ((! readable) && (! bestIsReadable) && score > bestScore)) {
-            bestIsReadable = readable;
-            bestScore = score;
-            bestColor = JenScript.Color(colorList[i]);
-        }
-    }
-    return bestColor;
-};
+//JenScript.Color.mostReadable = function(baseColor, colorList) {
+//    var bestColor = null;
+//    var bestScore = 0;
+//    var bestIsReadable = false;
+//    for (var i=0; i < colorList.length; i++) {
+//
+//        // We normalize both around the "acceptable" breaking point,
+//        // but rank brightness constrast higher than hue.
+//
+//        var readability = JenScript.Color.readability(baseColor, colorList[i]);
+//        var readable = readability.brightness > 125 && readability.color > 500;
+//        var score = 3 * (readability.brightness / 125) + (readability.color / 500);
+//
+//        if ((readable && ! bestIsReadable) ||
+//            (readable && bestIsReadable && score > bestScore) ||
+//            ((! readable) && (! bestIsReadable) && score > bestScore)) {
+//            bestIsReadable = readable;
+//            bestScore = score;
+//            bestColor = JenScript.Color(colorList[i]);
+//        }
+//    }
+//    return bestColor;
+//};
 
 // http://www.w3.org/TR/css3-color/#svg-color
 var names = JenScript.Color.names = {
@@ -3385,10 +3385,6 @@ function stringInputToObject(color) {
 				return this.height;
 			},
 			
-			/**
-			 * callback for the given action event that happens with the specified event, 
-			 * and specified location (x,y) in the component coordinate system.
-			 */
 			on : function(actionEvent,evt, x, y) {
 				//				if(evt.preventDefault){
 				//					evt.preventDefault();	
@@ -3402,30 +3398,36 @@ function stringInputToObject(color) {
 				selectorHandler.call(this.view.getSelectorPlugin(),evt,this.part,x,y);
 
 				if(this.view === undefined) return;
-				var projs = this.view.getProjections();
-				for (var p = 0; p < projs.length; p++) {
-		    		var proj = projs[p];
-		    		
-		    		var plugins = proj.getPlugins();
-					for (var p = 0; p < plugins.length; p++) {
-						var pluginHandler   = plugins[p]['on'+actionEvent];
-						pluginHandler.call(plugins[p],evt,this.part,x, y);
-					}
-					
-				}
 				
-//				if(this.view === undefined || this.view.getActiveProjection() === undefined) return;
-//				var projection = this.view.getActiveProjection();
-//				var plugins = projection.getPlugins();
-//				for (var p = 0; p < plugins.length; p++) {
-//					var pluginHandler   = plugins[p]['on'+actionEvent];
-//					
-//					//TODO?
-//					//call if plugin is not selectable
-//					//if selectable, call only if plugin is lock selected
-//					
-//					pluginHandler.call(plugins[p],evt,this.part,x, y);
+			//	if(this.view.policy.event === 'ALWAYS'){
+					var projs = this.view.getProjections();
+					for (var pi = 0; pi < projs.length; pi++) {
+						if(projs[pi].isAuthorizedPolicy('event')){
+							var plugins = projs[pi].getPlugins();
+							for (var p = 0; p < plugins.length; p++) {
+								var pluginHandler   = plugins[p]['on'+actionEvent];
+								//if(this.view.policy.event === 'ALWAYS' || (this.view.policy.event === 'ACTIVE' && projs[pi].isActive()) || (this.view.policy.event === 'MAYBE' && this.view.policy.isEventReceiver(projs[pi],plugins[p])))
+								pluginHandler.call(plugins[p],evt,this.part,x, y);
+							}
+						}
+			    		
+					}
 //				}
+//				else if(this.view.policy.event === 'ACTIVE'){
+//					if(this.view.getActiveProjection() === undefined) return;
+//					var projection = this.view.getActiveProjection();
+//					var plugins = projection.getPlugins();
+//					for (var p = 0; p < plugins.length; p++) {
+//						var pluginHandler   = plugins[p]['on'+actionEvent];
+//						pluginHandler.call(plugins[p],evt,this.part,x, y);
+//					}
+//				}
+				
+				
+				
+
+				
+				
 			},
 	});
 })();
@@ -4383,18 +4385,24 @@ function stringInputToObject(color) {
 			this.viewForegrounds = [];
 			this.foregroundEnable = true;
 			
-			/**view projections*/
+			/** view projections */
 			this.projections = [];
 			
-			/**active projection*/
+			/** active projection */
 			this.activeProjection;
 			
 			/** the widget folder guard interval */
 			this.folderGuardInterval = 4;
 			
+			/** view listeners */
 			this.listeners = [];
 			
 			this.dispatcherStrategy = (config.dispatcher !== undefined)? config.dispatcher : 'foreground';
+			
+			/** projection event propagation and visibility policies*/
+			//this.policy = (config.policy !== undefined)?config.policy:{ paint : 'INHERITS' , event : 'ACTIVE' /**ALWAYS, MAYBE, INHERITS*/, isEventReceiver : function(){return false;}};
+			
+			
 			/**
 			 * the widget plug-in is a specific plug-in to handle widget and window meta
 			 * data
@@ -4983,20 +4991,17 @@ function stringInputToObject(color) {
 		
 		/**
 		 * attach projection lock/unlock listener that update projection visibility
-		 * based on active state and paintMode (ACTIVE or ALWAYS)
+		 * based on active state and projection policy
 		 */
 		attachProjectionActiveListener : function(projection){
 			projection.addProjectionListener('lockActive',function(proj){
-				//proj.svgRootElement.setAttribute('opacity',1);
 				proj.svgRootGroup.setAttribute('opacity',1);
 			},'view projection active listener to change projection opacity');
 			projection.addProjectionListener('unlockActive',function(proj){
-				if(proj.paintMode === 'ACTIVE')
-					//proj.svgRootElement.setAttribute('opacity',0);
-					proj.svgRootGroup.setAttribute('opacity',0);
-				if(proj.paintMode === 'ALWAYS')
-					//proj.svgRootElement.setAttribute('opacity',1);
+				if(proj.isAuthorizedPolicy('paint'))
 					proj.svgRootGroup.setAttribute('opacity',1);
+				else
+					proj.svgRootGroup.setAttribute('opacity',0);
 			},'view projection unactive listener to change projection opacity');
 		},
 		
@@ -5219,7 +5224,7 @@ function stringInputToObject(color) {
 				}
 				if (s.addEventListener) {
 					// IE9, Chrome, Safari, Opera
-					//s.addEventListener("mousewheel", MouseWheelHandler, false);
+					s.addEventListener("mousewheel", MouseWheelHandler, false);
 					// Firefox
 					s.addEventListener("DOMMouseScroll", MouseWheelHandler, false);
 				}
@@ -5363,7 +5368,8 @@ function stringInputToObject(color) {
 })();
 (function(){
 	JenScript.ViewBuilder = function(config){
-		var v = new JenScript.View(config);
+		config = config || {};
+		var v = (config.view)? config.view :  new JenScript.View(config);
 		return {
 			projection : function(type, config){
 				var p;
@@ -5397,7 +5403,8 @@ function stringInputToObject(color) {
 		/**
 		 * Initialize this projection with given parameters config
 		 * @param {Object} config
-		 * @param {String} [config.name] Projection name 
+		 * @param {String} [config.name] Projection name
+		 * @param {String} [config.themeColor] Projection theme color 
 		 */
 		init : function(config){
 			config = config || {};
@@ -5411,10 +5418,45 @@ function stringInputToObject(color) {
 			this.visible = true;
 			
 			/**paint mode is always(paint always) or active(paint only if active)*/
-			this.paintMode = (config.paintMode !== undefined)?config.paintMode : 'ALWAYS';
+			//this.paintMode = (config.paintMode !== undefined)?config.paintMode : 'ALWAYS';
+			
+			this.policy = (config.policy !== undefined)?config.policy : { paint : 'ALWAYS' /** ALWAYS, RUNTIME */ , event :  'ACTIVE' /** ALWAYS, RUNTIME */ }
+			
+			if(this.policy.paint === undefined)
+				this.policy.paint = 'ACTIVE';
+			if(this.policy.event === undefined)
+				this.policy.event = 'ACTIVE';
 			
 			/**active , active put projection at the last level painting z order, and received events. see view setActive projection*/
 			this.active = false;
+		},
+		
+		isPaintPolicy : function(){
+			return true;
+		},
+		
+		isEventPolicy : function(){
+			return true;
+		},
+		
+		isAuthorizedPolicy : function(check){
+			if(check === 'paint'){
+				if((this.policy.paint === 'ACTIVE' && this.active) || this.policy.paint === 'ALWAYS')
+					return true;
+				if((this.policy.paint === 'ACTIVE' && !this.active))
+					return false
+				if(this.policy.paint === 'RUNTIME'){
+					return this.isPaintPolicy();
+				}
+			}else if(check === 'event'){
+				if((this.policy.event === 'ACTIVE' && this.active) || this.policy.event === 'ALWAYS')
+					return true;
+				if((this.policy.event === 'ACTIVE' && !this.active))
+					return false
+				if(this.policy.event === 'RUNTIME'){
+					return this.isEventPolicy();
+				}
+			}
 		},
 		
 		/**
@@ -5556,12 +5598,9 @@ function stringInputToObject(color) {
 				return ((x < y) ? -1 : ((x > y) ? 1 : 0));
 			});
 			
-			//TODO : remove this pattern ?
 			plugin.onProjectionRegister();
-			
 			this.getView().contextualizePluginGraphics(plugin);
 			this.fireProjectionEvent('pluginRegister');
-			//console.log("register plugin : "+plugin.name+' OK');
 		},
 		
 		/**
@@ -6406,7 +6445,7 @@ function stringInputToObject(color) {
 			/** zoom level & center position */
 			this.level =(config.level !== undefined)?config.level : 3;
 			this.square =(config.square !== undefined)?config.square : 256;
-			this.centerPosition =(config.centerPosition !== undefined)?config.centerPosition : new JenScript.GeoPosition(48.8380405,-0.5938274);
+			this.centerPosition =(config.centerPosition !== undefined)?config.centerPosition : new JenScript.GeoPosition(20,0);
 			/** dalle projection */
 			this.projection= new JenScript.DalleProjection(this.level,this.square);
 			
@@ -6707,17 +6746,21 @@ function stringInputToObject(color) {
 			}
 		},
 		
+		getProjections : function() {
+			return this.getView().getProjections();
+		},
+		
 		getSouth : function(h){
-			return this.getProjection().getView().south;
+			return this.getView().south;
 		},
 		getWest : function(h){
-			return this.getProjection().getView().west;
+			return this.getView().west;
 		},
 		getNorth : function(h){
-			return this.getProjection().getView().north;
+			return this.getView().north;
 		},
 		getEast : function(h){
-			return this.getProjection().getView().east;
+			return this.getView().east;
 		},
 		
 		
@@ -6726,7 +6769,7 @@ function stringInputToObject(color) {
 		 */
 		getDevice : function(){
 			try{
-				return this.getProjection().getView().getDevice();
+				return this.getView().getDevice();
 			}catch(e){
 				return undefined;
 			}
@@ -6736,7 +6779,7 @@ function stringInputToObject(color) {
 		 * get widget plugin
 		 */
 		getWidgetPlugin: function(){
-			return this.getProjection().getView().getWidgetPlugin();
+			return this.getView().getWidgetPlugin();
 		},
 		
 		/**
@@ -6826,7 +6869,6 @@ function stringInputToObject(color) {
 		},
 		
 		onProjectionRegister: function(){
-			//console.log("abstract plugin onProjectionRegister "+this.name);
 		},
 		
 		/**
@@ -6898,7 +6940,6 @@ function stringInputToObject(color) {
 		 */
 		onClick : function(evt,part,x, y) {
 		},
-
 		
 		/**
 		 * move callback
@@ -6918,7 +6959,6 @@ function stringInputToObject(color) {
 		 * @param {Number} y pixel coordinate
 		 */
 		onPress : function(evt,part,x, y) {
-			// console.info(this.name," abstract plugin on press callback");
 		},
 
 		/**
@@ -6929,9 +6969,7 @@ function stringInputToObject(color) {
 		 * @param {Number} y pixel coordinate
 		 */
 		onRelease : function(evt,part,x, y) {
-			 //console.info(this.name," abstract plugin on release callback");
 		},
-
 		
 		/**
 		 * enter part callback
@@ -6941,7 +6979,6 @@ function stringInputToObject(color) {
 		 * @param {Number} y pixel coordinate
 		 */
 		onEnter : function(evt,part,x, y) {
-			// console.info(this.name," abstract plugin on enter callback");
 		},
 
 		/**
@@ -6952,7 +6989,6 @@ function stringInputToObject(color) {
 		 * @param {Number} y pixel coordinate
 		 */
 		onExit : function(evt,part,x, y) {
-			// console.info(this.name," abstract plugin on exit callback");
 		},
 		
 		/**
@@ -6963,9 +6999,7 @@ function stringInputToObject(color) {
 		 * @param {Number} y pixel coordinate
 		 */
 		onWheel : function(evt,part,x, y) {
-			// console.info(this.name," abstract plugin on exit callback");
 		},
-		
 		
 		/**
 		 * return true if this plugin hosts widgets, false otherwise
@@ -6975,17 +7009,27 @@ function stringInputToObject(color) {
 		},
 		
 		/**
-		 * return true if the given point (x,y) intercepts widgets sensible shapes
+		 * return true if the given point (x,y) intercepts any widgets sensible shapes
+		 * in all registered projection in the shared view.
+		 * @param {Number} x pixel coordinate
+		 * @param {Number} y pixel coordinate
 		 */
 		isWidgetSensible : function(x,y){
-			for (var i = 0; i < this.widgets.length; i++) {
-				var w = this.widgets[i];
-				if(w.isSensible(x,y))
-					return true;
+			
+			var projs = this.getProjection().getView().getProjections();
+			for (var p = 0; p < projs.length; p++) {
+				for (var k = 0; k < projs[p].getPlugins().length; k++) {
+					var ws = projs[p].getPlugins()[k].getWidgets();
+					for (var l = 0; l < ws.length; l++) {
+						if(ws[l].isSensible(x,y)){
+							return true;
+						}
+							
+					}
+				}
 			}
 			return false;
 		},
-		
 		
 	    /**
 	     * register widget
@@ -6998,6 +7042,10 @@ function stringInputToObject(color) {
             widget.attachLifeCycle();
             widget.onRegister();
             this.widgets[this.widgets.length]=widget;
+	    },
+	    
+	    getWidgets: function() {
+	    	return this.widgets;
 	    }
 	});
 })();
@@ -7497,7 +7545,7 @@ function stringInputToObject(color) {
 		    
 		    this.painted = false;
 		    
-		    
+		    //widget intercept event by another channel from host plugin (ie, widget plugin from view)
 		    //mode defines the painting and event conditions according to projection status and plugin selection status
 		    //for paint : projection parameter : active|passive|always , plugin parameter  selected|unselected|always
 		    //for event parameter : projection parameter : active|passive|always , plugin parameter  selected|unselected|always
@@ -17274,10 +17322,6 @@ function stringInputToObject(color) {
                 var sleep = (sample.sleep !== undefined)?sample.sleep : 5;
                 var fraction = (sample.fraction !== undefined)?sample.fraction : 20;
                 
-                console.log("step "+step);
-                console.log("sleep "+sleep);
-                console.log("fraction "+fraction);
-                
                 var deltaY = this.getProjection().getPixelHeight() / fraction;
                 var deltaX = this.getProjection().getPixelWidth() / fraction;
                 var dx = 0;
@@ -18245,7 +18289,6 @@ function stringInputToObject(color) {
 							
 							if(that.mode.isBx()){
 								deltaSy = 0;
-								console.log("is bx");
 							}
 							else if(that.mode.isBy()){
 								deltaSx = 0;
@@ -18459,7 +18502,6 @@ function stringInputToObject(color) {
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						console.log('sync passive box'+plugin.name);
 	                    plugin.passive();
 	                }
 				}
@@ -18474,7 +18516,6 @@ function stringInputToObject(color) {
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						console.log('sync unpassive box'+plugin.name);
 	                    plugin.unselect();
 	                }
 				}
@@ -18488,7 +18529,6 @@ function stringInputToObject(color) {
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync lock box'+plugin.name);
 	                    plugin.unpassive();
 	                }
 				}
@@ -18502,7 +18542,6 @@ function stringInputToObject(color) {
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync start box'+plugin.name);
 						var deviceBoxStartSource = source.getBoxStartDevicePoint();
 	                    plugin.processZoomStart(deviceBoxStartSource);
 	                    plugin.repaintPlugin();
@@ -18518,7 +18557,6 @@ function stringInputToObject(color) {
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync bound box'+plugin.name);
 	                    var deviceBoxCurrentSource = source.getBoxCurrentDevicePoint();
 	                    plugin.processZoomBound(deviceBoxCurrentSource);
 	                    plugin.repaintPlugin();
@@ -18534,7 +18572,6 @@ function stringInputToObject(color) {
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync in box'+plugin.name);
 	                    plugin.processZoomIn();
 	                }
 				}
@@ -31412,6 +31449,7 @@ function stringInputToObject(color) {
 		_init : function(config){
 			config = config || {};
 			this.curveColor = (config.curveColor !== undefined)? config.curveColor : 'black';
+			this.curveOpacity = (config.curveOpacity !== undefined)? config.curveOpacity : 1;
 			this.curveWidth = (config.curveWidth !== undefined)? config.curveWidth : 1;
 			this.moveCount = (config.moveCount !== undefined)? config.moveCount : 20;
 			this.Id = 'fixing'+JenScript.sequenceId++;
@@ -31454,8 +31492,7 @@ function stringInputToObject(color) {
 							stockCurve.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
 					}
 					g2d.deleteGraphicsElement(this.Id);
-					//g2d.insertSVG();
-					svgLayer.child(stockCurve.stroke(this.curveColor).strokeWidth(this.curveWidth).fillNone().toSVG());
+					svgLayer.child(stockCurve.stroke(this.curveColor).strokeWidth(this.curveWidth).strokeOpacity(this.curveOpacity).fillNone().toSVG());
 					g2d.insertSVG(svgLayer.toSVG());
 				}
 			}

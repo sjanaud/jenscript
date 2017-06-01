@@ -4,7 +4,8 @@
 		/**
 		 * Initialize this projection with given parameters config
 		 * @param {Object} config
-		 * @param {String} [config.name] Projection name 
+		 * @param {String} [config.name] Projection name
+		 * @param {String} [config.themeColor] Projection theme color 
 		 */
 		init : function(config){
 			config = config || {};
@@ -18,10 +19,45 @@
 			this.visible = true;
 			
 			/**paint mode is always(paint always) or active(paint only if active)*/
-			this.paintMode = (config.paintMode !== undefined)?config.paintMode : 'ALWAYS';
+			//this.paintMode = (config.paintMode !== undefined)?config.paintMode : 'ALWAYS';
+			
+			this.policy = (config.policy !== undefined)?config.policy : { paint : 'ALWAYS' /** ALWAYS, RUNTIME */ , event :  'ACTIVE' /** ALWAYS, RUNTIME */ }
+			
+			if(this.policy.paint === undefined)
+				this.policy.paint = 'ACTIVE';
+			if(this.policy.event === undefined)
+				this.policy.event = 'ACTIVE';
 			
 			/**active , active put projection at the last level painting z order, and received events. see view setActive projection*/
 			this.active = false;
+		},
+		
+		isPaintPolicy : function(){
+			return true;
+		},
+		
+		isEventPolicy : function(){
+			return true;
+		},
+		
+		isAuthorizedPolicy : function(check){
+			if(check === 'paint'){
+				if((this.policy.paint === 'ACTIVE' && this.active) || this.policy.paint === 'ALWAYS')
+					return true;
+				if((this.policy.paint === 'ACTIVE' && !this.active))
+					return false
+				if(this.policy.paint === 'RUNTIME'){
+					return this.isPaintPolicy();
+				}
+			}else if(check === 'event'){
+				if((this.policy.event === 'ACTIVE' && this.active) || this.policy.event === 'ALWAYS')
+					return true;
+				if((this.policy.event === 'ACTIVE' && !this.active))
+					return false
+				if(this.policy.event === 'RUNTIME'){
+					return this.isEventPolicy();
+				}
+			}
 		},
 		
 		/**
@@ -163,12 +199,9 @@
 				return ((x < y) ? -1 : ((x > y) ? 1 : 0));
 			});
 			
-			//TODO : remove this pattern ?
 			plugin.onProjectionRegister();
-			
 			this.getView().contextualizePluginGraphics(plugin);
 			this.fireProjectionEvent('pluginRegister');
-			//console.log("register plugin : "+plugin.name+' OK');
 		},
 		
 		/**

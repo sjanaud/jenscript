@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-29
+// build: 2017-06-01
 // All Rights reserved
 
 (function(){
@@ -358,7 +358,6 @@
 							
 							if(that.mode.isBx()){
 								deltaSy = 0;
-								console.log("is bx");
 							}
 							else if(that.mode.isBy()){
 								deltaSx = 0;
@@ -572,7 +571,6 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						console.log('sync passive box'+plugin.name);
 	                    plugin.passive();
 	                }
 				}
@@ -587,7 +585,6 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						console.log('sync unpassive box'+plugin.name);
 	                    plugin.unselect();
 	                }
 				}
@@ -601,7 +598,6 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync lock box'+plugin.name);
 	                    plugin.unpassive();
 	                }
 				}
@@ -615,7 +611,6 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync start box'+plugin.name);
 						var deviceBoxStartSource = source.getBoxStartDevicePoint();
 	                    plugin.processZoomStart(deviceBoxStartSource);
 	                    plugin.repaintPlugin();
@@ -631,7 +626,6 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync bound box'+plugin.name);
 	                    var deviceBoxCurrentSource = source.getBoxCurrentDevicePoint();
 	                    plugin.processZoomBound(deviceBoxCurrentSource);
 	                    plugin.repaintPlugin();
@@ -647,7 +641,6 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync in box'+plugin.name);
 	                    plugin.processZoomIn();
 	                }
 				}

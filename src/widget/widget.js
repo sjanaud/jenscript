@@ -46,7 +46,7 @@
 		    
 		    this.painted = false;
 		    
-		    
+		    //widget intercept event by another channel from host plugin (ie, widget plugin from view)
 		    //mode defines the painting and event conditions according to projection status and plugin selection status
 		    //for paint : projection parameter : active|passive|always , plugin parameter  selected|unselected|always
 		    //for event parameter : projection parameter : active|passive|always , plugin parameter  selected|unselected|always

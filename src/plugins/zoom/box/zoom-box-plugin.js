@@ -349,7 +349,6 @@
 							
 							if(that.mode.isBx()){
 								deltaSy = 0;
-								console.log("is bx");
 							}
 							else if(that.mode.isBy()){
 								deltaSx = 0;

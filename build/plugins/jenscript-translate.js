@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-05-29
+// build: 2017-06-01
 // All Rights reserved
 
 (function(){
@@ -234,10 +234,6 @@
 		        var step = (sample.step !== undefined)?sample.step : 5;
                 var sleep = (sample.sleep !== undefined)?sample.sleep : 5;
                 var fraction = (sample.fraction !== undefined)?sample.fraction : 20;
-                
-                console.log("step "+step);
-                console.log("sleep "+sleep);
-                console.log("fraction "+fraction);
                 
                 var deltaY = this.getProjection().getPixelHeight() / fraction;
                 var deltaX = this.getProjection().getPixelWidth() / fraction;

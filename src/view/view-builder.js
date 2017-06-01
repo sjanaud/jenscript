@@ -1,6 +1,7 @@
 (function(){
 	JenScript.ViewBuilder = function(config){
-		var v = new JenScript.View(config);
+		config = config || {};
+		var v = (config.view)? config.view :  new JenScript.View(config);
 		return {
 			projection : function(type, config){
 				var p;

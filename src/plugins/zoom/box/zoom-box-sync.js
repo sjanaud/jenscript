@@ -55,7 +55,6 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						console.log('sync passive box'+plugin.name);
 	                    plugin.passive();
 	                }
 				}
@@ -70,7 +69,6 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						console.log('sync unpassive box'+plugin.name);
 	                    plugin.unselect();
 	                }
 				}
@@ -84,7 +82,6 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync lock box'+plugin.name);
 	                    plugin.unpassive();
 	                }
 				}
@@ -98,7 +95,6 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync start box'+plugin.name);
 						var deviceBoxStartSource = source.getBoxStartDevicePoint();
 	                    plugin.processZoomStart(deviceBoxStartSource);
 	                    plugin.repaintPlugin();
@@ -114,7 +110,6 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync bound box'+plugin.name);
 	                    var deviceBoxCurrentSource = source.getBoxCurrentDevicePoint();
 	                    plugin.processZoomBound(deviceBoxCurrentSource);
 	                    plugin.repaintPlugin();
@@ -130,7 +125,6 @@
 	            for (var i = 0; i < this.boxesList.length; i++) {
 					var plugin = this.boxesList[i];
 					if (plugin.Id !== source.Id) {
-						//console.log('sync in box'+plugin.name);
 	                    plugin.processZoomIn();
 	                }
 				}

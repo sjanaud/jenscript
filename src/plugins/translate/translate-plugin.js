@@ -226,10 +226,6 @@
                 var sleep = (sample.sleep !== undefined)?sample.sleep : 5;
                 var fraction = (sample.fraction !== undefined)?sample.fraction : 20;
                 
-                console.log("step "+step);
-                console.log("sleep "+sleep);
-                console.log("fraction "+fraction);
-                
                 var deltaY = this.getProjection().getPixelHeight() / fraction;
                 var deltaX = this.getProjection().getPixelWidth() / fraction;
                 var dx = 0;
