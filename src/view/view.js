@@ -52,7 +52,6 @@
 			this.scale  = (config.scale !== undefined)?config.scale : 1;
 			
 			/**part place holders*/
-			
 			if(config.holders!== undefined){
 				config.west   = (config.west !== undefined)?  config.west  : config.holders;
 				config.east   = (config.east !== undefined)?  config.east  : config.holders;
