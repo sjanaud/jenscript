@@ -607,7 +607,7 @@
 			config.priority = 1000;
 			config.name ='GeoJSONPlugin';
 			JenScript.Plugin.call(this, config);
-			this.async = (config.async !== undefined)?config.async :  false;
+			//this.async = (config.async !== undefined)?config.async :  false;
 			this.data = [];
 			this.paths = [];
 			this.features = [];
@@ -688,6 +688,11 @@
 					this.features[this.features.length] =  feature;
 					this.fireGeoJSONEvent('register',{ type : 'register', target : undefined, feature : feature, remote : undefined});
 				}
+			}
+			else if(geojson.isFeature){
+				var feature = new JenScript.MapFeature(data);
+				this.features[this.features.length] =  feature;
+				this.fireGeoJSONEvent('register',{ type : 'register', target : undefined, feature : feature, remote : undefined});
 			}
 			this.repaintPlugin();
 		},
@@ -884,31 +889,13 @@
 			//console.log("paint feature : "+feature.Id);
 			var geometry = feature.getGeometry();
 			var that= this;
-			var pp = function(geometry){
-				setTimeout(function(){
-					that.paintPolygon(g2d,feature,geometry);
-				},20);
-			};
-			var pmp = function(geometry){
-				setTimeout(function(){
-					that.paintMultiPolygon(g2d,feature,geometry);
-				},20);
-			};
 			
 			//console.log('geometry :'+geometry);
 			if(geometry.isPolygon()){
-				//this.paintPolygon(g2d,feature,geometry);
-				if(this.async)
-					pp(geometry);
-				else
-					that.paintPolygon(g2d,feature,geometry);
+				this.paintPolygon(g2d,feature,geometry);
 				
 			}else if(geometry.isMultiPolygon()){
-				//this.paintMultiPolygon(g2d,feature,geometry);
-				if(this.async)
-					pmp(geometry);
-				else
-					that.paintMultiPolygon(g2d,feature,geometry);
+				this.paintMultiPolygon(g2d,feature,geometry);
 				
 			}else if(geometry.isPoint()){
 				this.paintPoint(g2d,feature,geometry);
@@ -926,22 +913,9 @@
 				return;
 			}
 			this.paths = [];
-			//var mouseover = new JenScript.SVGScript().script("function mytest(evt){console.log('pop');}");
-			//g2d.insertSVG(mouseover.toSVG());
-			var that = this;
-			
-			var pf = function(feature){
-				setTimeout(function(){
-					//console.log('feature : '+feature);
-					that.paintFeature(g2d,feature);
-				},20);
-			};
 			for (var f = 0; f < this.features.length; f++) {
 				var feature = this.features[f];
-				if(this.async)
-					pf(feature);
-				else
-					this.paintFeature(g2d,feature);
+				this.paintFeature(g2d,feature);
 			}
 		}
 	});

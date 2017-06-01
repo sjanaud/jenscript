@@ -687,14 +687,28 @@
 		 * based on active state and projection policy
 		 */
 		attachProjectionActiveListener : function(projection){
+			var that = this;
+			var checkOpacity = function(){
+				var projs = that.getProjections();
+				for (var i = 0; i < projs.length; i++) {
+					var proj = projs[i];
+					if(proj.isAuthorizedPolicy('paint'))
+						proj.svgRootGroup.setAttribute('opacity',1);
+					else
+						proj.svgRootGroup.setAttribute('opacity',0);
+				}
+			}
+			
 			projection.addProjectionListener('lockActive',function(proj){
-				proj.svgRootGroup.setAttribute('opacity',1);
+				//proj.svgRootGroup.setAttribute('opacity',1);
+				checkOpacity();
 			},'view projection active listener to change projection opacity');
 			projection.addProjectionListener('unlockActive',function(proj){
-				if(proj.isAuthorizedPolicy('paint'))
-					proj.svgRootGroup.setAttribute('opacity',1);
-				else
-					proj.svgRootGroup.setAttribute('opacity',0);
+				checkOpacity();
+//				if(proj.isAuthorizedPolicy('paint'))
+//					proj.svgRootGroup.setAttribute('opacity',1);
+//				else
+//					proj.svgRootGroup.setAttribute('opacity',0);
 			},'view projection unactive listener to change projection opacity');
 		},
 		

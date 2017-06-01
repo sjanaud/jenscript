@@ -3398,36 +3398,17 @@ function stringInputToObject(color) {
 				selectorHandler.call(this.view.getSelectorPlugin(),evt,this.part,x,y);
 
 				if(this.view === undefined) return;
-				
-			//	if(this.view.policy.event === 'ALWAYS'){
-					var projs = this.view.getProjections();
-					for (var pi = 0; pi < projs.length; pi++) {
-						if(projs[pi].isAuthorizedPolicy('event')){
-							var plugins = projs[pi].getPlugins();
-							for (var p = 0; p < plugins.length; p++) {
-								var pluginHandler   = plugins[p]['on'+actionEvent];
-								//if(this.view.policy.event === 'ALWAYS' || (this.view.policy.event === 'ACTIVE' && projs[pi].isActive()) || (this.view.policy.event === 'MAYBE' && this.view.policy.isEventReceiver(projs[pi],plugins[p])))
-								pluginHandler.call(plugins[p],evt,this.part,x, y);
-							}
+				var projs = this.view.getProjections();
+				for (var pi = 0; pi < projs.length; pi++) {
+					if(projs[pi].isAuthorizedPolicy('event')){
+						var plugins = projs[pi].getPlugins();
+						for (var p = 0; p < plugins.length; p++) {
+							var pluginHandler   = plugins[p]['on'+actionEvent];
+							pluginHandler.call(plugins[p],evt,this.part,x, y);
 						}
-			    		
 					}
-//				}
-//				else if(this.view.policy.event === 'ACTIVE'){
-//					if(this.view.getActiveProjection() === undefined) return;
-//					var projection = this.view.getActiveProjection();
-//					var plugins = projection.getPlugins();
-//					for (var p = 0; p < plugins.length; p++) {
-//						var pluginHandler   = plugins[p]['on'+actionEvent];
-//						pluginHandler.call(plugins[p],evt,this.part,x, y);
-//					}
-//				}
-				
-				
-				
-
-				
-				
+		    		
+				}
 			},
 	});
 })();
@@ -4994,14 +4975,28 @@ function stringInputToObject(color) {
 		 * based on active state and projection policy
 		 */
 		attachProjectionActiveListener : function(projection){
+			var that = this;
+			var checkOpacity = function(){
+				var projs = that.getProjections();
+				for (var i = 0; i < projs.length; i++) {
+					var proj = projs[i];
+					if(proj.isAuthorizedPolicy('paint'))
+						proj.svgRootGroup.setAttribute('opacity',1);
+					else
+						proj.svgRootGroup.setAttribute('opacity',0);
+				}
+			}
+			
 			projection.addProjectionListener('lockActive',function(proj){
-				proj.svgRootGroup.setAttribute('opacity',1);
+				//proj.svgRootGroup.setAttribute('opacity',1);
+				checkOpacity();
 			},'view projection active listener to change projection opacity');
 			projection.addProjectionListener('unlockActive',function(proj){
-				if(proj.isAuthorizedPolicy('paint'))
-					proj.svgRootGroup.setAttribute('opacity',1);
-				else
-					proj.svgRootGroup.setAttribute('opacity',0);
+				checkOpacity();
+//				if(proj.isAuthorizedPolicy('paint'))
+//					proj.svgRootGroup.setAttribute('opacity',1);
+//				else
+//					proj.svgRootGroup.setAttribute('opacity',0);
 			},'view projection unactive listener to change projection opacity');
 		},
 		
@@ -5409,7 +5404,7 @@ function stringInputToObject(color) {
 		init : function(config){
 			config = config || {};
 			this.Id = 'proj_'+JenScript.sequenceId++;
-			this.name = (config.name !== undefined)?config.name : 'projection undefined name';
+			this.name = (config.name !== undefined)?config.name : 'proj_undefined_name'+this.Id;
 			this.initial = true;
 			this.themeColor = (config.themeColor !== undefined)?config.themeColor:JenScript.createColor();
 			this.listeners =[];
@@ -5427,16 +5422,14 @@ function stringInputToObject(color) {
 			if(this.policy.event === undefined)
 				this.policy.event = 'ACTIVE';
 			
+			this.isPaintPolicy = (config.isPaintPolicy !== undefined)?config.isPaintPolicy :function(){return true;};
+			this.isEventPolicy = (config.isEventPolicy !== undefined)?config.isEventPolicy :function(){return true;};
+			
+				
+			 
+			
 			/**active , active put projection at the last level painting z order, and received events. see view setActive projection*/
 			this.active = false;
-		},
-		
-		isPaintPolicy : function(){
-			return true;
-		},
-		
-		isEventPolicy : function(){
-			return true;
 		},
 		
 		isAuthorizedPolicy : function(check){
@@ -5499,8 +5492,12 @@ function stringInputToObject(color) {
 			return this.Id;
 		},
 
-		setVisible : function(name) {
-			this.name = visible;
+		setVisible : function(visible) {
+			this.visible = visible;
+			if(visible && this.svgRootGroup)
+				this.svgRootGroup.setAttribute('opacity',1);
+			else
+				this.svgRootGroup.setAttribute('opacity',0);
 		},
 
 		isVisible : function() {

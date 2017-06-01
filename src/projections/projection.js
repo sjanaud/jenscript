@@ -10,7 +10,7 @@
 		init : function(config){
 			config = config || {};
 			this.Id = 'proj_'+JenScript.sequenceId++;
-			this.name = (config.name !== undefined)?config.name : 'projection undefined name';
+			this.name = (config.name !== undefined)?config.name : 'proj_undefined_name'+this.Id;
 			this.initial = true;
 			this.themeColor = (config.themeColor !== undefined)?config.themeColor:JenScript.createColor();
 			this.listeners =[];
@@ -28,16 +28,12 @@
 			if(this.policy.event === undefined)
 				this.policy.event = 'ACTIVE';
 			
+			this.isPaintPolicy = (config.isPaintPolicy !== undefined)?config.isPaintPolicy :function(){return true;};
+			this.isEventPolicy = (config.isEventPolicy !== undefined)?config.isEventPolicy :function(){return true;};
+			
+			
 			/**active , active put projection at the last level painting z order, and received events. see view setActive projection*/
 			this.active = false;
-		},
-		
-		isPaintPolicy : function(){
-			return true;
-		},
-		
-		isEventPolicy : function(){
-			return true;
 		},
 		
 		isAuthorizedPolicy : function(check){
@@ -100,8 +96,12 @@
 			return this.Id;
 		},
 
-		setVisible : function(name) {
-			this.name = visible;
+		setVisible : function(visible) {
+			this.visible = visible;
+			if(visible && this.svgRootGroup)
+				this.svgRootGroup.setAttribute('opacity',1);
+			else
+				this.svgRootGroup.setAttribute('opacity',0);
 		},
 
 		isVisible : function() {

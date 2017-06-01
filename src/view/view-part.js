@@ -48,36 +48,17 @@
 				selectorHandler.call(this.view.getSelectorPlugin(),evt,this.part,x,y);
 
 				if(this.view === undefined) return;
-				
-			//	if(this.view.policy.event === 'ALWAYS'){
-					var projs = this.view.getProjections();
-					for (var pi = 0; pi < projs.length; pi++) {
-						if(projs[pi].isAuthorizedPolicy('event')){
-							var plugins = projs[pi].getPlugins();
-							for (var p = 0; p < plugins.length; p++) {
-								var pluginHandler   = plugins[p]['on'+actionEvent];
-								//if(this.view.policy.event === 'ALWAYS' || (this.view.policy.event === 'ACTIVE' && projs[pi].isActive()) || (this.view.policy.event === 'MAYBE' && this.view.policy.isEventReceiver(projs[pi],plugins[p])))
-								pluginHandler.call(plugins[p],evt,this.part,x, y);
-							}
+				var projs = this.view.getProjections();
+				for (var pi = 0; pi < projs.length; pi++) {
+					if(projs[pi].isAuthorizedPolicy('event')){
+						var plugins = projs[pi].getPlugins();
+						for (var p = 0; p < plugins.length; p++) {
+							var pluginHandler   = plugins[p]['on'+actionEvent];
+							pluginHandler.call(plugins[p],evt,this.part,x, y);
 						}
-			    		
 					}
-//				}
-//				else if(this.view.policy.event === 'ACTIVE'){
-//					if(this.view.getActiveProjection() === undefined) return;
-//					var projection = this.view.getActiveProjection();
-//					var plugins = projection.getPlugins();
-//					for (var p = 0; p < plugins.length; p++) {
-//						var pluginHandler   = plugins[p]['on'+actionEvent];
-//						pluginHandler.call(plugins[p],evt,this.part,x, y);
-//					}
-//				}
-				
-				
-				
-
-				
-				
+		    		
+				}
 			},
 	});
 })();
