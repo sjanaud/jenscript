@@ -439,7 +439,6 @@
 			if (this.activeProjection.Id !== activeProjection.Id) {
 				this.activeProjection = activeProjection;
 				this.activeProjection.setActive(true);
-				//this.selectorPlugin.repaintPlugin();
 				this.fireViewEvent('projectionActive');
 			}
 		},

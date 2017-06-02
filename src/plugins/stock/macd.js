@@ -26,20 +26,19 @@
 			return nf;
 		},
 		
-		_solveGeometry : function(tag,moveCount,stocks){	
-			
+		_solveGeometry : function(tag,moveCount){
+			var stocks = this.getLayer().stocksAdjusted;
 			var alpha = 2/(moveCount+1);
-			for (var i = moveCount; i < stocks.length; i++) {
+			for (var i = stocks.length-1; i >= 30; i--) {
 				var root = stocks[i];
 				var sum = root.getClose();
 				var divider = 1;
-				for (var j = 1; j < moveCount; j++) {
+				for (var j = 1; j <= moveCount; j++) {
 					var s = stocks[i - j];
 					sum = sum + Math.pow((1-alpha),j)*s.getClose();
 					divider = divider + Math.pow((1-alpha),j);
 				}
 				var movingAverage = sum / divider;
-				
 				if(tag === 'min')
 					this.getFixing(root).min = movingAverage;
 				if(tag === 'max')
@@ -48,15 +47,15 @@
 			
 		},
 		
-		_solveSignal : function(moveCount,stocks){
-			
+		_solveSignal : function(moveCount){
+			var stocks = this.getLayer().stocksAdjusted;
 			var alpha = 2/(moveCount+1);
-			for (var i = moveCount; i < stocks.length; i++) {
+			for (var i = stocks.length - 1; i >= 30+this.moveCountSignal; i--) {
 				var root = stocks[i];
 				var fmacd = this.getFixing(root);
 				var sum = fmacd.macd;
 				var divider = 1;
-				for (var j = 1; j < moveCount; j++) {
+				for (var j = 1; j <= moveCount; j++) {
 					var s = stocks[i - j];
 					var fmacd2 = this.getFixing(s);
 					sum = sum + Math.pow((1-alpha),j)*fmacd2.macd;
@@ -65,89 +64,55 @@
 				var movingAverage = sum / divider;
 				fmacd.signal = movingAverage;
 			}
-			
 		},
 		
 		solveGeometry : function(){
-			var stocks = this.getLayer().getHost().getStocks();
-			
-//			if(stocks){
-//				stocks.sort(function(s1,s2){
-//					if(s1.getFixing().getTime()>s2.getFixing().getTime())
-//						return 1;
-//					return -1;
-//				});
-//			}
+			this.fixingMap = [];
 			//solve mme min and mme max
-			this._solveGeometry('min',this.moveCountMin,stocks);
-			this._solveGeometry('max',this.moveCountMax,stocks);
-			
-			var proj = this.getLayer().getHost().getProjection();
-			var minMillis = proj.minX;
-			var maxMillis = proj.maxX;
-
-//			var points= [];
-//			for (var i = 0; i < this.fixingMap.length; i++) {
-//				var f = this.fixingMap[i];
-//				var root = f.stock;
-//				var macd = f.min - f.max;
-//				f.macd = macd;
-//				var rootMillis = root.getFixing().getTime();
-//				//keep only bound point for drawing
-//				if(rootMillis>=minMillis && rootMillis<=maxMillis)
-//					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), macd);
-//			}
+			this._solveGeometry('min',this.moveCountMin);
+			this._solveGeometry('max',this.moveCountMax);
 			
 			//solve macd
-			for (var i = 0; i < stocks.length; i++) {
+			var stocks = this.getLayer().stocksAdjusted;
+			for (var i = stocks.length-1; i >= 30; i--) {
 				var root = stocks[i];
 				var fm = this.getFixing(root); 
 				if(fm.min !== undefined && fm.max !== undefined){
 					var macd = fm.min - fm.max;
 					fm.macd = macd;
+				}else{
 				}
 			}
 			
 			//solve signal
-			this._solveSignal(this.moveCountSignal,stocks);
-			
+			this._solveSignal(this.moveCountSignal);
 		},
 		
-		
 		getMACD : function(){
-			var points = [];
-			var proj = this.getLayer().getHost().getProjection();
-			var minMillis = proj.minX;
-			var maxMillis = proj.maxX;
-			var stocks = this.getLayer().getHost().getStocks();
-			for (var i = 0; i < stocks.length; i++) {
-				var root = stocks[i];
-				var rootMillis = root.getFixing().getTime();
-				var fm = this.getFixing(root); 
-				if(rootMillis>=minMillis && rootMillis<=maxMillis)
-					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), fm.macd);
-			}
-			return points;
+			return this.getPoints('macd',30,this.getLayer().stocksAdjusted.length - 1);
 		},
 		
 		getSignal : function(){
+			return this.getPoints('signal',30 + this.moveCountSignal,this.getLayer().stocksAdjusted.length - 1);
+		},
+		
+		getPoints : function(type, start, stop){
 			var points = [];
 			var proj = this.getLayer().getHost().getProjection();
 			var minMillis = proj.minX;
 			var maxMillis = proj.maxX;
-			//console.log("macd get signal min/max miilis:"+minMillis+"/"+maxMillis);
-			var stocks = this.getLayer().getHost().getStocks();
-			//console.log("macd getsignal : "+stocks.length);
-			for (var i = 0; i < stocks.length; i++) {
+			var stocks = this.getLayer().stocksAdjusted;
+			for (var i = start; i <= stop; i++) {
 				var root = stocks[i];
 				var rootMillis = root.getFixing().getTime();
 				var fm = this.getFixing(root); 
 				if(rootMillis>=minMillis && rootMillis<=maxMillis){
-					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), fm.signal);
+					var value = (type === 'signal')?fm.signal:fm.macd;
+					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), value);
 				}
 			}
 			return points;
-		},
+		}
 		
 		
 	});
@@ -185,7 +150,13 @@
 			JenScript.StockLayer.call(this,config);
 		},
 		
+		
+		selectStocks : function(){
+			this.stocksAdjusted = this.getHost().getBoundedStocksAdjustedIndex(30, 30);
+		},
+		
 		solveLayer : function() {
+			this.selectStocks();
 			this.clearGeometries();
 			var conf = {
 					moveCountSignal : this.moveCountSignal,
@@ -201,16 +172,16 @@
 		paintCurve : function(svgLayer,g2d,part,points,id,color,width,opacity) {
 			var proj = this.plugin.getProjection();
 			var curve = new JenScript.SVGPath().Id(id);
-			//console.log("create macd curve, points.length:"+points.length);
 			for (var p = 0; p < points.length; p++) {
 				var point = points[p];
-				if(p == 0)
+				if(p == 0){
 					curve.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
-				else
+				}
+				else{
 					curve.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+				}
 			}
 			
-			//console.log("create macd curve : ");
 			//g2d.deleteGraphicsElement(id);
 			//g2d.insertSVG(curve.stroke(color).strokeWidth(width).strokeOpacity(opacity).fillNone().toSVG());
 			svgLayer.child(curve.stroke(color).strokeWidth(width).strokeOpacity(opacity).fillNone().toSVG());

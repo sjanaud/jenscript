@@ -8,6 +8,7 @@
 		_init : function(config){
 			config = config || {};
 			this.stocks = [];
+			this.boundedStocks = [];
 			this.stockLayers=[];
 			config.priority = 10000;
 			config.name = (config.name !== undefined)?config.name:'StockPlugin';
@@ -45,24 +46,50 @@
 		 * @returns stocks in current projection date range
 		 */
 		getBoundedStocks : function(){
-			//console.log('get bounded stock');
-			var boundedStocks = [];
-			for (var i = 0; i < this.stocks.length; i++) {
-				var s = this.stocks[i];
-				var sp = this.stocks[i-1];
-				var sn = this.stocks[i+1];
-				if(s.fixing.getTime()>=this.getProjection().minX && s.fixing.getTime()<=this.getProjection().maxX){
-					if(sp !== undefined && sp.fixing.getTime()<this.getProjection().minX){
-						boundedStocks[boundedStocks.length] = sp;
+			if(this.requestBoundStock){
+				this.boundedStocks = [];
+				for (var i = 0; i < this.stocks.length; i++) {
+					var s = this.stocks[i];
+					var sp = this.stocks[i-1];
+					var sn = this.stocks[i+1];
+					if(s.fixing.getTime()>=this.getProjection().minX && s.fixing.getTime()<=this.getProjection().maxX){
+						if(sp !== undefined && sp.fixing.getTime()<this.getProjection().minX){
+							this.boundedStocks[this.boundedStocks.length] = sp;
+						}
+						this.boundedStocks[this.boundedStocks.length] = s;
+						if(sn !== undefined && sn.fixing.getTime()>this.getProjection().maxX){
+							this.boundedStocks[this.boundedStocks.length] = sn;
+						}
 					}
-					boundedStocks[boundedStocks.length] = s;
-					if(sn !== undefined && sn.fixing.getTime()>this.getProjection().maxX){
-						boundedStocks[boundedStocks.length] = sn;
+					
+				}
+				this.requestBoundStock = false;
+			}
+			return this.boundedStocks;
+		},
+		
+		/**
+		 * get stocks bounded in projection with given added previous and next points index
+		 * @returns stocks in current projection date range
+		 */
+		getBoundedStocksAdjustedIndex : function(countBefore, countAfter){
+				var boundedStocks = [];
+				var startIndex = -1;
+				var endIndex = -1;
+				for (var i = 0; i < this.stocks.length; i++) {
+					var s = this.stocks[i];
+					if(s.fixing.getTime()>=this.getProjection().minX && startIndex == -1){
+						startIndex = i;
+					}
+					if(s.fixing.getTime()>=this.getProjection().maxX && endIndex == -1){
+						endIndex = i;
 					}
 				}
-				
-			}
-			return boundedStocks;
+				if(startIndex - countBefore > 0 && endIndex+countAfter < this.stocks.length){
+					boundedStocks = this.stocks.slice((startIndex - countBefore), (endIndex+countAfter));
+				}else{
+				}
+				return boundedStocks;
 		},
 		
 		/**
@@ -70,14 +97,12 @@
 		 * @returns stocks in given date range
 		 */
 		getRangeStocks : function(minDate,maxDate){
-			//console.log('get bounded stock');
 			var boundedStocks = [];
 			for (var i = 0; i < this.stocks.length; i++) {
 				var s = this.stocks[i];
 				if(s.fixing.getTime()>=minDate.getTime() && s.fixing.getTime()<=maxDate.getTime()){
 					boundedStocks[boundedStocks.length] = s;
 				}
-				
 			}
 			return boundedStocks;
 		},
@@ -129,7 +154,7 @@
 		 * @param {Array} stock array
 		 */
 		setStocks : function(stocks){
-			this.stocks=stocks;
+			this.stocks = stocks;
 			stocks.sort(function(s1, s2) {
 				var f1 = s1.fixing.getTime();
 				var f2 = s2.fixing.getTime();
@@ -150,14 +175,15 @@
 			this.setStocks(this.stocks);
 		},
 		
-		
 		/**
 		 * paint this stock plugin
 		 * @param {Object} g2d
 		 * @param {Object} part
 		 */
 		paintPlugin : function(g2d, part) {
+			
 			if(part === 'Device'){
+				this.requestBoundStock = true;
 				for (var i = 0; i < this.stockLayers.length; i++) {
 					var l = this.stockLayers[i];
 					l.solveLayer();
@@ -174,22 +200,6 @@
 			this.getProjection().addProjectionListener('boundChanged', function(){
 				that.repaintPlugin();
 			},'Stock plugin listener for projection bound changed');
-		},
-		
-		
-		
-		onPress : function(evt,part,x, y) {
-			//mozilla, prevent Default to enable dragging correctly
-			if(evt.preventDefault){
-				evt.preventDefault();
-			}
-					
-			if(this.isTranslateAuthorized(evt,part,x,y)){
-				//console.log('Translate authorize to start : '+this.Id+" proj "+this.getProjection().name);
-				this.startTranslate(new JenScript.Point2D(x,y));
-			}else{
-				//console.log('Translate NOT authorize to start : '+this.Id);
-			}
 		},
 		
 		onMove : function(evt,part,x, y) {

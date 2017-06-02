@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-06-01
+// build: 2017-06-02
 // All Rights reserved
 
 (function(){
@@ -834,7 +834,6 @@
 			g2d.deleteGraphicsElement(geometry.Id);
 			g2d.insertSVG(pathElement);
 			this.paths[this.paths.length]= {element : pathElement, polygon : points, feature : feature , lockEnter : false, revertScale : true};
-			//extract end
 		},
 		
 		paintMultiPolygon : function(g2d,feature,geometry){
@@ -870,7 +869,6 @@
 				if(feature.texture !== undefined){
 					g2d.deleteGraphicsElement(feature.texture.getId());
 					g2d.definesTexture(feature.texture);
-					//g2d.insertSVG(shape.fillURL(this.texture.Id).opacity(this.opacity).toSVG());
 					pathElement.fillURL(feature.texture.getId());
 				}
 				
@@ -878,7 +876,6 @@
 				g2d.deleteGraphicsElement(geometry.Id+'_'+m);
 				g2d.insertSVG(pathElement);
 				this.paths[this.paths.length]= {element : pathElement, polygon : points, feature : feature, lockEnter : false, revertScale : true};
-				//extract end
 				//console.log(" end paint multipolygon "+m+" :"+multiPolygon[m].length);
 				
 			}

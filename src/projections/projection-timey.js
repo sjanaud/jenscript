@@ -69,7 +69,7 @@
 		 * @param maxYDate
 		 */
 		boundTimeY : function(minX,maxX,minYDate,maxYDate) {
-			this.boundLinear(minX, maxX, minYDate.getTime(),maxYDate.getTime());
+			this.bound(minX, maxX, minYDate.getTime(),maxYDate.getTime());
 		},
 
 		/**

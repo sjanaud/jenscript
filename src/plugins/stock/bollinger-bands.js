@@ -45,13 +45,13 @@
 			var stockMAs = [];
 			
 			var stocks = this.getLayer().getHost().getStocks();
-			if(stocks){
-				stocks.sort(function(s1,s2){
-					if(s1.getFixing().getTime()>s2.getFixing().getTime())
-						return 1;
-					return -1;
-				});
-			}
+//			if(stocks){
+//				stocks.sort(function(s1,s2){
+//					if(s1.getFixing().getTime()>s2.getFixing().getTime())
+//						return 1;
+//					return -1;
+//				});
+//			}
 
 			for (var i = this.moveCount; i < stocks.length; i++) {
 				var root = stocks[i];

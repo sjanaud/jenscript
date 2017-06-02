@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-06-01
+// build: 2017-06-02
 // All Rights reserved
 
 /**
@@ -4340,7 +4340,6 @@ function stringInputToObject(color) {
 			this.scale  = (config.scale !== undefined)?config.scale : 1;
 			
 			/**part place holders*/
-			
 			if(config.holders!== undefined){
 				config.west   = (config.west !== undefined)?  config.west  : config.holders;
 				config.east   = (config.east !== undefined)?  config.east  : config.holders;
@@ -4728,7 +4727,6 @@ function stringInputToObject(color) {
 			if (this.activeProjection.Id !== activeProjection.Id) {
 				this.activeProjection = activeProjection;
 				this.activeProjection.setActive(true);
-				//this.selectorPlugin.repaintPlugin();
 				this.fireViewEvent('projectionActive');
 			}
 		},
@@ -5425,8 +5423,6 @@ function stringInputToObject(color) {
 			this.isPaintPolicy = (config.isPaintPolicy !== undefined)?config.isPaintPolicy :function(){return true;};
 			this.isEventPolicy = (config.isEventPolicy !== undefined)?config.isEventPolicy :function(){return true;};
 			
-				
-			 
 			
 			/**active , active put projection at the last level painting z order, and received events. see view setActive projection*/
 			this.active = false;
@@ -6093,7 +6089,7 @@ function stringInputToObject(color) {
 		 * @param maxy
 		 */
 		boundTimeX : function(minXDate, maxXDate, miny, maxy) {
-			boundLinear(minXDate.getTime(), maxXDate.getTime(), miny, maxy);
+			this.bound(minXDate.getTime(), maxXDate.getTime(), miny, maxy);
 		}
 	});
 })();
@@ -6168,7 +6164,7 @@ function stringInputToObject(color) {
 		 * @param maxYDate
 		 */
 		boundTimeY : function(minX,maxX,minYDate,maxYDate) {
-			this.boundLinear(minX, maxX, minYDate.getTime(),maxYDate.getTime());
+			this.bound(minX, maxX, minYDate.getTime(),maxYDate.getTime());
 		},
 
 		/**
