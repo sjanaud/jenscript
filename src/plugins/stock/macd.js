@@ -172,16 +172,19 @@
 		paintCurve : function(svgLayer,g2d,part,points,id,color,width,opacity) {
 			var proj = this.plugin.getProjection();
 			var curve = new JenScript.SVGPath().Id(id);
-			for (var p = 0; p < points.length; p++) {
-				var point = points[p];
-				if(p == 0){
-					curve.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
-				}
-				else{
-					curve.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
-				}
+			var dps = [];
+			for (var j = 0; j < points.length; j++) {
+				var dp =  proj.userToPixel(points[j]);
+				dps[dps.length] = dp;
 			}
-			
+			var simplifiedPoint = JenScript.Math.simplify(dps,0.8);
+			for (var p = 0; p < simplifiedPoint.length; p++) {
+				var point = simplifiedPoint[p];
+				if(p == 0)
+					curve.moveTo(point.x,point.y);
+				else
+					curve.lineTo(point.x,point.y);
+			}
 			//g2d.deleteGraphicsElement(id);
 			//g2d.insertSVG(curve.stroke(color).strokeWidth(width).strokeOpacity(opacity).fillNone().toSVG());
 			svgLayer.child(curve.stroke(color).strokeWidth(width).strokeOpacity(opacity).fillNone().toSVG());

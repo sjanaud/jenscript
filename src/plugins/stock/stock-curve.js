@@ -71,6 +71,9 @@
 		paintLayer : function(g2d,part) {
 			if (part === 'Device') {
 				for (var i = 0; i < this.getGeometries().length; i++) {
+					var svgLayer = new JenScript.SVGGroup().Id(this.Id).name(this.name);
+					var stockCurve = new JenScript.SVGPath().Id(this.Id+'_path');
+					
 					var geom = this.getGeometries()[i];
 					var proj = this.plugin.getProjection();
 					var points = geom.getCurvePoints();
@@ -81,9 +84,6 @@
 						dps[dps.length] = dp;
 					}
 					var simplifiedPoint = JenScript.Math.simplify(dps,1);
-					
-					var svgLayer = new JenScript.SVGGroup().Id(this.Id).name(this.name);
-					var stockCurve = new JenScript.SVGPath().Id(this.Id+'_path');
 					
 					for (var p = 0; p < simplifiedPoint.length; p++) {
 						var point = simplifiedPoint[p];
