@@ -30,6 +30,10 @@
 			this.slaves = (config.slaves !== undefined)? config.slaves : [];
 			this.zoomBoxDrawColor = config.zoomBoxDrawColor ;
 			this.zoomBoxFillColor = config.zoomBoxFillColor;
+			this.zoomBoxStroke = (config.zoomBoxStroke !== undefined) ? config.zoomBoxStroke : 1;
+			this.zoomBoxFillOpacity = (config.zoomBoxFillOpacity !== undefined) ? config.zoomBoxFillOpacity : 0.3;
+			this.zoomBoxStrokeOpacity = (config.zoomBoxStrokeOpacity !== undefined) ? config.zoomBoxStrokeOpacity : 1;
+			
 			this.mode = (config.mode !== undefined) ? new JenScript.ZoomBoxMode(config.mode) : new JenScript.ZoomBoxMode('xy');
 
 		    this.minimalDelatX = 16;
@@ -425,12 +429,13 @@
 	        }
 			var fillColor = (this.zoomBoxFillColor !== undefined) ?this.zoomBoxFillColor: this.getProjection().getThemeColor();
 			var drawColor = (this.zoomBoxDrawColor !== undefined) ?this.zoomBoxDrawColor: this.getProjection().getThemeColor();
+			
 			var box = new JenScript.SVGRect().origin(bx,by)
 											.size(bw,bh)
-											.strokeWidth(0.5)
+											.strokeWidth(this.zoomBoxStroke)
 											.stroke(drawColor)
-											.fillOpacity(0.2)
-											.strokeOpacity(0.8)
+											.fillOpacity(this.zoomBoxFillOpacity)
+											.strokeOpacity(this.zoomBoxStrokeOpacity)
 											.fill(fillColor)
 											.toSVG();
 			g2d.insertSVG(box);
@@ -443,16 +448,16 @@
 			var drawColor = (this.zoomBoxDrawColor !== undefined) ?this.zoomBoxDrawColor: this.getProjection().getThemeColor();
 			var box = new JenScript.SVGRect().origin(this.zoomFxBoxStartX,this.zoomFxBoxStartY)
 												.size(zoomFxBoxWidth,zoomFxBoxHeight)
-												.strokeWidth(0.5)
+												.strokeWidth(this.zoomBoxStroke)
 												.stroke(drawColor)
-												.fillOpacity(0.2)
-												.strokeOpacity(0.8)
+												.fillOpacity(this.zoomBoxFillOpacity)
+												.strokeOpacity(this.zoomBoxStrokeOpacity)
 												.fill(fillColor)
 												.toSVG();
 											
 			g2d.insertSVG(box);
 		 },
-		 
+		
 		 paintPlugin : function(g2d, part) {
 				if(part === JenScript.ViewPart.Device && this.lockZoomingTransaction) {
 					 if (!this.lockEffect && this.isValidateBound()) {

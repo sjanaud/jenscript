@@ -233,6 +233,81 @@ var JenScript = {};
 				}
 				return tethaRadian;
 			},
+
+			getSqDist : function (p1,p2){
+			    var dx = p1.x - p2.x,
+			        dy = p1.y - p2.y;
+			    return dx * dx + dy * dy;
+			},
+
+		    getSqSegDist : function(p,p1,p2){
+			    var x = p1.x,
+			        y = p1.y,
+			        dx = p2.x - x,
+			        dy = p2.y - y;
+			    if (dx !== 0 || dy !== 0) {
+			        var t = ((p.x - x) * dx + (p.y - y) * dy) / (dx * dx + dy * dy);
+			        if (t > 1) {
+			            x = p2.x;
+			            y = p2.y;
+
+			        } else if (t > 0) {
+			            x += dx * t;
+			            y += dy * t;
+			        }
+			    }
+			    dx = p.x - x;
+			    dy = p.y - y;
+			    return dx * dx + dy * dy;
+			},
+			
+			simplifyRadialDist : function(points,sqTolerance) {
+			    var prevPoint = points[0],
+			        newPoints = [prevPoint],
+			        point;
+			    for (var i = 1, len = points.length; i < len; i++) {
+			        point = points[i];
+			        if (this.getSqDist(point, prevPoint) > sqTolerance) {
+			            newPoints.push(point);
+			            prevPoint = point;
+			        }
+			    }
+			    if (prevPoint !== point) newPoints.push(point);
+			    return newPoints;
+			},
+
+			simplifyDPStep : function(points, first, last, sqTolerance, simplified) {
+			    var maxSqDist = sqTolerance,index;
+			    for (var i = first + 1; i < last; i++) {
+			        var sqDist = this.getSqSegDist(points[i], points[first], points[last]);
+			        if (sqDist > maxSqDist) {
+			            index = i;
+			            maxSqDist = sqDist;
+			        }
+			    }
+			    if (maxSqDist > sqTolerance) {
+			        if (index - first > 1) this.simplifyDPStep(points, first, index, sqTolerance, simplified);
+			        simplified.push(points[index]);
+			        if (last - index > 1) this.simplifyDPStep(points, index, last, sqTolerance, simplified);
+			    }
+			},
+
+			simplifyDouglasPeucker : function (points, sqTolerance) {
+			    var last = points.length - 1;
+			    var simplified = [points[0]];
+			    this.simplifyDPStep(points, 0, last, sqTolerance, simplified);
+			    simplified.push(points[last]);
+			    return simplified;
+			},
+
+			simplify : function (points, tolerance, highestQuality) {
+			    if (points.length <= 2) return points;
+			    var sqTolerance = tolerance !== undefined ? tolerance * tolerance : 1;
+			    points = highestQuality ? points : this.simplifyRadialDist(points, sqTolerance);
+			    points = this.simplifyDouglasPeucker(points, sqTolerance);
+			    return points;
+			},
+
 	};
 })();
 (function(){
@@ -17963,6 +18038,10 @@ function stringInputToObject(color) {
 			this.slaves = (config.slaves !== undefined)? config.slaves : [];
 			this.zoomBoxDrawColor = config.zoomBoxDrawColor ;
 			this.zoomBoxFillColor = config.zoomBoxFillColor;
+			this.zoomBoxStroke = (config.zoomBoxStroke !== undefined) ? config.zoomBoxStroke : 1;
+			this.zoomBoxFillOpacity = (config.zoomBoxFillOpacity !== undefined) ? config.zoomBoxFillOpacity : 0.3;
+			this.zoomBoxStrokeOpacity = (config.zoomBoxStrokeOpacity !== undefined) ? config.zoomBoxStrokeOpacity : 1;
+			
 			this.mode = (config.mode !== undefined) ? new JenScript.ZoomBoxMode(config.mode) : new JenScript.ZoomBoxMode('xy');
 
 		    this.minimalDelatX = 16;
@@ -18358,12 +18437,13 @@ function stringInputToObject(color) {
 	        }
 			var fillColor = (this.zoomBoxFillColor !== undefined) ?this.zoomBoxFillColor: this.getProjection().getThemeColor();
 			var drawColor = (this.zoomBoxDrawColor !== undefined) ?this.zoomBoxDrawColor: this.getProjection().getThemeColor();
+			
 			var box = new JenScript.SVGRect().origin(bx,by)
 											.size(bw,bh)
-											.strokeWidth(0.5)
+											.strokeWidth(this.zoomBoxStroke)
 											.stroke(drawColor)
-											.fillOpacity(0.2)
-											.strokeOpacity(0.8)
+											.fillOpacity(this.zoomBoxFillOpacity)
+											.strokeOpacity(this.zoomBoxStrokeOpacity)
 											.fill(fillColor)
 											.toSVG();
 			g2d.insertSVG(box);
@@ -18376,16 +18456,16 @@ function stringInputToObject(color) {
 			var drawColor = (this.zoomBoxDrawColor !== undefined) ?this.zoomBoxDrawColor: this.getProjection().getThemeColor();
 			var box = new JenScript.SVGRect().origin(this.zoomFxBoxStartX,this.zoomFxBoxStartY)
 												.size(zoomFxBoxWidth,zoomFxBoxHeight)
-												.strokeWidth(0.5)
+												.strokeWidth(this.zoomBoxStroke)
 												.stroke(drawColor)
-												.fillOpacity(0.2)
-												.strokeOpacity(0.8)
+												.fillOpacity(this.zoomBoxFillOpacity)
+												.strokeOpacity(this.zoomBoxStrokeOpacity)
 												.fill(fillColor)
 												.toSVG();
 											
 			g2d.insertSVG(box);
 		 },
-		 
+		
 		 paintPlugin : function(g2d, part) {
 				if(part === JenScript.ViewPart.Device && this.lockZoomingTransaction) {
 					 if (!this.lockEffect && this.isValidateBound()) {
@@ -31245,17 +31325,31 @@ function stringInputToObject(color) {
 		paintLayer : function(g2d,part) {
 			if (part === 'Device') {
 				var svgLayer = new JenScript.SVGGroup().Id(this.Id).name('CandleStickLayer');
-				for (var i = 0; i < this.getGeometries().length; i++) {
-					var geom = this.getGeometries()[i];
-					var svgCandleStick = geom.deviceLowHighGap.stroke(this.lowHighColor).fillNone();
-					svgLayer.child(svgCandleStick.toSVG());
+				var count = this.plugin.getBoundedStocks().length;
+				if(count > 400){
+					var svgText = new JenScript.SVGText().Id(this.Id)
+						.location(200,30)
+						.fill('white')
+						.fontSize('8')
+						.textAnchor('start')
+						.textContent("BUSY CANDLESTICK, two much shapes");
+						
+					 svgLayer.child(svgText.toSVG());
+				}else{
+					
+					for (var i = 0; i < this.getGeometries().length; i++) {
+						var geom = this.getGeometries()[i];
+						var svgCandleStick = geom.deviceLowHighGap.stroke(this.lowHighColor).fillNone();
+						svgLayer.child(svgCandleStick.toSVG());
 
-					var fillColor = (geom.getStock().isBearish())? this.plugin.getBearishColor():this.plugin.getBullishColor();
-					var svgCandleStickFill = geom.deviceOpenCloseGap.strokeNone().fill(fillColor);
-					svgLayer.child(svgCandleStickFill.toSVG());
+						var fillColor = (geom.getStock().isBearish())? this.plugin.getBearishColor():this.plugin.getBullishColor();
+						var svgCandleStickFill = geom.deviceOpenCloseGap.strokeNone().fill(fillColor);
+						svgLayer.child(svgCandleStickFill.toSVG());
+					}
 				}
 				g2d.deleteGraphicsElement(this.Id);
 				g2d.insertSVG(svgLayer.toSVG());
+				
 			}
 		},
 	});
@@ -31333,11 +31427,23 @@ function stringInputToObject(color) {
 		paintLayer : function(g2d,part) {
 			if (part === 'Device') {
 				var svgLayer = new JenScript.SVGGroup().Id(this.Id);
-				for (var i = 0; i < this.getGeometries().length; i++) {
-					var geom = this.getGeometries()[i];
-					svgLayer.child(geom.deviceLowHighGap.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
-					svgLayer.child(geom.deviceOpenTick.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
-					svgLayer.child(geom.deviceCloseTick.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
+				var count = this.plugin.getBoundedStocks().length;
+				if(count > 400){
+					var svgText = new JenScript.SVGText().Id(this.Id)
+						.location(200,40)
+						.fill('white')
+						.fontSize('8')
+						.textAnchor('start')
+						.textContent("BUSY OHLC, two much shapes");
+						
+					 svgLayer.child(svgText.toSVG());
+				}else{
+					for (var i = 0; i < this.getGeometries().length; i++) {
+						var geom = this.getGeometries()[i];
+						svgLayer.child(geom.deviceLowHighGap.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
+						svgLayer.child(geom.deviceOpenTick.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
+						svgLayer.child(geom.deviceCloseTick.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
+					}
 				}
 				g2d.deleteGraphicsElement(this.Id);
 				g2d.insertSVG(svgLayer.toSVG());
@@ -31456,6 +31562,7 @@ function stringInputToObject(color) {
 			this.curveWidth = (config.curveWidth !== undefined)? config.curveWidth : 1;
 			this.moveCount = (config.moveCount !== undefined)? config.moveCount : 20;
 			this.Id = 'fixing'+JenScript.sequenceId++;
+			this.name = (config.name !== undefined)? config.name : 'stockCurveLayer'+this.Id;
 			config.name = (config.name !== undefined)?config.name: "StockCurveLayer";
 			JenScript.StockLayer.call(this,config);
 		},
@@ -31485,14 +31592,23 @@ function stringInputToObject(color) {
 					var geom = this.getGeometries()[i];
 					var proj = this.plugin.getProjection();
 					var points = geom.getCurvePoints();
+					
+					var dps = [];
+					for (var j = 0; j < points.length; j++) {
+						var dp =  proj.userToPixel(points[j]);
+						dps[dps.length] = dp;
+					}
+					var simplifiedPoint = JenScript.Math.simplify(dps,1);
+					
 					var svgLayer = new JenScript.SVGGroup().Id(this.Id).name(this.name);
 					var stockCurve = new JenScript.SVGPath().Id(this.Id+'_path');
-					for (var p = 0; p < points.length; p++) {
-						var point = points[p];
+					
+					for (var p = 0; p < simplifiedPoint.length; p++) {
+						var point = simplifiedPoint[p];
 						if(p == 0)
-							stockCurve.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+							stockCurve.moveTo(point.x,point.y);
 						else
-							stockCurve.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+							stockCurve.lineTo(point.x,point.y);
 					}
 					g2d.deleteGraphicsElement(this.Id);
 					svgLayer.child(stockCurve.stroke(this.curveColor).strokeWidth(this.curveWidth).strokeOpacity(this.curveOpacity).fillNone().toSVG());
@@ -31582,13 +31698,13 @@ function stringInputToObject(color) {
 			//TODO, better impl is to take only bound point and get index-moveCount and stop on need when condition(for example, not stock record available)
 			var points = [];
 			var stocks = this.getLayer().getHost().getStocks();
-			if(stocks){
-				stocks.sort(function(s1,s2){
-					if(s1.getFixing().getTime()>s2.getFixing().getTime())
-						return 1;
-					return -1;
-				});
-			}
+//			if(stocks){
+//				stocks.sort(function(s1,s2){
+//					if(s1.getFixing().getTime()>s2.getFixing().getTime())
+//						return 1;
+//					return -1;
+//				});
+//			}
 			
 			for (var i = this.moveCount; i < stocks.length; i++) {
 				var root = stocks[i];
@@ -31605,7 +31721,6 @@ function stringInputToObject(color) {
 					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), movingAverage);
 				
 			}
-			
 			this.points = points;
 		},
 		
@@ -31681,7 +31796,6 @@ function stringInputToObject(color) {
 				if(rootMillis>=minMillis && rootMillis<=maxMillis)
 					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), movingAverage);
 			}
-			
 			this.points = points;
 		},
 		
@@ -31731,18 +31845,17 @@ function stringInputToObject(color) {
 			var minMillis = proj.minX;
 			var maxMillis = proj.maxX;
 			
-			
 			//TODO, better impl is to take only bound point and get index-moveCount and stop on need when condition(for example, not stock record available)
 			var points = [];
 			var stocks = this.getLayer().getHost().getStocks();
 			
-			if(stocks){
-				stocks.sort(function(s1,s2){
-					if(s1.getFixing().getTime()>s2.getFixing().getTime())
-						return 1;
-					return -1;
-				});
-			}
+//			if(stocks){
+//				stocks.sort(function(s1,s2){
+//					if(s1.getFixing().getTime()>s2.getFixing().getTime())
+//						return 1;
+//					return -1;
+//				});
+//			}
 			var alpha = 2/(this.moveCount+1);
 			for (var i = this.moveCount; i < stocks.length; i++) {
 				var root = stocks[i];
@@ -31750,8 +31863,6 @@ function stringInputToObject(color) {
 				var divider = 1;
 				for (var j = 1; j < this.moveCount; j++) {
 					var s = stocks[i - j];
-					//sum = sum + (this.moveCount-j)*s.getClose();
-					//divider = divider + (this.moveCount-j);
 					sum = sum + Math.pow((1-alpha),j)*s.getClose();
 					divider = divider + Math.pow((1-alpha),j);
 				}
@@ -31763,7 +31874,7 @@ function stringInputToObject(color) {
 				if(rootMillis>=minMillis && rootMillis<=maxMillis)
 					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), movingAverage);
 			}
-			
+			//console.log("points in geometry exp : "+this.points.length);
 			this.points = points;
 		},
 		
@@ -31780,7 +31891,7 @@ function stringInputToObject(color) {
 	JenScript.Model.addMethods(JenScript.StockExponentialMovingAverageLayer, {
 		__init : function(config){
 			config = config || {};
-			config.name = "StockExponentialMovingAverageLayer";
+			//config.name = "StockExponentialMovingAverageLayer";
 			JenScript.StockCurveLayer.call(this,config);
 		},
 		
@@ -31929,12 +32040,20 @@ function stringInputToObject(color) {
 		paintCurve : function(layer,g2d,part,points,id) {
 			var proj = this.plugin.getProjection();
 			var stockCurve = new JenScript.SVGPath().Id(id);
-			for (var p = 0; p < points.length; p++) {
-				var point = points[p];
+			//console.log("paint curve with inputs points : "+points.length);
+			var dps = [];
+			for (var j = 0; j < points.length; j++) {
+				var dp =  proj.userToPixel(points[j]);
+				dps[dps.length] = dp;
+			}
+			var simplifiedPoint = JenScript.Math.simplify(dps,1);
+			//console.log("simplyfy bollinger up : "+updps.length+" to "+simplifiedUps.length);
+			for (var p = 0; p < simplifiedPoint.length; p++) {
+				var point = simplifiedPoint[p];
 				if(p == 0)
-					stockCurve.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+					stockCurve.moveTo(point.x,point.y);
 				else
-					stockCurve.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+					stockCurve.lineTo(point.x,point.y);
 			}
 			//g2d.deleteGraphicsElement(id);
 			//g2d.insertSVG(stockCurve.stroke(this.lineColor).strokeWidth(this.lineWidth).strokeOpacity(this.lineOpacity).fillNone().toSVG());
@@ -31945,17 +32064,46 @@ function stringInputToObject(color) {
 		paintBand : function(layer,g2d,part,up,bo) {
 			var proj = this.plugin.getProjection();
 			var stockBand = new JenScript.SVGPath().Id(this.bandId);
-			for (var p = 0; p < up.length; p++) {
-				var point = up[p];
+			
+			var updps = [];
+			for (var j = 0; j < up.length; j++) {
+				var dp =  proj.userToPixel(up[j]);
+				updps[updps.length] = dp;
+			}
+			var bodps = [];
+			for (var j = 0; j < bo.length; j++) {
+				var dp =  proj.userToPixel(bo[j]);
+				bodps[bodps.length] = dp;
+			}
+			var simplifiedUps = JenScript.Math.simplify(updps,1);
+			var simplifiedBos = JenScript.Math.simplify(bodps,1);
+			
+			//console.log("simplyfy bollinger up : "+updps.length+" to "+simplifiedUps.length);
+			//console.log("simplyfy bollinger down : "+bodps.length+" to "+simplifiedBos.length);
+			
+			for (var p = 0; p < simplifiedUps.length; p++) {
+				var point = simplifiedUps[p];
 				if(p == 0)
-					stockBand.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+					stockBand.moveTo(point.x,point.y);
 				else
-					stockBand.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+					stockBand.lineTo(point.x,point.y);
 			}
-			for (var p = bo.length-1; p >= 0; p--) {
-				var point = bo[p];
-				stockBand.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+			for (var p = simplifiedBos.length-1; p >= 0; p--) {
+				var point = simplifiedBos[p];
+				stockBand.lineTo(point.x,point.y);
 			}
+			
+//			for (var p = 0; p < up.length; p++) {
+//				var point = up[p];
+//				if(p == 0)
+//					stockBand.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+//				else
+//					stockBand.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+//			}
+//			for (var p = bo.length-1; p >= 0; p--) {
+//				var point = bo[p];
+//				stockBand.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+//			}
 			if(up.length > 0 && bo.length >0)
 				stockBand.close();
 			

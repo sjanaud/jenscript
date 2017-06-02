@@ -44,6 +44,7 @@
 			this.curveWidth = (config.curveWidth !== undefined)? config.curveWidth : 1;
 			this.moveCount = (config.moveCount !== undefined)? config.moveCount : 20;
 			this.Id = 'fixing'+JenScript.sequenceId++;
+			this.name = (config.name !== undefined)? config.name : 'stockCurveLayer'+this.Id;
 			config.name = (config.name !== undefined)?config.name: "StockCurveLayer";
 			JenScript.StockLayer.call(this,config);
 		},
@@ -73,14 +74,23 @@
 					var geom = this.getGeometries()[i];
 					var proj = this.plugin.getProjection();
 					var points = geom.getCurvePoints();
+					
+					var dps = [];
+					for (var j = 0; j < points.length; j++) {
+						var dp =  proj.userToPixel(points[j]);
+						dps[dps.length] = dp;
+					}
+					var simplifiedPoint = JenScript.Math.simplify(dps,1);
+					
 					var svgLayer = new JenScript.SVGGroup().Id(this.Id).name(this.name);
 					var stockCurve = new JenScript.SVGPath().Id(this.Id+'_path');
-					for (var p = 0; p < points.length; p++) {
-						var point = points[p];
+					
+					for (var p = 0; p < simplifiedPoint.length; p++) {
+						var point = simplifiedPoint[p];
 						if(p == 0)
-							stockCurve.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+							stockCurve.moveTo(point.x,point.y);
 						else
-							stockCurve.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+							stockCurve.lineTo(point.x,point.y);
 					}
 					g2d.deleteGraphicsElement(this.Id);
 					svgLayer.child(stockCurve.stroke(this.curveColor).strokeWidth(this.curveWidth).strokeOpacity(this.curveOpacity).fillNone().toSVG());

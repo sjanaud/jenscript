@@ -71,11 +71,23 @@
 		paintLayer : function(g2d,part) {
 			if (part === 'Device') {
 				var svgLayer = new JenScript.SVGGroup().Id(this.Id);
-				for (var i = 0; i < this.getGeometries().length; i++) {
-					var geom = this.getGeometries()[i];
-					svgLayer.child(geom.deviceLowHighGap.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
-					svgLayer.child(geom.deviceOpenTick.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
-					svgLayer.child(geom.deviceCloseTick.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
+				var count = this.plugin.getBoundedStocks().length;
+				if(count > 400){
+					var svgText = new JenScript.SVGText().Id(this.Id)
+						.location(200,40)
+						.fill('white')
+						.fontSize('8')
+						.textAnchor('start')
+						.textContent("BUSY OHLC, two much shapes");
+						
+					 svgLayer.child(svgText.toSVG());
+				}else{
+					for (var i = 0; i < this.getGeometries().length; i++) {
+						var geom = this.getGeometries()[i];
+						svgLayer.child(geom.deviceLowHighGap.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
+						svgLayer.child(geom.deviceOpenTick.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
+						svgLayer.child(geom.deviceCloseTick.fillNone().stroke(this.markerColor).strokeWidth(this.markerWidth).toSVG());
+					}
 				}
 				g2d.deleteGraphicsElement(this.Id);
 				g2d.insertSVG(svgLayer.toSVG());

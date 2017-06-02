@@ -143,17 +143,31 @@
 		paintLayer : function(g2d,part) {
 			if (part === 'Device') {
 				var svgLayer = new JenScript.SVGGroup().Id(this.Id).name('CandleStickLayer');
-				for (var i = 0; i < this.getGeometries().length; i++) {
-					var geom = this.getGeometries()[i];
-					var svgCandleStick = geom.deviceLowHighGap.stroke(this.lowHighColor).fillNone();
-					svgLayer.child(svgCandleStick.toSVG());
+				var count = this.plugin.getBoundedStocks().length;
+				if(count > 400){
+					var svgText = new JenScript.SVGText().Id(this.Id)
+						.location(200,30)
+						.fill('white')
+						.fontSize('8')
+						.textAnchor('start')
+						.textContent("BUSY CANDLESTICK, two much shapes");
+						
+					 svgLayer.child(svgText.toSVG());
+				}else{
+					
+					for (var i = 0; i < this.getGeometries().length; i++) {
+						var geom = this.getGeometries()[i];
+						var svgCandleStick = geom.deviceLowHighGap.stroke(this.lowHighColor).fillNone();
+						svgLayer.child(svgCandleStick.toSVG());
 
-					var fillColor = (geom.getStock().isBearish())? this.plugin.getBearishColor():this.plugin.getBullishColor();
-					var svgCandleStickFill = geom.deviceOpenCloseGap.strokeNone().fill(fillColor);
-					svgLayer.child(svgCandleStickFill.toSVG());
+						var fillColor = (geom.getStock().isBearish())? this.plugin.getBearishColor():this.plugin.getBullishColor();
+						var svgCandleStickFill = geom.deviceOpenCloseGap.strokeNone().fill(fillColor);
+						svgLayer.child(svgCandleStickFill.toSVG());
+					}
 				}
 				g2d.deleteGraphicsElement(this.Id);
 				g2d.insertSVG(svgLayer.toSVG());
+				
 			}
 		},
 	});

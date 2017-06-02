@@ -16,18 +16,17 @@
 			var minMillis = proj.minX;
 			var maxMillis = proj.maxX;
 			
-			
 			//TODO, better impl is to take only bound point and get index-moveCount and stop on need when condition(for example, not stock record available)
 			var points = [];
 			var stocks = this.getLayer().getHost().getStocks();
 			
-			if(stocks){
-				stocks.sort(function(s1,s2){
-					if(s1.getFixing().getTime()>s2.getFixing().getTime())
-						return 1;
-					return -1;
-				});
-			}
+//			if(stocks){
+//				stocks.sort(function(s1,s2){
+//					if(s1.getFixing().getTime()>s2.getFixing().getTime())
+//						return 1;
+//					return -1;
+//				});
+//			}
 			var alpha = 2/(this.moveCount+1);
 			for (var i = this.moveCount; i < stocks.length; i++) {
 				var root = stocks[i];
@@ -35,8 +34,6 @@
 				var divider = 1;
 				for (var j = 1; j < this.moveCount; j++) {
 					var s = stocks[i - j];
-					//sum = sum + (this.moveCount-j)*s.getClose();
-					//divider = divider + (this.moveCount-j);
 					sum = sum + Math.pow((1-alpha),j)*s.getClose();
 					divider = divider + Math.pow((1-alpha),j);
 				}
@@ -48,7 +45,7 @@
 				if(rootMillis>=minMillis && rootMillis<=maxMillis)
 					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), movingAverage);
 			}
-			
+			//console.log("points in geometry exp : "+this.points.length);
 			this.points = points;
 		},
 		
@@ -65,7 +62,7 @@
 	JenScript.Model.addMethods(JenScript.StockExponentialMovingAverageLayer, {
 		__init : function(config){
 			config = config || {};
-			config.name = "StockExponentialMovingAverageLayer";
+			//config.name = "StockExponentialMovingAverageLayer";
 			JenScript.StockCurveLayer.call(this,config);
 		},
 		

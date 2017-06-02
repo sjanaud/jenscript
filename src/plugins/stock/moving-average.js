@@ -20,13 +20,13 @@
 			//TODO, better impl is to take only bound point and get index-moveCount and stop on need when condition(for example, not stock record available)
 			var points = [];
 			var stocks = this.getLayer().getHost().getStocks();
-			if(stocks){
-				stocks.sort(function(s1,s2){
-					if(s1.getFixing().getTime()>s2.getFixing().getTime())
-						return 1;
-					return -1;
-				});
-			}
+//			if(stocks){
+//				stocks.sort(function(s1,s2){
+//					if(s1.getFixing().getTime()>s2.getFixing().getTime())
+//						return 1;
+//					return -1;
+//				});
+//			}
 			
 			for (var i = this.moveCount; i < stocks.length; i++) {
 				var root = stocks[i];
@@ -43,7 +43,6 @@
 					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), movingAverage);
 				
 			}
-			
 			this.points = points;
 		},
 		

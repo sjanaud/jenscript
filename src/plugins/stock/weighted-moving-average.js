@@ -42,7 +42,6 @@
 				if(rootMillis>=minMillis && rootMillis<=maxMillis)
 					points[points.length] = new JenScript.Point2D(root.getFixing().getTime(), movingAverage);
 			}
-			
 			this.points = points;
 		},
 		

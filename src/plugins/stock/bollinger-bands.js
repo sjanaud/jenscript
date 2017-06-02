@@ -132,12 +132,20 @@
 		paintCurve : function(layer,g2d,part,points,id) {
 			var proj = this.plugin.getProjection();
 			var stockCurve = new JenScript.SVGPath().Id(id);
-			for (var p = 0; p < points.length; p++) {
-				var point = points[p];
+			//console.log("paint curve with inputs points : "+points.length);
+			var dps = [];
+			for (var j = 0; j < points.length; j++) {
+				var dp =  proj.userToPixel(points[j]);
+				dps[dps.length] = dp;
+			}
+			var simplifiedPoint = JenScript.Math.simplify(dps,1);
+			//console.log("simplyfy bollinger up : "+updps.length+" to "+simplifiedUps.length);
+			for (var p = 0; p < simplifiedPoint.length; p++) {
+				var point = simplifiedPoint[p];
 				if(p == 0)
-					stockCurve.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+					stockCurve.moveTo(point.x,point.y);
 				else
-					stockCurve.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+					stockCurve.lineTo(point.x,point.y);
 			}
 			//g2d.deleteGraphicsElement(id);
 			//g2d.insertSVG(stockCurve.stroke(this.lineColor).strokeWidth(this.lineWidth).strokeOpacity(this.lineOpacity).fillNone().toSVG());
@@ -148,17 +156,46 @@
 		paintBand : function(layer,g2d,part,up,bo) {
 			var proj = this.plugin.getProjection();
 			var stockBand = new JenScript.SVGPath().Id(this.bandId);
-			for (var p = 0; p < up.length; p++) {
-				var point = up[p];
+			
+			var updps = [];
+			for (var j = 0; j < up.length; j++) {
+				var dp =  proj.userToPixel(up[j]);
+				updps[updps.length] = dp;
+			}
+			var bodps = [];
+			for (var j = 0; j < bo.length; j++) {
+				var dp =  proj.userToPixel(bo[j]);
+				bodps[bodps.length] = dp;
+			}
+			var simplifiedUps = JenScript.Math.simplify(updps,1);
+			var simplifiedBos = JenScript.Math.simplify(bodps,1);
+			
+			//console.log("simplyfy bollinger up : "+updps.length+" to "+simplifiedUps.length);
+			//console.log("simplyfy bollinger down : "+bodps.length+" to "+simplifiedBos.length);
+			
+			for (var p = 0; p < simplifiedUps.length; p++) {
+				var point = simplifiedUps[p];
 				if(p == 0)
-					stockBand.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+					stockBand.moveTo(point.x,point.y);
 				else
-					stockBand.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+					stockBand.lineTo(point.x,point.y);
 			}
-			for (var p = bo.length-1; p >= 0; p--) {
-				var point = bo[p];
-				stockBand.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+			for (var p = simplifiedBos.length-1; p >= 0; p--) {
+				var point = simplifiedBos[p];
+				stockBand.lineTo(point.x,point.y);
 			}
+			
+//			for (var p = 0; p < up.length; p++) {
+//				var point = up[p];
+//				if(p == 0)
+//					stockBand.moveTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+//				else
+//					stockBand.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+//			}
+//			for (var p = bo.length-1; p >= 0; p--) {
+//				var point = bo[p];
+//				stockBand.lineTo(proj.userToPixelX(point.x),proj.userToPixelY(point.y));
+//			}
 			if(up.length > 0 && bo.length >0)
 				stockBand.close();
 			

@@ -85,7 +85,7 @@
 		/**
 		 * zoom in with in the specified nature
 		 * 
-		 * @param zoomNature
+		 * @param processNature
 		 */
 		zoomIn : function(processNature) {
 			this.processNature = processNature;
@@ -111,15 +111,12 @@
 			var pMinXMinYUser = proj.pixelToUser(pMinXMinYDevice);
 			var pMaxXMaxYUser = proj.pixelToUser(pMaxXMaxYDevice);
 				if(this.lensType == 'LensXY'){
-					console.log("zoom in xy")
 					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
 				else if(this.lensType === 'LensX'){
-					console.log("zoom in x")
 					proj.bound(pMinXMinYUser.x, pMaxXMaxYUser.x, proj.getMinY(), proj.getMaxY());
 				}
 				else if(this.lensType === 'LensY'){
-					console.log("zoom in y")
 					proj.bound(proj.getMinX(), proj.getMaxX(), pMinXMinYUser.y, pMaxXMaxYUser.y);
 				}
 			this.fireLensEvent('zoomIn');
@@ -128,7 +125,7 @@
 		/**
 		 * zoom out with in the specified nature
 		 * 
-		 * @param zoomNature
+		 * @param processNature
 		 */
 		zoomOut : function(processNature) {
 			this.processNature = processNature;
