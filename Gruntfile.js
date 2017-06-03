@@ -288,12 +288,14 @@ module.exports = function(grunt) {
 		uglify : {
 			options : {
 				banner : "<%= banner %>",
-				report : "min"
+				report : "min",
+				sourceMap : true
 			},
 			dist : {
 				src : "<%= libname %>",
 				dest : "<%= minName %>"
-			}
+			},
+			
 		},
 		
 		copy: {
