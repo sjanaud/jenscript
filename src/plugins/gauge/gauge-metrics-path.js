@@ -12,7 +12,6 @@
 	JenScript.Model.inheritPrototype(JenScript.GaugeMetricsPath,JenScript.GeneralMetricsPath);
 	JenScript.Model.addMethods(JenScript.GaugeMetricsPath,{
 		_init : function(config){
-			console.log('create gauge metrics path');
 			config = config || {};
 			config.nature = 'Device';
 			/** current value */
@@ -144,7 +143,6 @@
 		 * @param g2d
 		 */
 		draw : function(g2d) {
-			console.log('gauge metrics path draw');
 			this.graphicsContext = g2d;
 			this.getMetrics();
 
