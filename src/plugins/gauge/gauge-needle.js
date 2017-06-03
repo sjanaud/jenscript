@@ -1,9 +1,4 @@
 (function(){
-
-	
-	
-	
-	
 	
 	/**
 	 * Object JenScript.GaugeNeedlePainter()
@@ -65,16 +60,16 @@
 			var needleValue = gaugeMetricsPath.getNeedleValueAnchorBinder().bindAnchor(gaugeMetricsPath.getBody().getGauge());
 			var needleLine = new JenScript.SVGPath().moveTo(needleBase.x,needleBase.y).lineTo(needleValue.x,needleValue.y);
 			var s1 = needleLine.strokeWidth(4).strokeLineCap('round').opacity(0.6).stroke('black').toSVG();
-			var s2 = needleLine.strokeWidth(10).strokeLineCap('round').opacity(0.4).stroke(JenScript.RosePalette.AEGEANBLUE).toSVG();
+			var s2 = needleLine.strokeWidth(10).strokeLineCap('round').opacity(0.4).stroke('#2980b9').toSVG();
 			g2d.insertSVG(s2);
 			g2d.insertSVG(s1);
 			var centerRadius =14;
-			var shader = {percents:['0%','100%'],colors:[JenScript.RosePalette.AEGEANBLUE,'black']};
+			var shader = {percents:['0%','100%'],colors:['#2980b9','black']};
 			var gradientId = "gradient"+JenScript.sequenceId++;
 			var gradient= new JenScript.SVGRadialGradient().Id(gradientId).center(needleBase.getX(),needleBase.getY()).focus(needleBase.getX(),needleBase.getY()).radius(centerRadius).shade(shader.percents,shader.colors).toSVG();
 			g2d.definesSVG(gradient);
 			var center = new JenScript.SVGCircle().center(needleBase.getX(),needleBase.getY()).radius(centerRadius);
-			g2d.insertSVG(center.fillURL(gradientId).fillOpacity(0.6).strokeOpacity(0.5).strokeWidth(2).stroke(JenScript.RosePalette.AEGEANBLUE).toSVG());
+			g2d.insertSVG(center.fillURL(gradientId).fillOpacity(0.6).strokeOpacity(0.5).strokeWidth(2).stroke('#2980b9').toSVG());
 		}
 	});
 	

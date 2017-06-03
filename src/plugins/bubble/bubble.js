@@ -23,7 +23,7 @@
 			this.center = (config.center !== undefined)?config.center : new JenScript.Point2D(0,0);
 			this.radius = (config.radius !== undefined)?config.radius : 50;
 			
-			this.fillColor = (config.fillColor !== undefined)?config.fillColor : JenScript.RosePalette.INDIGO;
+			this.fillColor = (config.fillColor !== undefined)?config.fillColor : 'black';
 			this.fillOpacity = (config.fillOpacity !== undefined)?config.fillOpacity : 1;
 			this.strokeColor = config.strokeColor;
 			this.strokeWidth = (config.strokeWidth !== undefined)?config.strokeWidth : 1;

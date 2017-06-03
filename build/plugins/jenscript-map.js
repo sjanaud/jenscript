@@ -218,8 +218,7 @@
 			var w = this.getProjection().getView().getDevice().getWidth();
 			var h = this.getProjection().getView().getDevice().getHeight();
 			var rect = new JenScript.SVGRect().origin(0,0).size(w,h);
-			//JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,50)
-			g2d.insertSVG(rect.strokeNone().fill(JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,30)).toSVG());
+			g2d.insertSVG(rect.strokeNone().fill('#3498db').toSVG());
 		}
 			
 	});

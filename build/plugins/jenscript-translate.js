@@ -367,26 +367,26 @@
 			
 			JenScript.AbstractBackwardForwardPadWidget.call(this,config);
 			
-			 /** theme color to fill pad base */
-		    this.baseFillColor = JenScript.RosePalette.COALBLACK;
+		    /** theme color to fill pad base */
+		    this.baseFillColor = 'black';
 		    /** theme color to draw pad base */
-		    this.baseStrokeColor = JenScript.RosePalette.MELON;
+		    this.baseStrokeColor = '#f39c12';
 		    /** stroke width to draw pad base */
 		    this.baseStrokeWidth = 1;
 		    /** theme color to fill pad control */
 		   // this.controlFillColor = 'rgba(250,0,0,0.4)';
 		    /** theme color to draw pad control */
-		    this.controlStrokeColor = JenScript.RosePalette.AEGEANBLUE;
+		    this.controlStrokeColor = '#2980b9';
 		    /** stroke width to draw pad control */
 		    this.controlStrokeWidth =1;
 		    /** button fill color */
-		    this.buttonFillColor = JenScript.RosePalette.CALYPSOBLUE;
+		    this.buttonFillColor = '#2ecc71';
 		    /** button rollover fill color */
-		    this.buttonRolloverFillColor = JenScript.RosePalette.MELON;
+		    this.buttonRolloverFillColor = '#f39c12';
 		    /** button stroke color */
-		    this.buttonStrokeColor =  JenScript.RosePalette.COALBLACK;
+		    this.buttonStrokeColor =  '#8e44ad';
 		    /** button rollover stroke color */
-		    this.buttonRolloverStrokeColor =JenScript.RosePalette.MELON;
+		    this.buttonRolloverStrokeColor ='#f39c12';
 		    /** button stroke */
 		    this.buttonStrokeWidth =1;
 		},

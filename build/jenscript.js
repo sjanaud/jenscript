@@ -2172,7 +2172,7 @@ function stringInputToObject(color) {
 
 
 				//.attr('transform','rotate(0 '+m.getMetricPointRef().x+' '+m.getMetricPointRef().y+')')
-				var svgText = new JenScript.SVGText().textAnchor('middle').attr('id',this.Id+'_metrics'+i).attr('transform','rotate('+m.getRotate()+' ' +m.getMetricPointRef().x+' '+m.getMetricPointRef().y+')').fill(JenScript.RosePalette.HENNA).stroke('white').strokeWidth(0.5).fontSize(20);
+				var svgText = new JenScript.SVGText().textAnchor('middle').attr('id',this.Id+'_metrics'+i).attr('transform','rotate('+m.getRotate()+' ' +m.getMetricPointRef().x+' '+m.getMetricPointRef().y+')').fill('red').stroke('white').strokeWidth(0.5).fontSize(20);
 				var svgTextPath = new JenScript.SVGTextPath().xlinkHref('#'+this.Id+'_path').startOffset(m.getPercentOnPath()+'%');
 				var tspan = new JenScript.SVGTSpan().dy(m.getDy()).textContent(m.getMetricsLabel());
 				//group.child(tspan.toSVG());
@@ -10585,22 +10585,10 @@ function stringInputToObject(color) {
 			config.buttonFillColor=(config.buttonFillColor !== undefined)?config.buttonFillColor:'gray';
 			config.buttonRolloverFillColor=(config.buttonRolloverFillColor !== undefined)?config.buttonRolloverFillColor:'orange';
 			config.buttonFillColorOpacity=(config.buttonFillColorOpacity !== undefined)?config.buttonFillColorOpacity:1;
-			
 			JenScript.AbstractButtonWidget.call(this,config);
-			
 			var percents = ['0%','20%','50%','80%','100%'];
 		    var colors = [ 'rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0,0.6)', 'rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.6)','rgba(0, 0, 0, 0.1)' ];
-		    
-//		    var buttonDrawColor = JenScript.RosePalette.COALBLACK;
-//		    var buttonRolloverDrawColor = 'pink';
-//			
-//		    //this.setShader({percents:percents, colors:colors});
-//		    this.setButtonFillColor('gray');
-//		    this.setButtonRolloverFillColor('green');
-//		    this.setButtonDrawColor(buttonDrawColor);
-//		    this.setButtonRolloverDrawColor(buttonRolloverDrawColor);
 		    this.setOrphanLock(false);
-		    
 		    this.onPress = config.onPress;
 		},
 	    onButtonPress : function() {
@@ -17523,26 +17511,26 @@ function stringInputToObject(color) {
 			
 			JenScript.AbstractBackwardForwardPadWidget.call(this,config);
 			
-			 /** theme color to fill pad base */
-		    this.baseFillColor = JenScript.RosePalette.COALBLACK;
+		    /** theme color to fill pad base */
+		    this.baseFillColor = 'black';
 		    /** theme color to draw pad base */
-		    this.baseStrokeColor = JenScript.RosePalette.MELON;
+		    this.baseStrokeColor = '#f39c12';
 		    /** stroke width to draw pad base */
 		    this.baseStrokeWidth = 1;
 		    /** theme color to fill pad control */
 		   // this.controlFillColor = 'rgba(250,0,0,0.4)';
 		    /** theme color to draw pad control */
-		    this.controlStrokeColor = JenScript.RosePalette.AEGEANBLUE;
+		    this.controlStrokeColor = '#2980b9';
 		    /** stroke width to draw pad control */
 		    this.controlStrokeWidth =1;
 		    /** button fill color */
-		    this.buttonFillColor = JenScript.RosePalette.CALYPSOBLUE;
+		    this.buttonFillColor = '#2ecc71';
 		    /** button rollover fill color */
-		    this.buttonRolloverFillColor = JenScript.RosePalette.MELON;
+		    this.buttonRolloverFillColor = '#f39c12';
 		    /** button stroke color */
-		    this.buttonStrokeColor =  JenScript.RosePalette.COALBLACK;
+		    this.buttonStrokeColor =  '#8e44ad';
 		    /** button rollover stroke color */
-		    this.buttonRolloverStrokeColor =JenScript.RosePalette.MELON;
+		    this.buttonRolloverStrokeColor ='#f39c12';
 		    /** button stroke */
 		    this.buttonStrokeWidth =1;
 		},
@@ -19026,25 +19014,25 @@ function stringInputToObject(color) {
 			JenScript.AbstractPlusMinusPadWidget.call(this,config);
 			
 			 /** theme color to fill pad base */
-		    this.baseFillColor = JenScript.RosePalette.COALBLACK;
+		    this.baseFillColor = 'black';
 		    /** theme color to draw pad base */
-		    this.baseStrokeColor = JenScript.RosePalette.MELON;
+		    this.baseStrokeColor = '#f39c12';
 		    /** stroke width to draw pad base */
 		    this.baseStrokeWidth = 1;
 		    /** theme color to fill pad control */
 		   // this.controlFillColor = 'rgba(250,0,0,0.4)';
 		    /** theme color to draw pad control */
-		    this.controlStrokeColor = JenScript.RosePalette.AEGEANBLUE;
+		    this.controlStrokeColor = '#2980b9';
 		    /** stroke width to draw pad control */
 		    this.controlStrokeWidth =1;
 		    /** button fill color */
-		    this.buttonFillColor = JenScript.RosePalette.EMERALD;
+		    this.buttonFillColor = '#2ecc71';
 		    /** button rollover fill color */
-		    this.buttonRolloverFillColor = JenScript.RosePalette.MELON;
+		    this.buttonRolloverFillColor = '#f39c12';
 		    /** button stroke color */
-		    this.buttonStrokeColor =  JenScript.RosePalette.FOXGLOWE;
+		    this.buttonStrokeColor =  '#8e44ad';
 		    /** button rollover stroke color */
-		    this.buttonRolloverStrokeColor =JenScript.RosePalette.MELON;
+		    this.buttonRolloverStrokeColor ='#f39c12';
 		    /** button stroke */
 		    this.buttonStrokeWidth =1;
 		},
@@ -30569,14 +30557,13 @@ function stringInputToObject(color) {
 			this.name=(config.name !== undefined)?config.name : 'unamed monitor';
 			this.outlineStrokeWidth=config.outlineStrokeWidth;
 			
-			//this.backgroundColor=(config.backgroundColor !== undefined)?config.backgroundColor : JenScript.RosePalette.COALBLACK;
-			this.backgroundColor=(config.backgroundColor !== undefined)?config.backgroundColor : JenScript.RosePalette.COALBLACK;
+			this.backgroundColor=(config.backgroundColor !== undefined)?config.backgroundColor : 'black';
 			this.backgroundOpacity=(config.backgroundOpacity !== undefined)?config.backgroundOpacity : 1;
 			
-			this.foregroundColor=(config.foregroundColor !== undefined)?config.foregroundColor : JenScript.RosePalette.CALYPSOBLUE;
+			this.foregroundColor=(config.foregroundColor !== undefined)?config.foregroundColor : '#2980b9';
 			this.foregroundOpacity=(config.foregroundOpacity !== undefined)?config.foregroundOpacity : 1;
 			
-			this.textColor =(config.textColor !== undefined)?config.textColor : JenScript.RosePalette.COALBLACK;
+			this.textColor =(config.textColor !== undefined)?config.textColor : 'black';
 			this.fontSize = (config.fontSize !== undefined)?config.fontSize : 10 ;
 			
 			this.total=config.total;
@@ -32596,7 +32583,7 @@ function stringInputToObject(color) {
 			var shader2 = {percents:['0%','50%','100%'],colors:['black','gray','black']};
 			var gradient2= new JenScript.SVGLinearGradient().Id('ciseroGd2').from(start4.x,start4.y).to(end4.x,end4.y).shade(shader2.percents,shader2.colors);
 			g2d.definesSVG(gradient2.toSVG());
-			g2d.insertSVG(path.stroke(JenScript.RosePalette.MELON).attr('fill-rule','nonzero').fillURL('ciseroGd2').toSVG());
+			g2d.insertSVG(path.stroke('#2980b9').attr('fill-rule','nonzero').fillURL('ciseroGd2').toSVG());
 		}
 	});
 })();
@@ -33434,7 +33421,7 @@ function stringInputToObject(color) {
 			this.solveIntersectionPoints();
 
 			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
-			g2d.insertSVG(line3.stroke(JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,30).toHexString()).fillNone().toSVG());
+			g2d.insertSVG(line3.stroke(JenScript.Color.brighten('#2980b9',30).toHexString()).fillNone().toSVG());
 			
 			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
 			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
@@ -33451,11 +33438,11 @@ function stringInputToObject(color) {
 			var i1 = new JenScript.SVGCircle().center(this.intersectionPointStart.getX(), this.intersectionPointStart.getY()).radius(4);
 			var i2 = new JenScript.SVGCircle().center(this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY()).radius(4);
 			
-			var color = (this.direction == 'Clockwise')? 'cyan' : 'orange';
+			var color = (this.direction == 'Clockwise')? '#1abc9c' : '#e74c3c';
 			this.drawPath(g2d, p, color);
 			
-			g2d.insertSVG(i1.fill(JenScript.RosePalette.LIME).toSVG());
-			g2d.insertSVG(i2.fill(JenScript.RosePalette.LIME).toSVG());
+			g2d.insertSVG(i1.fill('#f1c40f').toSVG());
+			g2d.insertSVG(i2.fill('#f1c40f').toSVG());
 			
 		},
 
@@ -33913,7 +33900,7 @@ function stringInputToObject(color) {
 			this.solveIntersectionPoints();
 
 			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
-			g2d.insertSVG(line3.stroke(JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,30).toHexString()).fillNone().toSVG());
+			g2d.insertSVG(line3.stroke(JenScript.Color.brighten('#2980b9',30).toHexString()).fillNone().toSVG());
 			
 			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
 			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
@@ -33930,11 +33917,11 @@ function stringInputToObject(color) {
 			var i1 = new JenScript.SVGCircle().center(this.intersectionPointStart.getX(), this.intersectionPointStart.getY()).radius(4);
 			var i2 = new JenScript.SVGCircle().center(this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY()).radius(4);
 			
-			var color = (this.direction == 'Clockwise')? 'cyan' : 'orange';
+			var color = (this.direction == 'Clockwise')? '#1abc9c' : '#e74c3c';
 			this.drawPath(g2d, p, color);
 			
-			g2d.insertSVG(i1.fill(JenScript.RosePalette.LIME).toSVG());
-			g2d.insertSVG(i2.fill(JenScript.RosePalette.LIME).toSVG());
+			g2d.insertSVG(i1.fill('#f1c40f').toSVG());
+			g2d.insertSVG(i2.fill('#f1c40f').toSVG());
 			
 			//this debug block
 			//super.debug(g2d, gauge);
@@ -34084,7 +34071,7 @@ function stringInputToObject(color) {
 			this.solveIntersectionPoints();
 
 			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
-			g2d.insertSVG(line3.stroke(JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,30).toHexString()).fillNone().toSVG());
+			g2d.insertSVG(line3.stroke(JenScript.Color.brighten('#2980b9',30).toHexString()).fillNone().toSVG());
 			
 			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
 			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
@@ -34101,11 +34088,11 @@ function stringInputToObject(color) {
 			var i1 = new JenScript.SVGCircle().center(this.intersectionPointStart.getX(), this.intersectionPointStart.getY()).radius(4);
 			var i2 = new JenScript.SVGCircle().center(this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY()).radius(4);
 			
-			var color = (this.direction == 'Clockwise')? 'cyan' : 'orange';
+			var color = (this.direction == 'Clockwise')? '#1abc9c' : '#e74c3c';
 			this.drawPath(g2d, p, color);
 			
-			g2d.insertSVG(i1.fill(JenScript.RosePalette.LIME).toSVG());
-			g2d.insertSVG(i2.fill(JenScript.RosePalette.LIME).toSVG());
+			g2d.insertSVG(i1.fill('#f1c40f').toSVG());
+			g2d.insertSVG(i2.fill('#f1c40f').toSVG());
 			
 			//this quad debug
 //			g2d.setColor(NanoChromatique.GREEN);
@@ -34118,11 +34105,6 @@ function stringInputToObject(color) {
 	});
 })();
 (function(){
-
-	
-	
-	
-	
 	
 	/**
 	 * Object JenScript.GaugeNeedlePainter()
@@ -34184,16 +34166,16 @@ function stringInputToObject(color) {
 			var needleValue = gaugeMetricsPath.getNeedleValueAnchorBinder().bindAnchor(gaugeMetricsPath.getBody().getGauge());
 			var needleLine = new JenScript.SVGPath().moveTo(needleBase.x,needleBase.y).lineTo(needleValue.x,needleValue.y);
 			var s1 = needleLine.strokeWidth(4).strokeLineCap('round').opacity(0.6).stroke('black').toSVG();
-			var s2 = needleLine.strokeWidth(10).strokeLineCap('round').opacity(0.4).stroke(JenScript.RosePalette.AEGEANBLUE).toSVG();
+			var s2 = needleLine.strokeWidth(10).strokeLineCap('round').opacity(0.4).stroke('#2980b9').toSVG();
 			g2d.insertSVG(s2);
 			g2d.insertSVG(s1);
 			var centerRadius =14;
-			var shader = {percents:['0%','100%'],colors:[JenScript.RosePalette.AEGEANBLUE,'black']};
+			var shader = {percents:['0%','100%'],colors:['#2980b9','black']};
 			var gradientId = "gradient"+JenScript.sequenceId++;
 			var gradient= new JenScript.SVGRadialGradient().Id(gradientId).center(needleBase.getX(),needleBase.getY()).focus(needleBase.getX(),needleBase.getY()).radius(centerRadius).shade(shader.percents,shader.colors).toSVG();
 			g2d.definesSVG(gradient);
 			var center = new JenScript.SVGCircle().center(needleBase.getX(),needleBase.getY()).radius(centerRadius);
-			g2d.insertSVG(center.fillURL(gradientId).fillOpacity(0.6).strokeOpacity(0.5).strokeWidth(2).stroke(JenScript.RosePalette.AEGEANBLUE).toSVG());
+			g2d.insertSVG(center.fillURL(gradientId).fillOpacity(0.6).strokeOpacity(0.5).strokeWidth(2).stroke('#2980b9').toSVG());
 		}
 	});
 	
@@ -34843,7 +34825,7 @@ function stringInputToObject(color) {
 			this.center = (config.center !== undefined)?config.center : new JenScript.Point2D(0,0);
 			this.radius = (config.radius !== undefined)?config.radius : 50;
 			
-			this.fillColor = (config.fillColor !== undefined)?config.fillColor : JenScript.RosePalette.INDIGO;
+			this.fillColor = (config.fillColor !== undefined)?config.fillColor : 'black';
 			this.fillOpacity = (config.fillOpacity !== undefined)?config.fillOpacity : 1;
 			this.strokeColor = config.strokeColor;
 			this.strokeWidth = (config.strokeWidth !== undefined)?config.strokeWidth : 1;
@@ -37993,8 +37975,7 @@ function stringInputToObject(color) {
 			var w = this.getProjection().getView().getDevice().getWidth();
 			var h = this.getProjection().getView().getDevice().getHeight();
 			var rect = new JenScript.SVGRect().origin(0,0).size(w,h);
-			//JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,50)
-			g2d.insertSVG(rect.strokeNone().fill(JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,30)).toSVG());
+			g2d.insertSVG(rect.strokeNone().fill('#3498db').toSVG());
 		}
 			
 	});

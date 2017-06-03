@@ -156,7 +156,7 @@
 			var shader2 = {percents:['0%','50%','100%'],colors:['black','gray','black']};
 			var gradient2= new JenScript.SVGLinearGradient().Id('ciseroGd2').from(start4.x,start4.y).to(end4.x,end4.y).shade(shader2.percents,shader2.colors);
 			g2d.definesSVG(gradient2.toSVG());
-			g2d.insertSVG(path.stroke(JenScript.RosePalette.MELON).attr('fill-rule','nonzero').fillURL('ciseroGd2').toSVG());
+			g2d.insertSVG(path.stroke('#2980b9').attr('fill-rule','nonzero').fillURL('ciseroGd2').toSVG());
 		}
 	});
 })();

@@ -452,22 +452,10 @@
 			config.buttonFillColor=(config.buttonFillColor !== undefined)?config.buttonFillColor:'gray';
 			config.buttonRolloverFillColor=(config.buttonRolloverFillColor !== undefined)?config.buttonRolloverFillColor:'orange';
 			config.buttonFillColorOpacity=(config.buttonFillColorOpacity !== undefined)?config.buttonFillColorOpacity:1;
-			
 			JenScript.AbstractButtonWidget.call(this,config);
-			
 			var percents = ['0%','20%','50%','80%','100%'];
 		    var colors = [ 'rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0,0.6)', 'rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.6)','rgba(0, 0, 0, 0.1)' ];
-		    
-//		    var buttonDrawColor = JenScript.RosePalette.COALBLACK;
-//		    var buttonRolloverDrawColor = 'pink';
-//			
-//		    //this.setShader({percents:percents, colors:colors});
-//		    this.setButtonFillColor('gray');
-//		    this.setButtonRolloverFillColor('green');
-//		    this.setButtonDrawColor(buttonDrawColor);
-//		    this.setButtonRolloverDrawColor(buttonRolloverDrawColor);
 		    this.setOrphanLock(false);
-		    
 		    this.onPress = config.onPress;
 		},
 	    onButtonPress : function() {

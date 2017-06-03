@@ -263,7 +263,7 @@
 			this.solveIntersectionPoints();
 
 			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
-			g2d.insertSVG(line3.stroke(JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,30).toHexString()).fillNone().toSVG());
+			g2d.insertSVG(line3.stroke(JenScript.Color.brighten('#2980b9',30).toHexString()).fillNone().toSVG());
 			
 			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
 			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
@@ -280,11 +280,11 @@
 			var i1 = new JenScript.SVGCircle().center(this.intersectionPointStart.getX(), this.intersectionPointStart.getY()).radius(4);
 			var i2 = new JenScript.SVGCircle().center(this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY()).radius(4);
 			
-			var color = (this.direction == 'Clockwise')? 'cyan' : 'orange';
+			var color = (this.direction == 'Clockwise')? '#1abc9c' : '#e74c3c';
 			this.drawPath(g2d, p, color);
 			
-			g2d.insertSVG(i1.fill(JenScript.RosePalette.LIME).toSVG());
-			g2d.insertSVG(i2.fill(JenScript.RosePalette.LIME).toSVG());
+			g2d.insertSVG(i1.fill('#f1c40f').toSVG());
+			g2d.insertSVG(i2.fill('#f1c40f').toSVG());
 			
 		},
 
@@ -742,7 +742,7 @@
 			this.solveIntersectionPoints();
 
 			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
-			g2d.insertSVG(line3.stroke(JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,30).toHexString()).fillNone().toSVG());
+			g2d.insertSVG(line3.stroke(JenScript.Color.brighten('#2980b9',30).toHexString()).fillNone().toSVG());
 			
 			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
 			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
@@ -759,11 +759,11 @@
 			var i1 = new JenScript.SVGCircle().center(this.intersectionPointStart.getX(), this.intersectionPointStart.getY()).radius(4);
 			var i2 = new JenScript.SVGCircle().center(this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY()).radius(4);
 			
-			var color = (this.direction == 'Clockwise')? 'cyan' : 'orange';
+			var color = (this.direction == 'Clockwise')? '#1abc9c' : '#e74c3c';
 			this.drawPath(g2d, p, color);
 			
-			g2d.insertSVG(i1.fill(JenScript.RosePalette.LIME).toSVG());
-			g2d.insertSVG(i2.fill(JenScript.RosePalette.LIME).toSVG());
+			g2d.insertSVG(i1.fill('#f1c40f').toSVG());
+			g2d.insertSVG(i2.fill('#f1c40f').toSVG());
 			
 			//this debug block
 			//super.debug(g2d, gauge);
@@ -913,7 +913,7 @@
 			this.solveIntersectionPoints();
 
 			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
-			g2d.insertSVG(line3.stroke(JenScript.Color.brighten(JenScript.RosePalette.CALYPSOBLUE,30).toHexString()).fillNone().toSVG());
+			g2d.insertSVG(line3.stroke(JenScript.Color.brighten('#2980b9',30).toHexString()).fillNone().toSVG());
 			
 			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
 			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
@@ -930,11 +930,11 @@
 			var i1 = new JenScript.SVGCircle().center(this.intersectionPointStart.getX(), this.intersectionPointStart.getY()).radius(4);
 			var i2 = new JenScript.SVGCircle().center(this.intersectionPointEnd.getX(), this.intersectionPointEnd.getY()).radius(4);
 			
-			var color = (this.direction == 'Clockwise')? 'cyan' : 'orange';
+			var color = (this.direction == 'Clockwise')? '#1abc9c' : '#e74c3c';
 			this.drawPath(g2d, p, color);
 			
-			g2d.insertSVG(i1.fill(JenScript.RosePalette.LIME).toSVG());
-			g2d.insertSVG(i2.fill(JenScript.RosePalette.LIME).toSVG());
+			g2d.insertSVG(i1.fill('#f1c40f').toSVG());
+			g2d.insertSVG(i2.fill('#f1c40f').toSVG());
 			
 			//this quad debug
 //			g2d.setColor(NanoChromatique.GREEN);
