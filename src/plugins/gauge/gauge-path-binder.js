@@ -742,7 +742,7 @@
 			this.solveIntersectionPoints();
 
 			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
-			g2d.insertSVG(line3.stroke('#2980b9').toHexString()).fillNone().toSVG());
+			g2d.insertSVG(line3.stroke('#2980b9').toHexString().fillNone().toSVG());
 			
 			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
 			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
@@ -913,7 +913,7 @@
 			this.solveIntersectionPoints();
 
 			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
-			g2d.insertSVG(line3.stroke('#2980b9').toHexString()).fillNone().toSVG());
+			g2d.insertSVG(line3.stroke('#2980b9').fillNone().toSVG());
 			
 			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
 			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());

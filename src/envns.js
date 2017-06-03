@@ -1,9 +1,4 @@
-/**
-* @namespace JenScript
-*/
 var JenScript = {};
-
-
 (function() {
 	
 		JenScript = {

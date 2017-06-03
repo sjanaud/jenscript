@@ -1,11 +1,5 @@
-// JenScript -  JavaScript HTML5/SVG Library
-// version : 1.3.1
-// Author : Sebastien Janaud 
-// Web Site : http://jenscript.io
-// Twitter  : http://twitter.com/JenSoftAPI
-// Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-06-03
-// All Rights reserved
+// JenScript - 1.3.1 2017-06-03
+// http://jenscript.io - Copyright 2017 Sébastien Janaud. All Rights reserved
 
 (function(){
 	
@@ -1103,7 +1097,7 @@
 			this.solveIntersectionPoints();
 
 			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
-			g2d.insertSVG(line3.stroke(JenScript.Color.brighten('#2980b9',30).toHexString()).fillNone().toSVG());
+			g2d.insertSVG(line3.stroke('#2980b9').fillNone().toSVG());
 			
 			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
 			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
@@ -1582,7 +1576,7 @@
 			this.solveIntersectionPoints();
 
 			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
-			g2d.insertSVG(line3.stroke(JenScript.Color.brighten('#2980b9',30).toHexString()).fillNone().toSVG());
+			g2d.insertSVG(line3.stroke('#2980b9').toHexString().fillNone().toSVG());
 			
 			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
 			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
@@ -1753,7 +1747,7 @@
 			this.solveIntersectionPoints();
 
 			var line3 = new JenScript.SVGPath().moveTo(this.x1,this.y1).lineTo(this.x0,this.y0);
-			g2d.insertSVG(line3.stroke(JenScript.Color.brighten('#2980b9',30).toHexString()).fillNone().toSVG());
+			g2d.insertSVG(line3.stroke('#2980b9').fillNone().toSVG());
 			
 			g2d.insertSVG(this.arc0.stroke('black').fillNone().toSVG());
 			g2d.insertSVG(this.arc1.stroke('darkgray').fillNone().toSVG());
