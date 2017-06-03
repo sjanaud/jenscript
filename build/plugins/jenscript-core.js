@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-06-02
+// build: 2017-06-03
 // All Rights reserved
 
 /**
@@ -22,6 +22,7 @@ var JenScript = {};
 				sequenceId: 0,
 				SVG_NS : 'http://www.w3.org/2000/svg',
 				XLINK_NS : 'http://www.w3.org/1999/xlink',
+				XHTML_NS : 'http://www.w3.org/1999/xhtml',
 				SVG_VERSION : '1.1',
 				
 				/**

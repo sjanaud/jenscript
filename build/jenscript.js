@@ -4,7 +4,7 @@
 // Web Site : http://jenscript.io
 // Twitter  : http://twitter.com/JenSoftAPI
 // Copyright (C) 2008 - 2017 JenScript, product by JenSoftAPI company, France.
-// build: 2017-06-02
+// build: 2017-06-03
 // All Rights reserved
 
 /**
@@ -22,6 +22,7 @@ var JenScript = {};
 				sequenceId: 0,
 				SVG_NS : 'http://www.w3.org/2000/svg',
 				XLINK_NS : 'http://www.w3.org/1999/xlink',
+				XHTML_NS : 'http://www.w3.org/1999/xhtml',
 				SVG_VERSION : '1.1',
 				
 				/**
@@ -31156,7 +31157,7 @@ function stringInputToObject(color) {
 	     */
 		addStockListener  : function(actionEvent,listener,name){
 			if(name === undefined)
-				throw new Error('Symbol listener, listener name should be supplied.');
+				throw new Error('Stock listener, listener name should be supplied.');
 			var l = {action:actionEvent , onEvent : listener, name:name};
 			this.stockListeners[this.stockListeners.length] = l;
 		},
@@ -34211,7 +34212,6 @@ function stringInputToObject(color) {
 	JenScript.Model.inheritPrototype(JenScript.GaugeMetricsPath,JenScript.GeneralMetricsPath);
 	JenScript.Model.addMethods(JenScript.GaugeMetricsPath,{
 		_init : function(config){
-			console.log('create gauge metrics path');
 			config = config || {};
 			config.nature = 'Device';
 			/** current value */
@@ -34343,7 +34343,6 @@ function stringInputToObject(color) {
 		 * @param g2d
 		 */
 		draw : function(g2d) {
-			console.log('gauge metrics path draw');
 			this.graphicsContext = g2d;
 			this.getMetrics();
 
