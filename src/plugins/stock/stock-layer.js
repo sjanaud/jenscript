@@ -74,7 +74,7 @@
 	     */
 		addStockListener  : function(actionEvent,listener,name){
 			if(name === undefined)
-				throw new Error('Symbol listener, listener name should be supplied.');
+				throw new Error('Stock listener, listener name should be supplied.');
 			var l = {action:actionEvent , onEvent : listener, name:name};
 			this.stockListeners[this.stockListeners.length] = l;
 		},
