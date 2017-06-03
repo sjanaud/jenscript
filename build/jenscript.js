@@ -1773,7 +1773,7 @@ function stringInputToObject(color) {
 		 * get metrics on this path
 		 */
 		getMetrics : function(){
-			console.log('general metrics path get Metrics');
+			//console.log('general metrics path get Metrics');
 			this.createPath();
 			
 			if(this.svgPathElement === undefined)
