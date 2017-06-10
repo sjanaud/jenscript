@@ -59,6 +59,13 @@
 			this.geoListeners = [];
 		},
 		
+		clear : function(){
+			this.data = [];
+			this.paths = [];
+			this.features = [];
+			this.repaintPlugin();
+		},
+		
 
 		/**
 		 * on projection register
@@ -134,12 +141,12 @@
 					this.fireGeoJSONEvent('register',{ type : 'register', target : undefined, feature : feature, remote : undefined});
 				}
 			}
-			else if(geojson.isFeature){
+			else if(geojson.isFeature()){
 				var feature = new JenScript.MapFeature(data);
 				this.features[this.features.length] =  feature;
 				this.fireGeoJSONEvent('register',{ type : 'register', target : undefined, feature : feature, remote : undefined});
 			}
-			this.repaintPlugin();
+			this.repaintPlugin(); 
 		},
 		
 		
