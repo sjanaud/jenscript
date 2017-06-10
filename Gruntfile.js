@@ -229,7 +229,8 @@ module.exports = function(grunt) {
 								//"src/plugins/map/map-semantic-transform-plugin.js",
 								"src/plugins/map/map-geometric-translate-plugin.js",
 								"src/plugins/map/map-geometric-zoom-plugin.js",
-								"src/plugins/map/map-geojson-plugin.js"],
+								"src/plugins/map/map-geojson-plugin.js",
+								"src/plugins/map/map-util.js"],
 
 			 transform    : [	"src/plugins/transforms/semantic-transform-plugin.js"],
 			
