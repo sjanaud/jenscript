@@ -225,13 +225,19 @@
 		       	
 		    },
 		    
+//		SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(elem) {
+//				    return elem.getScreenCTM().inverse().multiply(this.getScreenCTM());
+//		};
 		    
 		 // Calculate the bounding box of an element with respect to its parent element
 		 transformedBoundingBox : function(el){
 			 if(el === undefined) return null;
-		      var bb  = el.getBBox(),
-		          svg = el.ownerSVGElement,
-		          m   = el.getTransformToElement(el.parentNode);
+		      var bb  = el.getBBox(), svg = el.ownerSVGElement;
+		      
+		      //var  m   = el.getTransformToElement(el.parentNode);
+		      
+		      var  m   = el.parentNode.getScreenCTM().inverse().multiply(el.getScreenCTM());//el.getTransformToElement(el.parentNode);
+		      
 		      var pts = [
 		        svg.createSVGPoint(), svg.createSVGPoint(),
 		        svg.createSVGPoint(), svg.createSVGPoint()
