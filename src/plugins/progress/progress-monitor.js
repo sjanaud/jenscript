@@ -42,7 +42,7 @@
 			var that = this;
 			setTimeout(function(){
 				that.plugin.repaintPlugin();
-			},100);
+			},20);
 			
 			if((this.value === this.total) && this.onComplete !== undefined)
 				this.complete();
