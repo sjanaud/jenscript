@@ -141,7 +141,6 @@
 				return new JenScript.Graphics({definitions : this.svgPluginPartsDefinitions[part],graphics : this.svgPluginPartsGraphics[part], selectors : this.getProjection().getView().svgSelectors});	
 			}catch(e)
 			{
-				//console.log("catch bad graphics");
 				return undefined;
 			}
 		},
