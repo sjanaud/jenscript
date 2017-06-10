@@ -1,4 +1,4 @@
-// JenScript - 1.3.1 2017-06-03
+// JenScript - 1.3.2 2017-06-10
 // http://jenscript.io - Copyright 2017 Sébastien Janaud. All Rights reserved
 
 (function(){
@@ -135,7 +135,7 @@
 			var that = this;
 			setTimeout(function(){
 				that.plugin.repaintPlugin();
-			},100);
+			},20);
 			
 			if((this.value === this.total) && this.onComplete !== undefined)
 				this.complete();

@@ -1,4 +1,4 @@
-// JenScript - 1.3.1 2017-06-03
+// JenScript - 1.3.2 2017-06-10
 // http://jenscript.io - Copyright 2017 Sébastien Janaud. All Rights reserved
 
 var JenScript = {};
@@ -6,7 +6,7 @@ var JenScript = {};
 	
 		JenScript = {
 				
-				version : '1.3.1',
+				version : '1.3.2',
 				views : [],
 				sequenceId: 0,
 				SVG_NS : 'http://www.w3.org/2000/svg',
@@ -3148,10 +3148,6 @@ function stringInputToObject(color) {
 	});
 })();
 (function() {
-	
-	SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(elem) {
-	    return elem.getScreenCTM().inverse().multiply(this.getScreenCTM());
-	};
 	
 	/**
      * @constructor
@@ -6522,7 +6518,6 @@ function stringInputToObject(color) {
 				return new JenScript.Graphics({definitions : this.svgPluginPartsDefinitions[part],graphics : this.svgPluginPartsGraphics[part], selectors : this.getProjection().getView().svgSelectors});	
 			}catch(e)
 			{
-				//console.log("catch bad graphics");
 				return undefined;
 			}
 		},

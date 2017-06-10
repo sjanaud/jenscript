@@ -1,4 +1,4 @@
-// JenScript - 1.3.1 2017-06-03
+// JenScript - 1.3.2 2017-06-10
 // http://jenscript.io - Copyright 2017 Sébastien Janaud. All Rights reserved
 
 (function () {
@@ -2491,13 +2491,19 @@
 		       	
 		    },
 		    
+//		SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(elem) {
+//				    return elem.getScreenCTM().inverse().multiply(this.getScreenCTM());
+//		};
 		    
 		 // Calculate the bounding box of an element with respect to its parent element
 		 transformedBoundingBox : function(el){
 			 if(el === undefined) return null;
-		      var bb  = el.getBBox(),
-		          svg = el.ownerSVGElement,
-		          m   = el.getTransformToElement(el.parentNode);
+		      var bb  = el.getBBox(), svg = el.ownerSVGElement;
+		      
+		      //var  m   = el.getTransformToElement(el.parentNode);
+		      
+		      var  m   = el.parentNode.getScreenCTM().inverse().multiply(el.getScreenCTM());//el.getTransformToElement(el.parentNode);
+		      
 		      var pts = [
 		        svg.createSVGPoint(), svg.createSVGPoint(),
 		        svg.createSVGPoint(), svg.createSVGPoint()
