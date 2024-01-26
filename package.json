@@ -9,7 +9,7 @@
     "charts"
   ],
   "description": "JavaScript HTML5/SVG library for Visualization and Charting in web modern browsers.",
-  "homepage": "http://jenscript.io",
+  "homepage": "http://jenscript.org",
   "main": "build/jenscript.js",
   "browser": "build/jenscript.js",
   "scripts": {
