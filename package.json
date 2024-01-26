@@ -1,6 +1,6 @@
 {
   "name": "jenscript",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "keywords": [
     "javascript",
     "w3c",
@@ -14,9 +14,9 @@
   "browser": "build/jenscript.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "release" : "grunt release",
-    "modules" : "grunt modules",
-    "module"  : "grunt module"
+    "release": "grunt release",
+    "modules": "grunt modules",
+    "module": "grunt module"
   },
   "repository": {
     "type": "git",
